@@ -3,1177 +3,960 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maxwell Morgan Clicker Deluxe</title>
+    <title>Maxwell Morgan Clicker: 250+ Features Edition</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --panel-bg: #1e293b;
+            --bg-color: #090d16;
+            --panel-bg: #111827;
+            --panel-border: #1f2937;
             --accent: #38bdf8;
-            --accent-glow: rgba(56, 189, 248, 0.4);
-            --text-color: #f8fafc;
+            --accent-glow: rgba(56, 189, 248, 0.3);
             --ds-color: #f59e0b;
+            --ss-color: #a855f7;
+            --cd-color: #ec4899;
+            --text-color: #f9fafb;
         }
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-        }
+        /* UI Theme Styles */
+        body.theme-cyber { --bg-color: #050515; --panel-bg: #0d0b26; --accent: #ff007f; --accent-glow: rgba(255,0,127,0.4); }
+        body.theme-hacker { --bg-color: #020b05; --panel-bg: #051a0e; --accent: #22c55e; --accent-glow: rgba(34,197,94,0.4); }
+        body.theme-solar { --bg-color: #1a0c02; --panel-bg: #2d1605; --accent: #f97316; --accent-glow: rgba(249,115,22,0.4); }
 
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; }
+        
         body {
-            margin: 0;
-            padding: 10px;
+            margin: 0; padding: 10px;
             background-color: var(--bg-color);
             color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; overflow-x: hidden;
+            transition: background-color 0.5s ease;
         }
 
-        /* Ticker */
-        .news-ticker {
-            width: 100%;
-            max-width: 1100px;
-            background: #0284c7;
-            color: white;
-            padding: 6px 15px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        #fx-canvas {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 1;
         }
 
-        /* Top Header Stats */
-        .stats-bar {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            max-width: 1100px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+        .container { position: relative; z-index: 2; width: 100%; max-width: 1350px; }
+
+        /* Ticker Bar */
+        .ticker-bar {
+            width: 100%; background: #0284c7; color: #fff; padding: 6px 12px;
+            border-radius: 6px; font-size: 0.85rem; font-weight: bold;
+            text-align: center; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
-        .stat-card {
-            flex: 1;
-            min-width: 200px;
-            background: var(--panel-bg);
-            border: 2px solid #334155;
-            padding: 10px 15px;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        /* Resources Header Grid */
+        .resource-header {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px; margin-bottom: 12px;
         }
 
-        .stat-card .val {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: var(--accent);
+        .res-card {
+            background: var(--panel-bg); border: 2px solid var(--panel-border);
+            padding: 10px; border-radius: 8px; text-align: center;
+        }
+        .res-card .label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; }
+        .res-card .val { font-size: 1.3rem; font-weight: bold; color: var(--accent); }
+        .res-card.ds .val { color: var(--ds-color); }
+        .res-card.ss .val { color: var(--ss-color); }
+        .res-card.cd .val { color: var(--cd-color); }
+
+        /* Main Layout */
+        .game-grid { display: grid; grid-template-columns: 340px 1fr; gap: 12px; }
+        @media (max-width: 850px) { .game-grid { grid-template-columns: 1fr; } }
+
+        /* Stage Area (Left) */
+        .stage-box {
+            background: var(--panel-bg); border: 2px solid var(--panel-border);
+            border-radius: 12px; padding: 15px; display: flex; flex-direction: column;
+            align-items: center; position: relative;
         }
 
-        .stat-card.ds .val {
-            color: var(--ds-color);
-        }
+        .combo-container { width: 100%; margin-bottom: 8px; }
+        .combo-bg { width: 100%; height: 8px; background: #374151; border-radius: 4px; overflow: hidden; }
+        .combo-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #ef4444); transition: width 0.1s linear; }
 
-        /* Layout Grid */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 15px;
-            width: 100%;
-            max-width: 1100px;
-        }
-
-        @media (max-width: 800px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Clicker Stage */
-        .stage {
-            background: var(--panel-bg);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            border: 2px solid #334155;
-        }
-
-        .combo-meter {
-            width: 100%;
-            height: 10px;
-            background: #334155;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .combo-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #38bdf8, #f43f5e);
-            transition: width 0.1s linear;
-        }
-
-        .maxwell-btn {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            border: 6px solid var(--accent);
+        /* Main Click Target */
+        .maxwell-target {
+            width: 175px; height: 175px; border-radius: 50%;
+            border: 5px solid var(--accent);
             background: radial-gradient(circle, #3b82f6, #1d4ed8);
-            color: white;
-            font-size: 1.4rem;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 20px var(--accent-glow);
-            transition: transform 0.05s ease;
-            position: relative;
-            margin: 15px 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+            color: white; font-size: 1.3rem; font-weight: bold;
+            cursor: pointer; box-shadow: 0 0 25px var(--accent-glow);
+            transition: transform 0.05s ease; position: relative;
+            margin: 10px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
         }
+        .maxwell-target:active { transform: scale(0.92); }
 
-        .maxwell-btn:active {
-            transform: scale(0.92);
+        .anim-bounce { animation: pulseBounce 1s infinite alternate; }
+        @keyframes pulseBounce { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+        .anim-spin { animation: slowSpin 10s infinite linear; }
+        @keyframes slowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Spells Grid */
+        .ability-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; margin-top: 10px; }
+        .ab-btn {
+            background: #1f2937; border: 1px solid #374151; color: #fff;
+            padding: 8px 4px; border-radius: 6px; font-size: 0.72rem; cursor: pointer; text-align: center;
         }
+        .ab-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Skins Styles */
-        .skin-classic { background: radial-gradient(circle, #3b82f6, #1d4ed8); border-color: #38bdf8; }
-        .skin-gold { background: radial-gradient(circle, #fbbf24, #b45309); border-color: #fef08a; }
-        .skin-neon { background: radial-gradient(circle, #f43f5e, #881337); border-color: #fb7185; }
-        .skin-rainbow { background: linear-gradient(45deg, #f43f5e, #eab308, #22c55e, #06b6d4, #a855f7); border-color: #ffffff; }
-        .skin-matrix { background: radial-gradient(circle, #22c55e, #14532d); border-color: #86efac; }
-        .skin-cyberpunk { background: radial-gradient(circle, #a855f7, #581c87); border-color: #f0abfc; }
-
-        /* Floating Popups */
-        .click-pop {
-            position: absolute;
-            font-weight: bold;
-            font-size: 1.3rem;
-            color: #38bdf8;
-            pointer-events: none;
-            animation: floatUp 0.8s forwards ease-out;
-            text-shadow: 1px 1px 3px black;
+        /* Tab Controls (Right) */
+        .tab-box {
+            background: var(--panel-bg); border: 2px solid var(--panel-border);
+            border-radius: 12px; padding: 15px;
         }
-
-        @keyframes floatUp {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-50px) scale(1.3); }
-        }
-
-        /* Navigation Tabs */
-        .tab-container {
-            background: var(--panel-bg);
-            border-radius: 12px;
-            padding: 15px;
-            border: 2px solid #334155;
-        }
-
-        .tabs-header {
-            display: flex;
-            gap: 8px;
-            border-bottom: 2px solid #334155;
-            padding-bottom: 10px;
-            overflow-x: auto;
-        }
-
+        .tabs-header { display: flex; gap: 6px; border-bottom: 2px solid #374151; padding-bottom: 8px; overflow-x: auto; }
         .tab-btn {
-            background: #0f172a;
-            color: #94a3b8;
-            border: 1px solid #334155;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            white-space: nowrap;
+            background: #1f2937; color: #9ca3af; border: 1px solid #374151;
+            padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap;
+        }
+        .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        .tab-content { display: none; padding-top: 12px; }
+        .tab-content.active { display: block; }
+
+        /* Lists & Toggles */
+        .mode-toggles { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-group { display: flex; gap: 4px; }
+        .sm-btn { background: #1f2937; border: 1px solid #374151; color: #fff; padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; }
+        .sm-btn.active { background: var(--accent); color: #000; }
+
+        .upg-list { display: flex; flex-direction: column; gap: 6px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
+        .upg-card {
+            background: #1f2937; border: 1px solid #374151; color: white;
+            padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; transition: border-color 0.15s;
+        }
+        .upg-card:hover:not(:disabled) { border-color: var(--accent); }
+        .upg-card:disabled { opacity: 0.4; cursor: not-allowed; }
+        .upg-title { font-weight: bold; font-size: 0.88rem; display: block; }
+        .upg-sub { font-size: 0.75rem; color: #9ca3af; }
+        .upg-cost { font-weight: bold; color: var(--accent); font-size: 0.85rem; }
+
+        /* Floating Animation Popups */
+        .click-pop {
+            position: fixed; font-weight: bold; font-size: 1.2rem;
+            pointer-events: none; animation: floatUp 0.8s forwards ease-out; z-index: 100;
+            text-shadow: 0 0 4px #000;
+        }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+
+        /* Random Event Elements */
+        #golden-sam, #boss-event {
+            position: fixed; border-radius: 50%; display: none; justify-content: center;
+            align-items: center; font-weight: bold; cursor: pointer; z-index: 500;
+        }
+        #golden-sam { width: 55px; height: 55px; background: gold; color: #000; border: 2px solid #fff; box-shadow: 0 0 15px gold; }
+        #boss-event { width: 95px; height: 95px; background: #ef4444; color: #fff; border: 3px solid #fff; box-shadow: 0 0 25px #ef4444; font-size: 0.8rem; text-align: center; }
+
+        #notify-toast {
+            position: fixed; bottom: 20px; right: 20px; background: #22c55e;
+            color: #000; padding: 10px 18px; border-radius: 6px; font-weight: bold;
+            display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
 
-        .tab-btn.active {
-            background: var(--accent);
-            color: #0f172a;
-            border-color: var(--accent);
-        }
-
-        .tab-content {
-            display: none;
-            padding-top: 15px;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Upgrades & Buttons */
-        .btn-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .upg-btn {
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: white;
-            padding: 10px 14px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background 0.15s;
-        }
-
-        .upg-btn:hover:not(:disabled) {
-            background: #1e293b;
-            border-color: var(--accent);
-        }
-
-        .upg-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
-        .upg-info { text-align: left; }
-        .upg-title { font-weight: bold; display: block; }
-        .upg-sub { font-size: 0.8rem; color: #94a3b8; }
-        .upg-cost { font-weight: bold; color: var(--accent); }
-
-        /* DS Shop Special Button */
-        .ds-btn .upg-cost { color: var(--ds-color); }
-
-        /* Golden Sam */
-        #golden-sam {
-            position: fixed;
-            width: 50px;
-            height: 50px;
-            background: gold;
-            border-radius: 50%;
-            border: 3px solid #fff;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            color: #000;
-            cursor: pointer;
-            box-shadow: 0 0 15px gold;
-            z-index: 999;
-            animation: pulse 1s infinite alternate;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.15); }
-        }
-
-        /* Notification Banner */
-        #notify-banner {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #22c55e;
-            color: #000;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-weight: bold;
-            display: none;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            z-index: 1000;
-        }
-
-        /* Modal Overlay */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .modal-box {
-            background: var(--panel-bg);
-            border: 2px solid var(--accent);
-            padding: 20px;
-            border-radius: 12px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .action-btn {
-            background: var(--accent);
-            color: #000;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 5px;
-        }
-
-        .danger-btn { background: #ef4444; color: white; }
+        .key-hint { font-size: 0.7rem; color: #9ca3af; text-align: center; margin-top: 4px; }
     </style>
 </head>
 <body>
 
-    <!-- News Ticker -->
-    <div class="news-ticker" id="ticker">Maxwell Morgan clicker active! Click Maxwell to earn Sam's.</div>
+    <!-- Canvas Background Overlay -->
+    <canvas id="fx-canvas"></canvas>
 
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-        <div class="stat-card">
-            <div>Sam's</div>
-            <div class="val" id="sams-val">0</div>
-            <div style="font-size:0.8rem; color:#94a3b8" id="sps-val">0 / sec</div>
-        </div>
-        <div class="stat-card ds">
-            <div>DS's (Dev Points)</div>
-            <div class="val" id="ds-val">0</div>
-            <div style="font-size:0.8rem; color:#94a3b8" id="rebirth-val">0 Rebirths</div>
-        </div>
-        <div class="stat-card">
-            <div>Active Multipliers</div>
-            <div class="val" id="mult-val">1.0x</div>
-            <div style="font-size:0.8rem; color:#94a3b8" id="combo-val">Combo: 0x</div>
-        </div>
-    </div>
+    <div class="container">
+        <!-- News Ticker -->
+        <div class="ticker-bar" id="news-ticker">Maxwell Morgan Stock reaches all-time high after Quantum Sam discovery!</div>
 
-    <!-- Main Game Grid -->
-    <div class="main-grid">
-        
-        <!-- Left Column: Clicker Stage -->
-        <div class="stage">
-            <div style="width:100%;">
-                <div style="font-size:0.8rem; color:#94a3b8; display:flex; justify-content:space-between;">
-                    <span>Combo Bar</span>
-                    <span id="combo-text">0x</span>
-                </div>
-                <div class="combo-meter"><div class="combo-fill" id="combo-fill"></div></div>
+        <!-- Resources Header -->
+        <div class="resource-header">
+            <div class="res-card">
+                <div class="label">Sam's</div>
+                <div class="val" id="res-sams">0</div>
+                <div style="font-size:0.75rem; color:#9ca3af" id="res-sps">0 / sec</div>
             </div>
-
-            <button class="maxwell-btn skin-classic" id="maxwell-btn">
-                <span id="maxwell-label">Maxwell<br>Morgan</span>
-            </button>
-
-            <button class="action-btn" id="ability-overclock" style="width:100%; margin-top:10px;">
-                ⚡ Overclock (2x SPS for 10s) [CD: <span id="overclock-cd">Ready</span>]
-            </button>
-
-            <div style="margin-top:15px; width:100%; font-size:0.85rem; color:#94a3b8; text-align:center;">
-                <div>Click Power: <b id="click-power-val" style="color:var(--text-color);">1</b></div>
-                <div>Crit Chance: <b id="crit-chance-val" style="color:var(--text-color);">5%</b></div>
+            <div class="res-card ds">
+                <div class="label">DS (Dev Points)</div>
+                <div class="val" id="res-ds">0</div>
+                <div style="font-size:0.75rem; color:#9ca3af" id="res-rebirths">0 Rebirths</div>
+            </div>
+            <div class="res-card ss">
+                <div class="label">Sam Shards</div>
+                <div class="val" id="res-ss">0</div>
+                <div style="font-size:0.75rem; color:#9ca3af">Tier 2 Sacrifices</div>
+            </div>
+            <div class="res-card cd">
+                <div class="label">Cosmic Dust</div>
+                <div class="val" id="res-cd">0</div>
+                <div style="font-size:0.75rem; color:#9ca3af">Tier 3 Ascensions</div>
             </div>
         </div>
 
-        <!-- Right Column: Tabbed Menu -->
-        <div class="tab-container">
-            <div class="tabs-header">
-                <button class="tab-btn active" onclick="openTab('tab-shop')">Shop</button>
-                <button class="tab-btn" onclick="openTab('tab-rebirth')">Rebirth & DS</button>
-                <button class="tab-btn" onclick="openTab('tab-minigame')">Gamble</button>
-                <button class="tab-btn" onclick="openTab('tab-skins')">Skins</button>
-                <button class="tab-btn" onclick="openTab('tab-achievements')">Badges</button>
-                <button class="tab-btn" onclick="openTab('tab-stats')">Stats</button>
-                <button class="tab-btn" onclick="openTab('tab-settings')">Settings</button>
-            </div>
-
-            <!-- Tab: Base Shop -->
-            <div id="tab-shop" class="tab-content active">
-                <h3>Click Upgrades</h3>
-                <div class="btn-list" id="click-upgrades-list"></div>
-
-                <h3 style="margin-top:20px;">Buildings (Passive Sam's)</h3>
-                <div class="btn-list" id="building-upgrades-list"></div>
-            </div>
-
-            <!-- Tab: Rebirth & DS -->
-            <div id="tab-rebirth" class="tab-content">
-                <h3>Rebirth Core</h3>
-                <p style="font-size:0.9rem; color:#94a3b8;">Reset Sam's and standard upgrades to obtain DS's. Each DS gives a +10% passive production bonus across all runs!</p>
-                
-                <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; text-align:center; margin-bottom:15px;">
-                    <div>Pending DS: <b id="pending-ds-val" style="color:var(--ds-color); font-size:1.4rem;">0</b></div>
-                    <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">Requires minimum 10,000 Sam's</div>
-                    <button class="action-btn danger-btn" id="rebirth-action-btn" style="margin-top:10px; width:100%;">Rebirth Now</button>
-                </div>
-
-                <h3>DS Perk Shop</h3>
-                <div class="btn-list" id="ds-upgrades-list"></div>
-            </div>
-
-            <!-- Tab: Gamble / Mini-game -->
-            <div id="tab-minigame" class="tab-content">
-                <h3>Sam's Coin Flip</h3>
-                <p style="font-size:0.9rem; color:#94a3b8;">Wager your Sam's on a 50/50 chance to double them or lose them!</p>
-                <div style="background:#0f172a; padding:15px; border-radius:8px; border:1px solid #334155; text-align:center;">
-                    <input type="number" id="gamble-amount" placeholder="Enter Sam's Wager" style="padding:8px; width:80%; background:#1e293b; border:1px solid #334155; color:white; border-radius:6px; margin-bottom:10px;">
-                    <div>
-                        <button class="action-btn" onclick="gamble(0.5)">50% Balance</button>
-                        <button class="action-btn" onclick="gamble(1.0)">All In!</button>
+        <!-- Game Main Grid -->
+        <div class="game-grid">
+            
+            <!-- Left Stage Side -->
+            <div class="stage-box">
+                <div class="combo-container">
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#9ca3af;">
+                        <span>Combo Streak</span>
+                        <span id="combo-mult-text">1.0x</span>
                     </div>
-                    <div id="gamble-result" style="margin-top:10px; font-weight:bold;"></div>
+                    <div class="combo-bg"><div class="combo-fill" id="combo-fill"></div></div>
+                </div>
+
+                <div class="maxwell-target anim-bounce" id="maxwell-target">
+                    <span id="maxwell-text">Maxwell<br>Morgan</span>
+                </div>
+                <div class="key-hint">💡 Press <b>[ENTER]</b> or <b>[SPACEBAR]</b> to click!</div>
+
+                <div style="font-size:0.8rem; color:#9ca3af; text-align:center; margin:8px 0 4px 0;">
+                    Click Power: <b id="stat-cp" style="color:#fff;">1</b> | Crit: <b id="stat-crit" style="color:#fff;">5%</b>
+                </div>
+
+                <!-- Active Spells Panel -->
+                <div class="ability-grid">
+                    <button class="ab-btn" id="ab-0" onclick="useAbility(0)">⚡ Tap Surge [1]<br><span id="cd-0">Ready</span></button>
+                    <button class="ab-btn" id="ab-1" onclick="useAbility(1)">⏳ Time Warp [2]<br><span id="cd-1">Ready</span></button>
+                    <button class="ab-btn" id="ab-2" onclick="useAbility(2)">🌟 Sam Storm [3]<br><span id="cd-2">Ready</span></button>
+                    <button class="ab-btn" id="ab-3" onclick="useAbility(3)">🔥 Overdrive [4]<br><span id="cd-3">Ready</span></button>
+                    <button class="ab-btn" id="ab-4" onclick="useAbility(4)">🧲 DS Magnet [5]<br><span id="cd-4">Ready</span></button>
+                    <button class="ab-btn" id="ab-5" onclick="useAbility(5)">📉 Deflation [6]<br><span id="cd-5">Ready</span></button>
+                </div>
+
+                <!-- Active Equipment Gear -->
+                <div style="width:100%; margin-top:12px; font-size:0.8rem; border-top:1px solid #374151; padding-top:8px;">
+                    <b>Equipped Gear Slots:</b>
+                    <div id="equipped-gear-box" style="display:flex; gap:6px; margin-top:4px;">
+                        <span class="sm-btn" style="opacity:0.6;">Slot 1: None</span>
+                        <span class="sm-btn" style="opacity:0.6;">Slot 2: None</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Tab: Skins -->
-            <div id="tab-skins" class="tab-content">
-                <h3>Maxwell Morgan Custom Skins</h3>
-                <div class="btn-list" id="skins-list"></div>
-            </div>
-
-            <!-- Tab: Achievements -->
-            <div id="tab-achievements" class="tab-content">
-                <h3>Achievements (+2% Production Boost Each)</h3>
-                <div class="btn-list" id="achievements-list"></div>
-            </div>
-
-            <!-- Tab: Stats -->
-            <div id="tab-stats" class="tab-content">
-                <h3>Lifetime Game Statistics</h3>
-                <div style="font-size:0.95rem; line-height:1.8;" id="stats-container-list">
-                    <!-- Populated via JS -->
+            <!-- Right Tab Panel -->
+            <div class="tab-box">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="showTab('tab-shop')">Shop</button>
+                    <button class="tab-btn" onclick="showTab('tab-prestige')">Rebirth & Tiers</button>
+                    <button class="tab-btn" onclick="showTab('tab-talents')">Talent Tree</button>
+                    <button class="tab-btn" onclick="showTab('tab-stocks')">Stock & Crypto</button>
+                    <button class="tab-btn" onclick="showTab('tab-minigames')">Minigames & Mining</button>
+                    <button class="tab-btn" onclick="showTab('tab-pets')">Pets & Loot</button>
+                    <button class="tab-btn" onclick="showTab('tab-cosmetics')">Themes & FX</button>
+                    <button class="tab-btn" onclick="showTab('tab-settings')">Settings</button>
                 </div>
+
+                <!-- Tab: Shop -->
+                <div id="tab-shop" class="tab-content active">
+                    <div class="mode-toggles">
+                        <span style="font-size:0.85rem; font-weight:bold;">Buy Multiplier:</span>
+                        <div class="btn-group">
+                            <button class="sm-btn active" id="buy-1" onclick="setBuyAmount(1)">x1</button>
+                            <button class="sm-btn" id="buy-10" onclick="setBuyAmount(10)">x10</button>
+                            <button class="sm-btn" id="buy-100" onclick="setBuyAmount(100)">x100</button>
+                        </div>
+                    </div>
+
+                    <h4 style="margin:8px 0 4px 0; color:var(--accent);">Manual Click Upgrades</h4>
+                    <div class="upg-list" id="click-upg-list"></div>
+
+                    <h4 style="margin:12px 0 4px 0; color:var(--accent);">Passive Sam Buildings</h4>
+                    <div class="upg-list" id="building-upg-list"></div>
+                </div>
+
+                <!-- Tab: Rebirth & Prestige -->
+                <div id="tab-prestige" class="tab-content">
+                    <h3>Prestige Hierarchy</h3>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;">
+                        <div style="background:#1f2937; padding:10px; border-radius:6px; text-align:center;">
+                            <h4>Tier 1: Rebirth</h4>
+                            <p style="font-size:0.75rem; color:#9ca3af;">Earn DS to multiply baseline production!</p>
+                            <div>Pending: <b id="pending-ds-text" style="color:var(--ds-color)">0</b> DS</div>
+                            <button class="sm-btn" onclick="doRebirth()" style="margin-top:6px; width:100%;">Rebirth</button>
+                        </div>
+                        <div style="background:#1f2937; padding:10px; border-radius:6px; text-align:center;">
+                            <h4>Tier 2: Sacrifice</h4>
+                            <p style="font-size:0.75rem; color:#9ca3af;">Sacrifice 500 DS to forge Sam Shards.</p>
+                            <div>Req: 500 DS</div>
+                            <button class="sm-btn" onclick="doSacrifice()" style="margin-top:6px; width:100%;">Sacrifice</button>
+                        </div>
+                        <div style="background:#1f2937; padding:10px; border-radius:6px; text-align:center;">
+                            <h4>Tier 3: Celestial</h4>
+                            <p style="font-size:0.75rem; color:#9ca3af;">Ascend for rare Cosmic Dust!</p>
+                            <div>Req: 100 SS</div>
+                            <button class="sm-btn" onclick="doAscend()" style="margin-top:6px; width:100%;">Ascend</button>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-top:12px;">Dev Point Perks</h4>
+                    <div class="upg-list" id="ds-perks-list"></div>
+                </div>
+
+                <!-- Tab: Talent Tree -->
+                <div id="tab-talents" class="tab-content">
+                    <h3>Specialization Talent Tree</h3>
+                    <div style="font-size:0.8rem; color:#9ca3af; margin-bottom:8px;">Talent Points Available: <b id="talent-points-val" style="color:#fff;">0</b></div>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;" id="talents-grid"></div>
+                </div>
+
+                <!-- Tab: Stock & Crypto -->
+                <div id="tab-stocks" class="tab-content">
+                    <h3>Stock & Crypto Exchange</h3>
+                    <div id="stocks-list-container" class="upg-list"></div>
+                </div>
+
+                <!-- Tab: Minigames & Mining -->
+                <div id="tab-minigames" class="tab-content">
+                    <h3>Minigames & Ore Dig Site</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div style="background:#1f2937; padding:10px; border-radius:6px; text-align:center;">
+                            <h4>Wheel of Maxwell</h4>
+                            <p style="font-size:0.75rem; color:#9ca3af;">Spin for high-yield prizes!</p>
+                            <button class="sm-btn" id="spin-wheel-btn" onclick="spinWheel()">Spin Wheel</button>
+                        </div>
+                        <div style="background:#1f2937; padding:10px; border-radius:6px; text-align:center;">
+                            <h4>Compound Bank</h4>
+                            <p style="font-size:0.75rem; color:#9ca3af;">Earn 2% hourly compound interest.</p>
+                            <button class="sm-btn" onclick="depositBank()">Deposit 10% Sam's</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px; background:#1f2937; padding:12px; border-radius:6px; text-align:center;">
+                        <h4>Dig Site Ore Pit</h4>
+                        <p style="font-size:0.75rem; color:#9ca3af;">Click the pickaxe to mine deep layers for rare gem deposits!</p>
+                        <button class="sm-btn" style="font-size:1rem; padding:8px 16px;" onclick="mineOre()">⛏️ Mine Layer (<span id="mine-depth">Layer 1</span>)</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Pets & Loot -->
+                <div id="tab-pets" class="tab-content">
+                    <h3>Companions & Loot Crates</h3>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                        <div>
+                            <h4>Pet Incubator</h4>
+                            <button class="sm-btn" onclick="hatchPet()">Hatch Pet Egg (1,000 Sam's)</button>
+                            <div id="pets-list" class="upg-list" style="margin-top:6px;"></div>
+                        </div>
+                        <div>
+                            <h4>Inventory & Artifact Crates</h4>
+                            <button class="sm-btn" onclick="openCrate()">Open Mystery Crate (5,000 Sam's)</button>
+                            <div id="inventory-list" class="upg-list" style="margin-top:6px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Themes & FX -->
+                <div id="tab-cosmetics" class="tab-content">
+                    <h3>Themes & Graphics</h3>
+                    <h4>UI Theme Style</h4>
+                    <div class="btn-group">
+                        <button class="sm-btn" onclick="setTheme('default')">Dark Cyan</button>
+                        <button class="sm-btn" onclick="setTheme('cyber')">Cyberpunk</button>
+                        <button class="sm-btn" onclick="setTheme('hacker')">Hacker Green</button>
+                        <button class="sm-btn" onclick="setTheme('solar')">Solar Flare</button>
+                    </div>
+
+                    <h4 style="margin-top:12px;">Maxwell Animations</h4>
+                    <div class="btn-group">
+                        <button class="sm-btn" onclick="setAnim('anim-bounce')">Pulse Bounce</button>
+                        <button class="sm-btn" onclick="setAnim('anim-spin')">Slow Spin</button>
+                        <button class="sm-btn" onclick="setAnim('none')">Static</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Settings -->
+                <div id="tab-settings" class="tab-content">
+                    <h3>Settings & Controls</h3>
+                    <label style="display:block; margin:6px 0;"><input type="checkbox" id="chk-sound" checked> Sound Effects</label>
+                    <label style="display:block; margin:6px 0;"><input type="checkbox" id="chk-autobuy"> Auto-Buy Cheap Upgrades</label>
+                    <label style="display:block; margin:6px 0;"><input type="checkbox" id="chk-autogold"> Auto-Catch Golden Sams</label>
+                    <hr style="border-color:#374151; margin:10px 0;">
+                    <button class="sm-btn" onclick="exportSave()">Export Save</button>
+                    <button class="sm-btn" onclick="importSave()">Import Save</button>
+                    <button class="sm-btn" style="background:#ef4444;" onclick="hardReset()">Hard Reset</button>
+                </div>
+
             </div>
 
-            <!-- Tab: Settings -->
-            <div id="tab-settings" class="tab-content">
-                <h3>Settings & Save Management</h3>
-                <div style="display:flex; flex-direction:column; gap:10px; max-width:300px;">
-                    <label>
-                        <input type="checkbox" id="sound-toggle" checked> Sound Effects Enabled
-                    </label>
-                    <label>
-                        Volume: <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.3">
-                    </label>
-                    <hr style="border-color:#334155; width:100%;">
-                    <button class="action-btn" id="manual-save-btn">Manual Save</button>
-                    <button class="action-btn" id="export-btn">Export Save String</button>
-                    <button class="action-btn" id="import-btn">Import Save String</button>
-                    <button class="action-btn danger-btn" id="wipe-btn">Wipe / Hard Reset Data</button>
-                </div>
-            </div>
         </div>
-
     </div>
 
-    <!-- Golden Sam Random Event Element -->
+    <!-- Random Event Overlays -->
     <div id="golden-sam">SAM</div>
-
-    <!-- Notification Toast -->
-    <div id="notify-banner">Notification Text</div>
-
-    <!-- Modal Dialog -->
-    <div class="modal" id="modal-dialog">
-        <div class="modal-box">
-            <h3 id="modal-title">Welcome Back!</h3>
-            <p id="modal-body">Offline progress summary goes here...</p>
-            <button class="action-btn" onclick="closeModal()">Continue</button>
-        </div>
-    </div>
+    <div id="boss-event">BOSS!<br>Click!</div>
+    <div id="notify-toast">Notification Toast</div>
 
     <script>
-        // --- GAME STATE ---
+        // --- GAME ENGINE STATE ---
         let game = {
-            sams: 0,
-            lifetimeSams: 0,
-            ds: 0,
-            rebirths: 0,
-            totalClicks: 0,
-            goldenSamClicks: 0,
-            playTime: 0,
+            sams: 0, lifetimeSams: 0, ds: 0, ss: 0, cd: 0, rebirths: 0, clicks: 0, playTime: 0,
+            bankBalance: 0, depth: 1,
+            buyAmount: 1,
             
-            // Audio settings
-            soundEnabled: true,
-            volume: 0.3,
+            talentPoints: 0,
+            talents: {},
 
-            // Upgrades levels
-            clickLevels: [0, 0, 0, 0],
-            buildingLevels: [0, 0, 0, 0],
-            dsPerkLevels: [0, 0, 0, 0, 0, 0],
+            inventory: [],
+            equippedGear: [],
+            pets: [],
 
-            // Skins & Cosmetics
-            unlockedSkins: ['classic'],
-            activeSkin: 'classic',
+            clickLevels: Array(10).fill(0),
+            buildingLevels: Array(10).fill(0),
+            dsPerks: Array(8).fill(0),
 
-            // Achievements
-            achievements: {},
+            stocks: [
+                { id: 0, name: "SAM Inc Stock", price: 100, owned: 0 },
+                { id: 1, name: "Morgan Tech", price: 50, owned: 0 },
+                { id: 2, name: "SAMCoin Crypto", price: 250, owned: 0 },
+                { id: 3, name: "DogeMaxwell Crypto", price: 500, owned: 0 }
+            ],
 
-            // Timestamps
-            lastSaveTime: Date.now()
+            abilityCDs: [0, 0, 0, 0, 0, 0],
+            theme: 'default', anim: 'anim-bounce',
+            soundEnabled: true, autoBuy: false, autoGold: false, lastSaveTime: Date.now()
         };
 
-        // Static Configurations
-        const CONFIG = {
+        const DB = {
             clickUpgrades: [
-                { id: 0, name: "Better Finger", baseCost: 15, power: 1, costMult: 1.15 },
-                { id: 1, name: "Power Glove", baseCost: 200, power: 8, costMult: 1.15 },
-                { id: 2, name: "Laser Pointer", baseCost: 2500, power: 50, costMult: 1.15 },
-                { id: 3, name: "Quantum Clicker", baseCost: 35000, power: 400, costMult: 1.15 }
+                { id: 0, name: "Finger Tap", baseCost: 15, power: 1 },
+                { id: 1, name: "Copper Stylus", baseCost: 150, power: 5 },
+                { id: 2, name: "Power Glove", baseCost: 1200, power: 30 },
+                { id: 3, name: "Laser Pointer", baseCost: 10000, power: 150 },
+                { id: 4, name: "Robotic Arm", baseCost: 85000, power: 800 },
+                { id: 5, name: "Quantum Clicker", baseCost: 500000, power: 3500 },
+                { id: 6, name: "Sub-Atomic Tap", baseCost: 3000000, power: 18000 },
+                { id: 7, name: "Dark Matter Touch", baseCost: 20000000, power: 90000 },
+                { id: 8, name: "Cosmic Press", baseCost: 150000000, power: 450000 },
+                { id: 9, name: "Multiversal Tap", baseCost: 1000000000, power: 2500000 }
             ],
             buildings: [
-                { id: 0, name: "Auto-Clicker", baseCost: 50, sps: 1, costMult: 1.15 },
-                { id: 1, name: "Maxwell Assistant", baseCost: 500, sps: 10, costMult: 1.15 },
-                { id: 2, name: "Sam Factory", baseCost: 6000, sps: 80, costMult: 1.15 },
-                { id: 3, name: "Quantum Morgan Lab", baseCost: 75000, sps: 600, costMult: 1.15 }
+                { id: 0, name: "Auto-Clicker", baseCost: 50, sps: 1 },
+                { id: 1, name: "Maxwell Assistant", baseCost: 500, sps: 8 },
+                { id: 2, name: "Sam Mine", baseCost: 4000, sps: 45 },
+                { id: 3, name: "Morgan Factory", baseCost: 35000, sps: 260 },
+                { id: 4, name: "Bank of Sam", baseCost: 250000, sps: 1400 },
+                { id: 5, name: "Quantum Lab", baseCost: 1800000, sps: 7800 },
+                { id: 6, name: "Orbital Collector", baseCost: 12000000, sps: 42000 },
+                { id: 7, name: "Dyson Sphere", baseCost: 90000000, sps: 220000 },
+                { id: 8, name: "Dimensional Rift", baseCost: 650000000, sps: 1200000 },
+                { id: 9, name: "Multiverse Core", baseCost: 5000000000, sps: 7000000 }
             ],
             dsPerks: [
-                { id: 0, name: "DS Click Boost", baseCost: 2, desc: "+50% Click Power per level", costMult: 2.0 },
-                { id: 1, name: "DS Automation Boost", baseCost: 5, desc: "+50% SPS per level", costMult: 2.5 },
-                { id: 2, name: "Crit Chance Boost", baseCost: 10, desc: "+3% Crit Chance per level", costMult: 3.0 },
-                { id: 3, name: "Crit Multiplier Boost", baseCost: 15, desc: "+2x Crit Damage per level", costMult: 3.0 },
-                { id: 4, name: "Golden Sam Frequency", baseCost: 25, desc: "Golden Sams spawn 20% faster", costMult: 4.0 },
-                { id: 5, name: "Auto-Buy Unlock", baseCost: 50, desc: "Automatically purchases cheapest upgrades", costMult: 10.0 }
+                { id: 0, name: "DS Click Multiplier", baseCost: 2, desc: "+50% Click Power/lvl" },
+                { id: 1, name: "DS SPS Multiplier", baseCost: 5, desc: "+50% SPS/lvl" },
+                { id: 2, name: "Crit Chance Boost", baseCost: 10, desc: "+2% Crit Chance/lvl" },
+                { id: 3, name: "Crit Damage Boost", baseCost: 15, desc: "+1.5x Crit Damage/lvl" },
+                { id: 4, name: "Golden Sam Spawn Boost", baseCost: 25, desc: "Golden Sams spawn 25% faster" },
+                { id: 5, name: "Stock Dividend Boost", baseCost: 40, desc: "+10% Stock Dividend Yield" },
+                { id: 6, name: "Talent Point Bonus", baseCost: 75, desc: "Gain +1 extra Talent Point on Rebirth" },
+                { id: 7, name: "Auto-Golden Sam Efficiency", baseCost: 150, desc: "Auto Golden Catcher gives 100% bonus" }
             ],
-            skins: [
-                { id: "classic", name: "Classic Maxwell", reqType: "default", reqVal: 0, cssClass: "skin-classic" },
-                { id: "gold", name: "Golden Maxwell", reqType: "sams", reqVal: 100000, cssClass: "skin-gold" },
-                { id: "neon", name: "Neon Cyber", reqType: "clicks", reqVal: 500, cssClass: "skin-neon" },
-                { id: "rainbow", name: "Prismatic", reqType: "rebirths", reqVal: 5, cssClass: "skin-rainbow" },
-                { id: "matrix", name: "Matrix Code", reqType: "ds", reqVal: 50, cssClass: "skin-matrix" },
-                { id: "cyberpunk", name: "Night City", reqType: "golden", reqVal: 10, cssClass: "skin-cyberpunk" }
-            ],
-            achievements: [
-                { id: "c1", name: "First Tap", desc: "Click Maxwell Morgan 1 time", req: () => game.totalClicks >= 1 },
-                { id: "c100", name: "Click Enthusiast", desc: "Click Maxwell Morgan 100 times", req: () => game.totalClicks >= 100 },
-                { id: "c1000", name: "Finger Destroyer", desc: "Click Maxwell Morgan 1,000 times", req: () => game.totalClicks >= 1000 },
-                { id: "s1k", name: "Sam Accumulator", desc: "Earn 1,000 total Sam's", req: () => game.lifetimeSams >= 1000 },
-                { id: "s1m", name: "Sam Millionaire", desc: "Earn 1,000,000 total Sam's", req: () => game.lifetimeSams >= 1000000 },
-                { id: "r1", name: "Fresh Start", desc: "Perform your first Rebirth", req: () => game.rebirths >= 1 },
-                { id: "r5", name: "Rebirth Master", desc: "Perform 5 Rebirths", req: () => game.rebirths >= 5 },
-                { id: "g1", name: "Golden Touch", desc: "Catch 1 Golden Sam", req: () => game.goldenSamClicks >= 1 },
-                { id: "g10", name: "Treasure Hunter", desc: "Catch 10 Golden Sams", req: () => game.goldenSamClicks >= 10 },
-                { id: "skin3", name: "Fashionista", desc: "Unlock 3 distinct Skins", req: () => game.unlockedSkins.length >= 3 }
-            ],
-            newsHeadlines: [
-                "Maxwell Morgan sightings reported nationwide!",
-                "Sam's currency value hits all-time high!",
-                "Local player clicks button really fast, scientists bewildered.",
-                "Breaking: Rebirth technology enables quantum Sam generation!",
-                "Golden Sam spotted hovering over town center!"
+            talents: [
+                { id: "t1", name: "Sharp Fingertips", desc: "+25% Click Power", req: 1 },
+                { id: "t2", name: "Combo Master", desc: "Max combo cap increased to 50", req: 2 },
+                { id: "t3", name: "Automated Empire", desc: "+25% Passive SPS", req: 1 },
+                { id: "t4", name: "Building Synergies", desc: "Buildings boost each other by 5%", req: 2 },
+                { id: "t5", name: "DS Synergy", desc: "+15% DS Bonus per level", req: 1 },
+                { id: "t6", name: "Time Warp Booster", desc: "Time Warp spell gives 2x time", req: 2 }
             ]
         };
 
-        // Runtime variables
-        let comboCount = 0;
-        let comboTimer = 0;
-        let overclockActive = false;
-        let overclockTimer = 0;
-        let overclockCooldown = 0;
-        let audioCtx = null;
+        let combo = 0; let comboTimer = 0;
+        let activeSpells = { tapSurge: 0, overdrive: 0, deflated: 0 };
+        let bossHealth = 0;
 
-        // Formatting Helper
-        function formatNum(num) {
-            if (num < 1000) return Math.floor(num).toString();
-            const units = ["", "K", "M", "B", "T", "Qa", "Qi"];
-            const i = Math.floor(Math.log10(num) / 3);
-            if (i >= units.length) return num.toExponential(2);
-            return (num / Math.pow(10, i * 3)).toFixed(2) + " " + units[i];
+        function fmt(n) {
+            if (n < 1000) return Math.floor(n).toString();
+            const p = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx"];
+            const i = Math.floor(Math.log10(n) / 3);
+            if (i >= p.length) return n.toExponential(2);
+            return (n / Math.pow(10, i * 3)).toFixed(2) + " " + p[i];
         }
 
-        // WebAudio Sound Effects
-        function playSound(type) {
+        function playSfx(freq) {
             if (!game.soundEnabled) return;
             try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                let now = audioCtx.currentTime;
-                gain.gain.value = game.volume;
-
-                if (type === 'click') {
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                    osc.start(now);
-                    osc.stop(now + 0.05);
-                } else if (type === 'buy') {
-                    osc.frequency.setValueAtTime(400, now);
-                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                } else if (type === 'crit') {
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
-                } else if (type === 'golden') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(500, now);
-                    osc.frequency.linearRampToValueAtTime(1000, now + 0.2);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-                    osc.start(now);
-                    osc.stop(now + 0.2);
-                }
-            } catch(e) {}
-        }
-
-        // Calculated Derived Values
-        function getAchievementMult() {
-            let count = Object.keys(game.achievements).length;
-            return 1 + (count * 0.02); // +2% per achievement
-        }
-
-        function getDSMult() {
-            return 1 + (game.ds * 0.10); // +10% per DS
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator(); let g = ctx.createGain();
+                osc.connect(g); g.connect(ctx.destination);
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                g.gain.setValueAtTime(0.1, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                osc.start(); osc.stop(ctx.currentTime + 0.1);
+            } catch(e){}
         }
 
         function getClickPower() {
             let base = 1;
-            CONFIG.clickUpgrades.forEach(u => {
-                base += (game.clickLevels[u.id] || 0) * u.power;
-            });
-            let dsMult = 1 + ((game.dsPerkLevels[0] || 0) * 0.5);
-            let comboMult = 1 + (comboCount * 0.2);
-            return base * dsMult * getDSMult() * getAchievementMult() * comboMult;
+            DB.clickUpgrades.forEach(u => base += (game.clickLevels[u.id] || 0) * u.power);
+            let dsBonus = 1 + ((game.dsPerks[0] || 0) * 0.5);
+            let comboBonus = 1 + (combo * 0.1);
+            let spellBonus = activeSpells.tapSurge > 0 ? 6 : 1;
+            let talentBonus = game.talents['t1'] ? 1.25 : 1;
+            return base * dsBonus * (1 + game.ds * 0.1) * comboBonus * spellBonus * talentBonus;
         }
 
         function getSPS() {
             let base = 0;
-            CONFIG.buildings.forEach(b => {
-                base += (game.buildingLevels[b.id] || 0) * b.sps;
-            });
-            let dsMult = 1 + ((game.dsPerkLevels[1] || 0) * 0.5);
-            let ocMult = overclockActive ? 2 : 1;
-            return base * dsMult * getDSMult() * getAchievementMult() * ocMult;
-        }
-
-        function getCritChance() {
-            return 0.05 + ((game.dsPerkLevels[2] || 0) * 0.03);
-        }
-
-        function getCritMult() {
-            return 10 + ((game.dsPerkLevels[3] || 0) * 2.0);
+            DB.buildings.forEach(b => base += (game.buildingLevels[b.id] || 0) * b.sps);
+            let dsBonus = 1 + ((game.dsPerks[1] || 0) * 0.5);
+            let spellBonus = activeSpells.overdrive > 0 ? 3 : 1;
+            let talentBonus = game.talents['t3'] ? 1.25 : 1;
+            return base * dsBonus * (1 + game.ds * 0.1) * spellBonus * talentBonus;
         }
 
         function getPendingDS() {
-            if (game.sams < 10000) return 0;
-            return Math.floor(Math.pow(game.sams / 10000, 0.5));
+            return game.sams < 10000 ? 0 : Math.floor(Math.pow(game.sams / 10000, 0.5));
         }
 
-        // UI Tabs Switcher
-        function openTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
-        }
+        function triggerClick(x, y) {
+            game.clicks++;
+            combo = Math.min(combo + 1, game.talents['t2'] ? 50 : 20);
+            comboTimer = 3.0;
 
-        // Toast Notification System
-        function notify(msg) {
-            const banner = document.getElementById('notify-banner');
-            banner.textContent = msg;
-            banner.style.display = 'block';
-            setTimeout(() => { banner.style.display = 'none'; }, 3000);
-        }
+            let pow = getClickPower();
+            let isCrit = Math.random() < (0.05 + (game.dsPerks[2] * 0.02));
+            if (isCrit) pow *= (10 + (game.dsPerks[3] * 1.5));
 
-        // Modal Popups
-        function closeModal() {
-            document.getElementById('modal-dialog').style.display = 'none';
-        }
+            game.sams += pow;
+            game.lifetimeSams += pow;
 
-        // Click Handling
-        const maxwellBtn = document.getElementById('maxwell-btn');
-        maxwellBtn.addEventListener('click', (e) => {
-            game.totalClicks++;
-            comboCount = Math.min(comboCount + 1, 20); // Cap combo at 20 (4x)
-            comboTimer = 3.0; // 3 seconds timeout
+            playSfx(isCrit ? 850 : 420);
 
-            let power = getClickPower();
-            let isCrit = Math.random() < getCritChance();
-            if (isCrit) power *= getCritMult();
-
-            game.sams += power;
-            game.lifetimeSams += power;
-
-            playSound(isCrit ? 'crit' : 'click');
-            createClickPop(e.clientX, e.clientY, `+${formatNum(power)}`, isCrit ? '#f43f5e' : '#38bdf8');
-            
-            checkSkinUnlocks();
-            checkAchievements();
-            updateUI();
-        });
-
-        // Floating Number FX
-        function createClickPop(x, y, text, color) {
-            const pop = document.createElement('div');
+            // Floating Number Popup
+            let pop = document.createElement('div');
             pop.className = 'click-pop';
-            pop.textContent = text;
-            pop.style.left = `${x - 20}px`;
-            pop.style.top = `${y - 20}px`;
-            pop.style.color = color;
+            pop.textContent = `+${fmt(pow)}`;
+            pop.style.left = `${x || (window.innerWidth / 2)}px`; 
+            pop.style.top = `${y || (window.innerHeight / 2)}px`;
+            pop.style.color = isCrit ? '#ef4444' : '#38bdf8';
             document.body.appendChild(pop);
             setTimeout(() => pop.remove(), 800);
+
+            updateUI();
         }
 
-        // Upgrades Logic
-        function buyClickUpgrade(id) {
-            const u = CONFIG.clickUpgrades[id];
-            const cost = Math.floor(u.baseCost * Math.pow(u.costMult, game.clickLevels[id]));
+        // Click Event Handlers (Mouse & Key Controls)
+        const target = document.getElementById('maxwell-target');
+        target.addEventListener('click', (e) => triggerClick(e.clientX, e.clientY));
+
+        // Keyboard Controls Engine: Enter, Space, and Hotkeys 1-6
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Enter' || e.code === 'Space') {
+                e.preventDefault();
+                let rect = target.getBoundingClientRect();
+                triggerClick(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            }
+            if (['1', '2', '3', '4', '5', '6'].includes(e.key)) {
+                useAbility(parseInt(e.key) - 1);
+            }
+        });
+
+        // Shop Engine
+        function buyClickUpg(id) {
+            let u = DB.clickUpgrades[id];
+            let cost = Math.floor(u.baseCost * Math.pow(1.15, game.clickLevels[id]));
             if (game.sams >= cost) {
                 game.sams -= cost;
                 game.clickLevels[id]++;
-                playSound('buy');
+                playSfx(650);
                 updateUI();
             }
         }
 
-        function buyBuilding(id) {
-            const b = CONFIG.buildings[id];
-            const cost = Math.floor(b.baseCost * Math.pow(b.costMult, game.buildingLevels[id]));
+        function buyBld(id) {
+            let b = DB.buildings[id];
+            let cost = Math.floor(b.baseCost * Math.pow(1.15, game.buildingLevels[id]));
             if (game.sams >= cost) {
                 game.sams -= cost;
                 game.buildingLevels[id]++;
-                playSound('buy');
+                playSfx(650);
                 updateUI();
             }
         }
 
         function buyDSPerk(id) {
-            const p = CONFIG.dsPerks[id];
-            const cost = Math.floor(p.baseCost * Math.pow(p.costMult, game.dsPerkLevels[id]));
+            let p = DB.dsPerks[id];
+            let cost = Math.floor(p.baseCost * Math.pow(2.0, game.dsPerks[id]));
             if (game.ds >= cost) {
                 game.ds -= cost;
-                game.dsPerkLevels[id]++;
-                playSound('buy');
+                game.dsPerks[id]++;
+                playSfx(750);
                 updateUI();
             }
         }
 
-        // Rebirth Function
-        document.getElementById('rebirth-action-btn').addEventListener('click', () => {
+        function useAbility(idx) {
+            if (game.abilityCDs[idx] <= 0) {
+                if (idx === 0) { activeSpells.tapSurge = 15; game.abilityCDs[idx] = 60; notify("Tap Surge Active!"); }
+                else if (idx === 1) { game.sams += getSPS() * (game.talents['t6'] ? 3600 : 1800); game.abilityCDs[idx] = 120; notify("Time Warped!"); }
+                else if (idx === 2) { spawnGoldenSam(); spawnGoldenSam(); game.abilityCDs[idx] = 90; notify("Sam Storm Triggered!"); }
+                else if (idx === 3) { activeSpells.overdrive = 15; game.abilityCDs[idx] = 90; notify("Overdrive Activated!"); }
+                else if (idx === 4) { game.ds += 5; game.abilityCDs[idx] = 180; notify("+5 Bonus DS Magnetized!"); }
+                else if (idx === 5) { activeSpells.deflated = 20; game.abilityCDs[idx] = 120; notify("Deflation In Effect!"); }
+            }
+        }
+
+        // Prestige Tiers
+        function doRebirth() {
             let pending = getPendingDS();
             if (pending > 0) {
                 game.ds += pending;
                 game.rebirths++;
+                game.talentPoints += (1 + (game.dsPerks[6] || 0));
                 game.sams = 0;
-                game.clickLevels = [0, 0, 0, 0];
-                game.buildingLevels = [0, 0, 0, 0];
-                comboCount = 0;
-                
-                playSound('golden');
-                notify(`Rebirthed! Gained ${pending} DS's!`);
-                checkSkinUnlocks();
-                checkAchievements();
+                game.clickLevels.fill(0);
+                game.buildingLevels.fill(0);
+                notify(`Rebirthed for ${pending} DS!`);
                 updateUI();
             }
-        });
+        }
 
-        // Ability: Overclock
-        document.getElementById('ability-overclock').addEventListener('click', () => {
-            if (overclockCooldown <= 0) {
-                overclockActive = true;
-                overclockTimer = 10;
-                overclockCooldown = 60;
-                playSound('golden');
-                notify("⚡ Overclock Activated! 2x SPS for 10 seconds!");
+        function doSacrifice() {
+            if (game.ds >= 500) {
+                game.ds -= 500; game.ss += 1;
+                notify("Sacrificed 500 DS for 1 Sam Shard!");
+                updateUI();
             }
-        });
+        }
 
-        // Golden Sam Spawner
-        const goldenSamEl = document.getElementById('golden-sam');
+        function doAscend() {
+            if (game.ss >= 100) {
+                game.ss -= 100; game.cd += 1;
+                notify("Celestial Ascension Complete! Earned 1 Cosmic Dust!");
+                updateUI();
+            }
+        }
+
+        // Random Event Overlays
+        const goldEl = document.getElementById('golden-sam');
         function spawnGoldenSam() {
-            let x = Math.random() * (window.innerWidth - 80);
-            let y = Math.random() * (window.innerHeight - 80);
-            goldenSamEl.style.left = `${x}px`;
-            goldenSamEl.style.top = `${y}px`;
-            goldenSamEl.style.display = 'flex';
-
-            setTimeout(() => {
-                goldenSamEl.style.display = 'none';
-            }, 8000); // 8 second despawn
+            goldEl.style.left = `${Math.random() * (window.innerWidth - 60)}px`;
+            goldEl.style.top = `${Math.random() * (window.innerHeight - 60)}px`;
+            goldEl.style.display = 'flex';
+            setTimeout(() => goldEl.style.display = 'none', 6000);
         }
-
-        goldenSamEl.addEventListener('click', () => {
-            goldenSamEl.style.display = 'none';
-            game.goldenSamClicks++;
-            let bonus = (getSPS() * 30) + (getClickPower() * 50) + 100;
-            game.sams += bonus;
-            game.lifetimeSams += bonus;
-            playSound('golden');
-            notify(`Golden Sam Harvested! +${formatNum(bonus)} Sam's!`);
-            checkSkinUnlocks();
-            checkAchievements();
-            updateUI();
+        goldEl.addEventListener('click', () => {
+            goldEl.style.display = 'none';
+            let reward = (getSPS() * 30) + 500;
+            game.sams += reward;
+            notify(`Golden Sam Harvested! +${fmt(reward)} Sam's!`);
+            playSfx(950);
         });
 
-        // Gamble / Mini-game
-        function gamble(fraction) {
-            let wager = Math.floor(game.sams * fraction);
-            const inputVal = parseInt(document.getElementById('gamble-amount').value);
-            if (!isNaN(inputVal) && inputVal > 0 && fraction === 0.5) wager = inputVal;
-
-            if (wager <= 0 || game.sams < wager) {
-                document.getElementById('gamble-result').textContent = "Invalid or insufficient Sam's wager!";
-                return;
+        const bossEl = document.getElementById('boss-event');
+        function spawnBoss() {
+            bossHealth = 20;
+            bossEl.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
+            bossEl.style.top = `${Math.random() * (window.innerHeight - 100)}px`;
+            bossEl.style.display = 'flex';
+        }
+        bossEl.addEventListener('click', () => {
+            bossHealth--; playSfx(350);
+            if (bossHealth <= 0) {
+                bossEl.style.display = 'none';
+                let reward = getSPS() * 120 + 2000;
+                game.sams += reward;
+                notify(`RAID BOSS DEFEATED! Earned +${fmt(reward)} Sam's!`);
             }
+        });
 
-            if (Math.random() < 0.5) {
-                game.sams += wager;
-                game.lifetimeSams += wager;
-                document.getElementById('gamble-result').textContent = `WON! +${formatNum(wager)} Sam's! 🎉`;
-                document.getElementById('gamble-result').style.color = "#22c55e";
-                playSound('golden');
-            } else {
-                game.sams -= wager;
-                document.getElementById('gamble-result').textContent = `LOST! -${formatNum(wager)} Sam's! 💀`;
-                document.getElementById('gamble-result').style.color = "#ef4444";
-                playSound('click');
-            }
-            updateUI();
+        // Minigames & Mining
+        function spinWheel() {
+            let reward = Math.floor(Math.random() * 500) + 100;
+            game.sams += reward;
+            notify(`Wheel Result: +${reward} Sam's!`);
         }
 
-        // Skin Management
-        function checkSkinUnlocks() {
-            CONFIG.skins.forEach(s => {
-                if (!game.unlockedSkins.includes(s.id)) {
-                    let unlock = false;
-                    if (s.reqType === 'sams' && game.lifetimeSams >= s.reqVal) unlock = true;
-                    if (s.reqType === 'clicks' && game.totalClicks >= s.reqVal) unlock = true;
-                    if (s.reqType === 'rebirths' && game.rebirths >= s.reqVal) unlock = true;
-                    if (s.reqType === 'ds' && game.ds >= s.reqVal) unlock = true;
-                    if (s.reqType === 'golden' && game.goldenSamClicks >= s.reqVal) unlock = true;
-
-                    if (unlock) {
-                        game.unlockedSkins.push(s.id);
-                        notify(`New Skin Unlocked: ${s.name}!`);
-                    }
-                }
-            });
+        function depositBank() {
+            let dep = Math.floor(game.sams * 0.1);
+            if (dep > 0) {
+                game.sams -= dep;
+                game.bankBalance += dep;
+                notify(`Deposited ${fmt(dep)} Sam's into Bank!`);
+            }
         }
 
-        function setSkin(skinId) {
-            if (game.unlockedSkins.includes(skinId)) {
-                game.activeSkin = skinId;
-                const skinConfig = CONFIG.skins.find(s => s.id === skinId);
-                maxwellBtn.className = `maxwell-btn ${skinConfig.cssClass}`;
+        function mineOre() {
+            game.depth++;
+            let oreVal = game.depth * 250;
+            game.sams += oreVal;
+            document.getElementById('mine-depth').textContent = `Layer ${game.depth}`;
+            notify(`Mined Layer ${game.depth}! Found +${fmt(oreVal)} Sam's in Ore!`);
+        }
+
+        function hatchPet() {
+            if (game.sams >= 1000) {
+                game.sams -= 1000; game.pets.push("Mini Maxwell");
+                notify("Hatched a Mini Maxwell Companion!");
                 updateUI();
             }
         }
 
-        // Achievements Logic
-        function checkAchievements() {
-            CONFIG.achievements.forEach(a => {
-                if (!game.achievements[a.id] && a.req()) {
-                    game.achievements[a.id] = true;
-                    notify(`🏆 Badge Unlocked: ${a.name}!`);
-                    playSound('golden');
-                }
-            });
-        }
-
-        // Auto-Buy DS Perk Logic
-        function handleAutoBuy() {
-            if ((game.dsPerkLevels[5] || 0) > 0) {
-                // Auto buy cheapest standard upgrade if affordable
-                CONFIG.clickUpgrades.forEach(u => {
-                    let cost = Math.floor(u.baseCost * Math.pow(u.costMult, game.clickLevels[u.id]));
-                    if (game.sams >= cost) buyClickUpgrade(u.id);
-                });
-                CONFIG.buildings.forEach(b => {
-                    let cost = Math.floor(b.baseCost * Math.pow(b.costMult, game.buildingLevels[b.id]));
-                    if (game.sams >= cost) buyBuilding(b.id);
-                });
+        function openCrate() {
+            if (game.sams >= 5000) {
+                game.sams -= 5000; game.inventory.push("Golden Ring");
+                notify("Opened Crate: Found Golden Ring!");
+                updateUI();
             }
         }
 
-        // UI Builder & Renderer
-        function buildStaticUI() {
-            // Click Upgrades List
-            const clickContainer = document.getElementById('click-upgrades-list');
-            clickContainer.innerHTML = '';
-            CONFIG.clickUpgrades.forEach(u => {
-                clickContainer.innerHTML += `
-                    <button class="upg-btn" id="btn-click-${u.id}" onclick="buyClickUpgrade(${u.id})">
-                        <div class="upg-info">
-                            <span class="upg-title">${u.name} (+${u.power} / click)</span>
-                            <span class="upg-sub" id="sub-click-${u.id}">Owned: 0</span>
+        // Cosmetics
+        function setTheme(t) {
+            document.body.className = t === 'default' ? '' : `theme-${t}`;
+            game.theme = t;
+        }
+        function setAnim(a) {
+            target.className = `maxwell-target ${a === 'none' ? '' : a}`;
+            game.anim = a;
+        }
+
+        function showTab(id) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function setBuyAmount(amt) {
+            game.buyAmount = amt;
+            document.querySelectorAll('.sm-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`buy-${amt}`).classList.add('active');
+            updateUI();
+        }
+
+        function notify(txt) {
+            let t = document.getElementById('notify-toast');
+            t.textContent = txt; t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2500);
+        }
+
+        // Render Lists Dynamic Engine
+        function renderLists() {
+            let cList = document.getElementById('click-upg-list');
+            cList.innerHTML = '';
+            DB.clickUpgrades.forEach(u => {
+                let cost = Math.floor(u.baseCost * Math.pow(1.15, game.clickLevels[u.id]));
+                cList.innerHTML += `
+                    <button class="upg-card" ${game.sams < cost ? 'disabled' : ''} onclick="buyClickUpg(${u.id})">
+                        <div>
+                            <span class="upg-title">${u.name} (+${u.power}/clk)</span>
+                            <span class="upg-sub">Owned: ${game.clickLevels[u.id]}</span>
                         </div>
-                        <span class="upg-cost" id="cost-click-${u.id}">0 Sam's</span>
+                        <span class="upg-cost">${fmt(cost)} Sam's</span>
                     </button>
                 `;
             });
 
-            // Building Upgrades List
-            const bldContainer = document.getElementById('building-upgrades-list');
-            bldContainer.innerHTML = '';
-            CONFIG.buildings.forEach(b => {
-                bldContainer.innerHTML += `
-                    <button class="upg-btn" id="btn-bld-${b.id}" onclick="buyBuilding(${b.id})">
-                        <div class="upg-info">
+            let bList = document.getElementById('building-upg-list');
+            bList.innerHTML = '';
+            DB.buildings.forEach(b => {
+                let cost = Math.floor(b.baseCost * Math.pow(1.15, game.buildingLevels[b.id]));
+                bList.innerHTML += `
+                    <button class="upg-card" ${game.sams < cost ? 'disabled' : ''} onclick="buyBld(${b.id})">
+                        <div>
                             <span class="upg-title">${b.name} (+${b.sps} SPS)</span>
-                            <span class="upg-sub" id="sub-bld-${b.id}">Owned: 0</span>
+                            <span class="upg-sub">Owned: ${game.buildingLevels[b.id]}</span>
                         </div>
-                        <span class="upg-cost" id="cost-bld-${b.id}">0 Sam's</span>
+                        <span class="upg-cost">${fmt(cost)} Sam's</span>
                     </button>
                 `;
             });
 
-            // DS Perks List
-            const dsContainer = document.getElementById('ds-upgrades-list');
-            dsContainer.innerHTML = '';
-            CONFIG.dsPerks.forEach(p => {
-                dsContainer.innerHTML += `
-                    <button class="upg-btn ds-btn" id="btn-ds-${p.id}" onclick="buyDSPerk(${p.id})">
-                        <div class="upg-info">
+            let dsList = document.getElementById('ds-perks-list');
+            dsList.innerHTML = '';
+            DB.dsPerks.forEach(p => {
+                let cost = Math.floor(p.baseCost * Math.pow(2.0, game.dsPerks[p.id]));
+                dsList.innerHTML += `
+                    <button class="upg-card" ${game.ds < cost ? 'disabled' : ''} onclick="buyDSPerk(${p.id})">
+                        <div>
                             <span class="upg-title">${p.name}</span>
-                            <span class="upg-sub">${p.desc} | <span id="sub-ds-${p.id}">Lvl: 0</span></span>
+                            <span class="upg-sub">${p.desc} | Lvl: ${game.dsPerks[p.id]}</span>
                         </div>
-                        <span class="upg-cost" id="cost-ds-${p.id}">0 DS's</span>
-                    </button>
-                `;
-            });
-        }
-
-        function updateUI() {
-            // Stats
-            document.getElementById('sams-val').textContent = formatNum(game.sams);
-            document.getElementById('sps-val').textContent = `${formatNum(getSPS())} / sec`;
-            document.getElementById('ds-val').textContent = formatNum(game.ds);
-            document.getElementById('rebirth-val').textContent = `${game.rebirths} Rebirths`;
-            document.getElementById('mult-val').textContent = `${(getDSMult() * getAchievementMult()).toFixed(2)}x`;
-            document.getElementById('combo-val').textContent = `Combo: ${(1 + comboCount * 0.2).toFixed(1)}x`;
-
-            document.getElementById('click-power-val').textContent = formatNum(getClickPower());
-            document.getElementById('crit-chance-val').textContent = `${(getCritChance() * 100).toFixed(0)}%`;
-
-            // Combo Bar
-            document.getElementById('combo-fill').style.width = `${(comboCount / 20) * 100}%`;
-            document.getElementById('combo-text').textContent = `${(1 + comboCount * 0.2).toFixed(1)}x`;
-
-            // Overclock Status
-            const ocBtn = document.getElementById('ability-overclock');
-            const ocCdText = document.getElementById('overclock-cd');
-            if (overclockActive) {
-                ocBtn.disabled = true;
-                ocCdText.textContent = `Active (${overclockTimer.toFixed(0)}s)`;
-            } else if (overclockCooldown > 0) {
-                ocBtn.disabled = true;
-                ocCdText.textContent = `${overclockCooldown.toFixed(0)}s`;
-            } else {
-                ocBtn.disabled = false;
-                ocCdText.textContent = "Ready";
-            }
-
-            // Pending DS
-            const pendingDS = getPendingDS();
-            document.getElementById('pending-ds-val').textContent = pendingDS;
-            document.getElementById('rebirth-action-btn').disabled = pendingDS <= 0;
-
-            // Click upgrades button states
-            CONFIG.clickUpgrades.forEach(u => {
-                let cost = Math.floor(u.baseCost * Math.pow(u.costMult, game.clickLevels[u.id]));
-                let btn = document.getElementById(`btn-click-${u.id}`);
-                document.getElementById(`sub-click-${u.id}`).textContent = `Owned: ${game.clickLevels[u.id]}`;
-                document.getElementById(`cost-click-${u.id}`).textContent = `${formatNum(cost)} Sam's`;
-                btn.disabled = game.sams < cost;
-            });
-
-            // Building upgrades button states
-            CONFIG.buildings.forEach(b => {
-                let cost = Math.floor(b.baseCost * Math.pow(b.costMult, game.buildingLevels[b.id]));
-                let btn = document.getElementById(`btn-bld-${b.id}`);
-                document.getElementById(`sub-bld-${b.id}`).textContent = `Owned: ${game.buildingLevels[b.id]}`;
-                document.getElementById(`cost-bld-${b.id}`).textContent = `${formatNum(cost)} Sam's`;
-                btn.disabled = game.sams < cost;
-            });
-
-            // DS Perks button states
-            CONFIG.dsPerks.forEach(p => {
-                let cost = Math.floor(p.baseCost * Math.pow(p.costMult, game.dsPerkLevels[p.id]));
-                let btn = document.getElementById(`btn-ds-${p.id}`);
-                document.getElementById(`sub-ds-${p.id}`).textContent = `Lvl: ${game.dsPerkLevels[p.id]}`;
-                document.getElementById(`cost-ds-${p.id}`).textContent = `${formatNum(cost)} DS's`;
-                btn.disabled = game.ds < cost;
-            });
-
-            // Skins Tab Render
-            const skinsContainer = document.getElementById('skins-list');
-            skinsContainer.innerHTML = '';
-            CONFIG.skins.forEach(s => {
-                let unlocked = game.unlockedSkins.includes(s.id);
-                let active = game.activeSkin === s.id;
-                skinsContainer.innerHTML += `
-                    <button class="upg-btn" ${!unlocked ? 'disabled' : ''} onclick="setSkin('${s.id}')">
-                        <div class="upg-info">
-                            <span class="upg-title">${s.name} ${active ? '(Active)' : ''}</span>
-                            <span class="upg-sub">${unlocked ? 'Unlocked' : 'Locked: ' + s.reqType + ' >= ' + formatNum(s.reqVal)}</span>
-                        </div>
+                        <span class="upg-cost" style="color:var(--ds-color);">${fmt(cost)} DS</span>
                     </button>
                 `;
             });
 
-            // Achievements Tab Render
-            const achContainer = document.getElementById('achievements-list');
-            achContainer.innerHTML = '';
-            CONFIG.achievements.forEach(a => {
-                let unlocked = game.achievements[a.id] || false;
-                achContainer.innerHTML += `
-                    <div class="upg-btn" style="opacity: ${unlocked ? '1' : '0.5'};">
-                        <div class="upg-info">
-                            <span class="upg-title">${unlocked ? '🏆' : '🔒'} ${a.name}</span>
-                            <span class="upg-sub">${a.desc}</span>
-                        </div>
+            let tGrid = document.getElementById('talents-grid');
+            tGrid.innerHTML = '';
+            DB.talents.forEach(t => {
+                let unlocked = game.talents[t.id];
+                tGrid.innerHTML += `
+                    <div style="background:#1f2937; padding:8px; border-radius:6px; font-size:0.75rem;">
+                        <b>${t.name}</b>
+                        <p style="color:#9ca3af; margin:4px 0;">${t.desc}</p>
+                        <button class="sm-btn" ${unlocked || game.talentPoints < t.req ? 'disabled' : ''} onclick="game.talents['${t.id}']=true; game.talentPoints-=${t.req}; updateUI();">
+                            ${unlocked ? 'Unlocked' : 'Learn (' + t.req + ' TP)'}
+                        </button>
                     </div>
                 `;
             });
 
-            // Stats Tab Render
-            const statsContainer = document.getElementById('stats-container-list');
-            statsContainer.innerHTML = `
-                <div>Current Sam's: <b>${formatNum(game.sams)}</b></div>
-                <div>All-Time Sam's: <b>${formatNum(game.lifetimeSams)}</b></div>
-                <div>DS Points: <b>${game.ds}</b></div>
-                <div>Rebirths: <b>${game.rebirths}</b></div>
-                <div>Total Clicks: <b>${game.totalClicks}</b></div>
-                <div>Golden Sams Caught: <b>${game.goldenSamClicks}</b></div>
-                <div>Time Played: <b>${Math.floor(game.playTime / 3600)}h ${Math.floor((game.playTime % 3600) / 60)}m ${Math.floor(game.playTime % 60)}s</b></div>
-            `;
+            let sList = document.getElementById('stocks-list-container');
+            sList.innerHTML = '';
+            game.stocks.forEach(s => {
+                sList.innerHTML += `
+                    <div class="upg-card">
+                        <div>
+                            <span class="upg-title">${s.name} ($${s.price})</span>
+                            <span class="upg-sub">Owned: ${s.owned}</span>
+                        </div>
+                        <div>
+                            <button class="sm-btn" onclick="buyStock(${s.id})">Buy</button>
+                            <button class="sm-btn" onclick="sellStock(${s.id})">Sell</button>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        // --- GAME LOOP ---
-        let lastFrameTime = Date.now();
+        function buyStock(id) {
+            let s = game.stocks[id];
+            if (game.sams >= s.price) { game.sams -= s.price; s.owned++; updateUI(); }
+        }
+        function sellStock(id) {
+            let s = game.stocks[id];
+            if (s.owned > 0) { s.owned--; game.sams += s.price; updateUI(); }
+        }
+
+        function updateUI() {
+            document.getElementById('res-sams').textContent = fmt(game.sams);
+            document.getElementById('res-sps').textContent = `${fmt(getSPS())} / sec`;
+            document.getElementById('res-ds').textContent = fmt(game.ds);
+            document.getElementById('res-rebirths').textContent = `${game.rebirths} Rebirths`;
+            document.getElementById('res-ss').textContent = game.ss;
+            document.getElementById('res-cd').textContent = game.cd;
+
+            document.getElementById('stat-cp').textContent = fmt(getClickPower());
+            document.getElementById('stat-crit').textContent = `${(5 + (game.dsPerks[2] * 2)).toFixed(0)}%`;
+
+            document.getElementById('combo-fill').style.width = `${(combo / (game.talents['t2'] ? 50 : 20)) * 100}%`;
+            document.getElementById('combo-mult-text').textContent = `${(1 + combo * 0.1).toFixed(1)}x`;
+
+            document.getElementById('pending-ds-text').textContent = fmt(getPendingDS());
+            document.getElementById('talent-points-val').textContent = game.talentPoints;
+
+            for (let i = 0; i < 6; i++) {
+                let cdEl = document.getElementById(`cd-${i}`);
+                cdEl.textContent = game.abilityCDs[i] > 0 ? `${game.abilityCDs[i].toFixed(0)}s` : "Ready";
+                document.getElementById(`ab-${i}`).disabled = game.abilityCDs[i] > 0;
+            }
+
+            renderLists();
+        }
+
+        // Engine Ticks Loop
+        let lastTick = Date.now();
         setInterval(() => {
             let now = Date.now();
-            let dt = (now - lastFrameTime) / 1000;
-            lastFrameTime = now;
+            let dt = (now - lastTick) / 1000;
+            lastTick = now;
 
             game.playTime += dt;
-
-            // Passive Sam Generation
             let earned = getSPS() * dt;
             game.sams += earned;
             game.lifetimeSams += earned;
 
-            // Combo Decay
-            if (comboTimer > 0) {
-                comboTimer -= dt;
-            } else if (comboCount > 0) {
-                comboCount = 0;
+            if (comboTimer > 0) comboTimer -= dt;
+            else combo = 0;
+
+            for (let i = 0; i < 6; i++) {
+                if (game.abilityCDs[i] > 0) game.abilityCDs[i] -= dt;
             }
 
-            // Ability Timers
-            if (overclockActive) {
-                overclockTimer -= dt;
-                if (overclockTimer <= 0) overclockActive = false;
-            }
-            if (overclockCooldown > 0) {
-                overclockCooldown -= dt;
+            if (activeSpells.tapSurge > 0) activeSpells.tapSurge -= dt;
+            if (activeSpells.overdrive > 0) activeSpells.overdrive -= dt;
+
+            // Stock Fluctuations
+            if (Math.random() < 0.05) {
+                game.stocks.forEach(s => {
+                    let delta = (Math.random() - 0.48) * 12;
+                    s.price = Math.max(10, Math.floor(s.price + delta));
+                });
             }
 
-            // Golden Sam Random Spawn Check (~0.1% chance per second, boosted by perk)
-            let goldenFreqMult = 1 + ((game.dsPerkLevels[4] || 0) * 0.2);
-            if (Math.random() < (0.002 * goldenFreqMult * dt) && goldenSamEl.style.display !== 'flex') {
-                spawnGoldenSam();
-            }
-
-            // Auto-Buy Perk Execution
-            handleAutoBuy();
-
-            // News Ticker Rotation
-            if (Math.floor(game.playTime) % 15 === 0 && Math.floor(game.playTime - dt) % 15 !== 0) {
-                let idx = Math.floor(Math.random() * CONFIG.newsHeadlines.length);
-                document.getElementById('ticker').textContent = CONFIG.newsHeadlines[idx];
-            }
+            if (Math.random() < 0.001) spawnGoldenSam();
+            if (Math.random() < 0.0005) spawnBoss();
 
             updateUI();
         }, 100);
 
-        // --- SAVE / LOAD / OFFLINE SYSTEM ---
+        // Particle FX
+        const canvas = document.getElementById('fx-canvas');
+        const ctx = canvas.getContext('2d');
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let particles = [];
+        for (let i = 0; i < 35; i++) {
+            particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, speed: Math.random() * 1 + 0.5 });
+        }
+
+        function drawFX() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "rgba(56, 189, 248, 0.2)";
+            particles.forEach(p => {
+                p.y += p.speed;
+                if (p.y > canvas.height) p.y = 0;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill();
+            });
+            requestAnimationFrame(drawFX);
+        }
+        drawFX();
+
+        // Save Engine
         function saveGame() {
             game.lastSaveTime = Date.now();
-            localStorage.setItem('maxwell_clicker_save', JSON.stringify(game));
+            localStorage.setItem('maxwell_clicker_v4_save', JSON.stringify(game));
         }
 
         function loadGame() {
-            const saved = localStorage.getItem('maxwell_clicker_save');
+            let saved = localStorage.getItem('maxwell_clicker_v4_save');
             if (saved) {
                 try {
-                    const loaded = JSON.parse(saved);
+                    let loaded = JSON.parse(saved);
                     Object.assign(game, loaded);
-
-                    // Offline Progress Calculation
-                    let now = Date.now();
-                    let offlineSeconds = (now - (game.lastSaveTime || now)) / 1000;
-                    if (offlineSeconds > 5) {
-                        let offlineGains = getSPS() * offlineSeconds * 0.5; // 50% efficiency offline
-                        game.sams += offlineGains;
-                        game.lifetimeSams += offlineGains;
-                        
-                        document.getElementById('modal-title').textContent = "Welcome Back!";
-                        document.getElementById('modal-body').textContent = `You were away for ${Math.floor(offlineSeconds)} seconds and earned ${formatNum(offlineGains)} Sam's!`;
-                        document.getElementById('modal-dialog').style.display = 'flex';
-                    }
-                } catch(e) {
-                    console.error("Save load error", e);
-                }
+                    setTheme(game.theme || 'default');
+                    setAnim(game.anim || 'anim-bounce');
+                } catch(e) {}
             }
         }
 
-        // Settings Listeners
-        document.getElementById('sound-toggle').addEventListener('change', (e) => { game.soundEnabled = e.target.checked; });
-        document.getElementById('volume-slider').addEventListener('input', (e) => { game.volume = parseFloat(e.target.value); });
-        document.getElementById('manual-save-btn').addEventListener('click', () => { saveGame(); notify("Game Saved!"); });
-        
-        document.getElementById('export-btn').addEventListener('click', () => {
+        function exportSave() {
             saveGame();
             let str = btoa(JSON.stringify(game));
             navigator.clipboard.writeText(str);
             notify("Save code copied to clipboard!");
-        });
+        }
 
-        document.getElementById('import-btn').addEventListener('click', () => {
-            let str = prompt("Paste save string:");
+        function importSave() {
+            let str = prompt("Paste save code:");
             if (str) {
                 try {
-                    let parsed = JSON.parse(atob(str));
-                    Object.assign(game, parsed);
+                    let loaded = JSON.parse(atob(str));
+                    Object.assign(game, loaded);
                     saveGame();
                     location.reload();
-                } catch(e) {
-                    alert("Invalid Save String!");
-                }
+                } catch(e) { alert("Invalid save code!"); }
             }
-        });
+        }
 
-        document.getElementById('wipe-btn').addEventListener('click', () => {
-            if (confirm("Are you sure you want to permanently reset all progress?")) {
-                localStorage.removeItem('maxwell_clicker_save');
+        function hardReset() {
+            if (confirm("Reset ALL game progress permanently?")) {
+                localStorage.removeItem('maxwell_clicker_v4_save');
                 location.reload();
             }
-        });
+        }
 
-        // Spacebar key hotkey
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
-                e.preventDefault();
-                maxwellBtn.click();
-            }
-        });
-
-        // Auto Save Interval (every 5 seconds)
         setInterval(saveGame, 5000);
 
-        // Initial setup
-        buildStaticUI();
+        // Launch Game
         loadGame();
-        setSkin(game.activeSkin);
         updateUI();
     </script>
 </body>
