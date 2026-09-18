@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bee Swarm Simulator 3D</title>
+    <title>MAX SWARMGAN SIMULATOR</title>
     <style>
         * {
             box-sizing: border-box;
@@ -91,6 +91,19 @@
             transition: width 0.2s ease;
         }
 
+        /* Mouse Control Indicator */
+        #mouse-status {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         /* Side Inventory Bar */
         #side-inventory {
             position: absolute;
@@ -101,12 +114,13 @@
             flex-direction: column;
             gap: 12px;
             pointer-events: auto;
-            background: rgba(0, 0, 0, 0.65);
+            background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(8px);
             padding: 14px;
             border-radius: 16px;
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 215, 0, 0.5);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+            z-index: 10;
         }
         .side-inv-header {
             text-align: center;
@@ -160,6 +174,17 @@
             left: 6px;
             font-size: 10px;
             color: #888;
+        }
+
+        /* Dragged Egg Ghost Image */
+        #drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            display: none;
+            font-size: 48px;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));
         }
 
         /* Center Notifications & Shop Prompts */
@@ -289,6 +314,7 @@
 
     <div id="canvas-container"></div>
     <div id="crosshair"></div>
+    <div id="drag-ghost">🥚</div>
 
     <div id="ui-layer">
         <div class="top-bar">
@@ -323,6 +349,7 @@
                     <span class="stat-value" id="hive-status-val" style="color:#ffd700; font-size: 16px;">Hive #1</span>
                 </div>
             </div>
+            <div id="mouse-status">Mouse Locked (Press K to Toggle)</div>
         </div>
 
         <!-- Side Inventory Bar -->
@@ -332,7 +359,7 @@
                 <span class="inv-hotkey">1</span>
                 <span class="inv-icon">🧹</span>
             </div>
-            <div class="inv-slot" id="slot-egg" draggable="true" title="Basic Egg (Drag to your Hive slot to hatch!)">
+            <div class="inv-slot" id="slot-egg" title="Basic Egg (Press K to unlock mouse, then click and drag onto a hive slot!)">
                 <span class="inv-hotkey">2</span>
                 <span class="inv-icon">🥚</span>
                 <span class="inv-badge" id="egg-count-badge">1</span>
@@ -347,15 +374,7 @@
 
     <div id="blocker">
         <div id="instructions">
-            <h1>Bee Swarm Sim 3D</h1>
-            <p><strong>WASD / Arrow Keys</strong> - Move Around</p>
-            <p><strong>SPACE</strong> - Jump</p>
-            <p><strong>Mouse Look</strong> - First-Person Aim</p>
-            <p><strong>Left Click</strong> - Scoop Flowers</p>
-            <p><strong>E Key</strong> - Claim Hive / Shop / Convert</p>
-            <p style="margin-top: 15px; color: #ffd700; font-size: 13px;">
-                Claim a Hive ➔ Drag/Use Basic Eggs into Hive Slots ➔ Bees fly into Hive slots to convert pollen to honey!
-            </p>
+            <h1>fih swarm</h1>
             <button class="btn-start" id="start-btn">PLAY GAME</button>
         </div>
     </div>
@@ -365,13 +384,13 @@
         const gameState = {
             honey: 0,
             pollen: 0,
-            maxPollen: 100,
+            maxPollen: 250,
             eggPrice: 50,
             bees: [],
             claimedHive: null, // Index 0-5 of claimed hive
             basicEggs: 1,      // Starts with 1 egg in side inventory
-            hiveSlotBees: [null, null, null, null, null, null], // Bees attached to claimed hive cells
-            maxHiveSlots: 6,
+            hiveSlotBees: Array(25).fill(null), // 25 Slots for 1:1 hex grid hive structure
+            maxHiveSlots: 25,
             converting: false
         };
 
@@ -387,19 +406,8 @@
         const promptOverlay = document.getElementById('prompt-overlay');
         const promptTitle = document.getElementById('prompt-title');
         const promptDesc = document.getElementById('prompt-desc');
-
-        // Side inventory drag & click events
-        const slotEgg = document.getElementById('slot-egg');
-        slotEgg.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', 'basic_egg');
-        });
-        slotEgg.addEventListener('click', () => {
-            if (gameState.claimedHive !== null) {
-                hatchEggInClaimedHive();
-            } else {
-                createFloatingText("Claim a Hive first!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
-            }
-        });
+        const mouseStatusEl = document.getElementById('mouse-status');
+        const dragGhost = document.getElementById('drag-ghost');
 
         // --- THREE.JS & CANNON.JS SETUP ---
         const container = document.getElementById('canvas-container');
@@ -417,17 +425,6 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         container.appendChild(renderer.domElement);
-
-        // Allow HTML Drag onto canvas container
-        container.addEventListener('dragover', (e) => e.preventDefault());
-        container.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (gameState.claimedHive !== null) {
-                hatchEggInClaimedHive();
-            } else {
-                createFloatingText("Claim a Hive first!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
-            }
-        });
 
         // Physics World Setup
         const world = new CANNON.World();
@@ -475,10 +472,27 @@
 
         controls.addEventListener('lock', () => {
             blocker.style.display = 'none';
+            mouseStatusEl.innerText = "Mouse Locked (Press K to Toggle)";
+            mouseStatusEl.style.borderColor = "#ffd700";
+            mouseStatusEl.style.color = "#ffd700";
         });
 
         controls.addEventListener('unlock', () => {
-            blocker.style.display = 'flex';
+            mouseStatusEl.innerText = "Mouse Unlocked (Press K to Toggle)";
+            mouseStatusEl.style.borderColor = "#00e676";
+            mouseStatusEl.style.color = "#00e676";
+        });
+
+        // Toggle pointer lock using K
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'KeyK') {
+                if (controls.isLocked) {
+                    controls.unlock();
+                } else {
+                    blocker.style.display = 'none';
+                    controls.lock();
+                }
+            }
         });
 
         // Player Physics Body
@@ -543,10 +557,8 @@
                 case 'Digit1': selectSlot(1); break;
                 case 'Digit2': selectSlot(2); break;
                 case 'Space': 
-                    if (isGrounded) {
-                        playerBody.velocity.y = jumpVelocity; 
-                        isGrounded = false;
-                    } 
+                    playerBody.velocity.y = jumpVelocity; 
+                    isGrounded = false;
                     break;
                 case 'KeyE': triggerInteraction(); break;
             }
@@ -627,41 +639,99 @@
 
         // Hive Structures (Right Side)
         const hiveZStart = -35;
-        createStaticBox(55, 6, 0, 10, 12, 100, matHiveBrown);
-        createStaticBox(53, 6, 0, 2, 12, 100, matHiveYellow);
+        createStaticBox(55, 12, 0, 10, 24, 100, matHiveBrown);
+        createStaticBox(53, 12, 0, 2, 24, 100, matHiveYellow);
 
-        // Create 6 Hive structures with slot cells and 3D Bee Faces
+        // --- DYNAMIC CANVAS TEXTURE CREATION FOR BEE FACES (Recreates 1:1 Bee Swarm Slot Faces) ---
+        function createBeeFaceTexture(beeType = 'basic', level = 8) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+
+            // Background color base
+            ctx.fillStyle = '#ffca28'; 
+            ctx.fillRect(0, 0, 256, 256);
+
+            ctx.fillStyle = '#000000';
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 12;
+
+            // Draw level text on top-left (e.g. 8)
+            ctx.font = 'bold 56px Segoe UI, sans-serif';
+            ctx.fillText(level.toString(), 20, 70);
+
+            // Happy Bee Face
+            ctx.beginPath();
+            ctx.arc(85, 120, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(171, 120, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Smile
+            ctx.beginPath();
+            ctx.arc(128, 140, 50, 0.1 * Math.PI, 0.9 * Math.PI, false);
+            ctx.stroke();
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const basicBeeFaceTexture = createBeeFaceTexture('basic', 1);
+
+        // Create 6 Hive structures with 1:1 Hexagonal Grid Slot Cells (5x5 Hex Hive Grid)
         for (let i = 0; i < 6; i++) {
             const z = hiveZStart + i * 14;
             const hiveArch = new THREE.Group();
             
-            const archPillar1 = new THREE.Mesh(new THREE.BoxGeometry(4, 10, 2), matHiveYellow);
-            archPillar1.position.set(45, 5, z - 4);
-            const archPillar2 = new THREE.Mesh(new THREE.BoxGeometry(4, 10, 2), matHiveYellow);
-            archPillar2.position.set(45, 5, z + 4);
-            const archTop = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 10), matHiveYellow);
-            archTop.position.set(45, 10, z);
+            const archPillar1 = new THREE.Mesh(new THREE.BoxGeometry(4, 20, 2), matHiveYellow);
+            archPillar1.position.set(45, 10, z - 4.5);
+            const archPillar2 = new THREE.Mesh(new THREE.BoxGeometry(4, 20, 2), matHiveYellow);
+            archPillar2.position.set(45, 10, z + 4.5);
+            const archTop = new THREE.Mesh(new THREE.BoxGeometry(4, 3, 11), matHiveYellow);
+            archTop.position.set(45, 20, z);
 
             hiveArch.add(archPillar1, archPillar2, archTop);
             
             const combGroup = new THREE.Group();
             const slotCellPositions = [];
+            const slotCellMeshes = [];
 
-            for (let r = 0; r < 3; r++) {
-                for (let c = 0; c < 2; c++) {
-                    const comb = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.6, 6), matHiveYellow);
-                    comb.rotation.z = Math.PI / 2;
-                    const cellPos = new THREE.Vector3(47, 3 + r * 2.2, z - 1.5 + c * 3.0);
-                    comb.position.copy(cellPos);
-                    combGroup.add(comb);
+            // Recreate 1:1 Bee Swarm Hive Honeycomb Matrix Grid (5 rows x 5 columns offset)
+            const rows = 5;
+            const cols = 5;
+            const hexRadius = 0.95;
+            const rowHeight = hexRadius * 1.5;
+            const colWidth = Math.sqrt(3) * hexRadius * 0.9;
 
-                    // Add inner black cavity for slot
-                    const cavity = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.7, 6), new THREE.MeshBasicMaterial({ color: 0x111111 }));
-                    cavity.rotation.z = Math.PI / 2;
-                    cavity.position.copy(cellPos);
-                    combGroup.add(cavity);
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const xOffset = 47;
+                    const yPos = 3 + r * rowHeight;
+                    const zOffset = (c - (cols - 1) / 2) * colWidth + ((r % 2 === 1) ? colWidth / 2 : 0);
+                    const cellPos = new THREE.Vector3(xOffset, yPos, z + zOffset);
+
+                    // Frame Hexagon Outer Rim
+                    const outerComb = new THREE.Mesh(new THREE.CylinderGeometry(hexRadius, hexRadius, 0.4, 6), matHiveYellow);
+                    outerComb.rotation.z = Math.PI / 2;
+                    outerComb.position.copy(cellPos);
+                    combGroup.add(outerComb);
+
+                    // Inner Hexagon Slot Cavity (Interactive Target Mesh)
+                    const slotGeo = new THREE.CylinderGeometry(hexRadius * 0.88, hexRadius * 0.88, 0.45, 6);
+                    const slotMat = new THREE.MeshBasicMaterial({ color: 0x1a1a1a });
+                    const slotMesh = new THREE.Mesh(slotGeo, slotMat);
+                    slotMesh.rotation.z = Math.PI / 2;
+                    slotMesh.position.copy(cellPos);
+                    
+                    const slotIndex = r * cols + c;
+                    slotMesh.userData = { hiveIndex: i, slotIndex: slotIndex };
+                    
+                    combGroup.add(slotMesh);
 
                     slotCellPositions.push(cellPos);
+                    slotCellMeshes.push(slotMesh);
                 }
             }
             scene.add(hiveArch);
@@ -682,7 +752,7 @@
             const signGeo = new THREE.BoxGeometry(0.2, 1.2, 4);
             const signMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
             const signMesh = new THREE.Mesh(signGeo, signMat);
-            signMesh.position.set(43, 11, z);
+            signMesh.position.set(43, 21, z);
             scene.add(signMesh);
 
             hivePads.push({ 
@@ -694,7 +764,8 @@
                 ringMesh: ringMesh,
                 signMesh: signMesh,
                 slotPositions: slotCellPositions,
-                slotFaces: [] // 3D bee face objects added upon egg hatching
+                slotMeshes: slotCellMeshes,
+                slotFaces: Array(25).fill(null)
             });
         }
 
@@ -772,14 +843,14 @@
         createFenceRow(-15, -25, -15, 15);
         createFenceRow(15, -25, 15, 15);
 
-        // --- SQUARE FLOWER TILE POPULATOR (Square block with central flower motif) ---
+        // --- SQUARE FLOWER TILE POPULATOR ---
         const squareTileGeo = new THREE.BoxGeometry(1.25, 0.15, 1.25);
         const flowerCenterDiscGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.08, 12);
         const petalCrossGeo1 = new THREE.BoxGeometry(0.7, 0.06, 0.25);
         const petalCrossGeo2 = new THREE.BoxGeometry(0.25, 0.06, 0.7);
 
         function populateGridField(centerX, centerZ, width, depth, baseHeight, allowedColors) {
-            const step = 1.35; // Distinct square block grid cell size
+            const step = 1.35;
             const halfW = width / 2 - 1.0;
             const halfD = depth / 2 - 1.0;
 
@@ -792,13 +863,11 @@
 
                     const flowerGroup = new THREE.Group();
                     
-                    // Base Square Field Tile
                     const baseTile = new THREE.Mesh(squareTileGeo, tileMaterials[colorType] || tileMaterials.red);
                     baseTile.position.y = 0.075;
                     baseTile.receiveShadow = true;
                     flowerGroup.add(baseTile);
 
-                    // Central Flower Motif (Crossed Petals + Center Disc inside the Square)
                     const petalMesh1 = new THREE.Mesh(petalCrossGeo1, flowerMaterials[colorType]);
                     petalMesh1.position.y = 0.16;
                     
@@ -822,7 +891,7 @@
                         baseY: baseHeight,
                         z: fz,
                         colorType: colorType,
-                        stage: 3,       // Max Stage 3 height
+                        stage: 3,
                         maxStage: 3,
                         regrowTimer: 0,
                         pollenVal: colorType === 'blue' ? 3 : (colorType === 'red' ? 2 : 1)
@@ -831,13 +900,8 @@
             }
         }
 
-        // 1. Red Field (Mushroom Field): RED & WHITE ONLY
         populateGridField(mushFieldX, mushFieldZ, mushW, mushD, 0.2, ['red', 'red', 'white']);
-
-        // 2. Blue Field (Elevated Platform): BLUE & WHITE ONLY
         populateGridField(blueX, blueZ, blueW, blueD, 4.0, ['blue', 'blue', 'white']);
-
-        // 3. White Field (Center Clover): WHITE, RED & BLUE
         populateGridField(dandX, dandZ, dandW, dandD, 0.2, ['white', 'white', 'white', 'red', 'blue']);
 
         // --- SHOP PADS ---
@@ -866,7 +930,7 @@
 
         createShopPad(10, 20, "Basic Egg Shop", gameState.eggPrice, 'egg');
 
-        // --- BEES SYSTEM (3D FLYING FOLLOWERS & HIVE SLOT CONVERTING) ---
+        // --- BEES SYSTEM ---
         class Bee {
             constructor(x, y, z, id, hiveSlotIndex, slotPos) {
                 this.group = new THREE.Group();
@@ -885,7 +949,7 @@
                     this.group.add(stripe);
                 }
 
-                // Cute Bee Face (Eyes & Mouth)
+                // Cute Bee Face
                 const eyeGeo = new THREE.SphereGeometry(0.1, 8, 8);
                 const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
                 const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
@@ -910,7 +974,7 @@
 
                 this.id = id;
                 this.hiveSlotIndex = hiveSlotIndex;
-                this.slotPos = slotPos; // Vector3 of assigned hive cell
+                this.slotPos = slotPos;
                 this.targetPos = new THREE.Vector3(x, y, z);
                 this.state = 'FOLLOW';
                 this.gatherTimer = 0;
@@ -945,7 +1009,7 @@
                             this.targetFlower.stage--;
                             updateFlowerMesh(this.targetFlower);
                             
-                            const gained = this.targetFlower.pollenVal * 2;
+                            const gained = this.targetFlower.pollenVal * 8;
                             gameState.pollen = Math.min(gameState.maxPollen, gameState.pollen + gained);
                             updateUI();
                             createFloatingText("+" + gained + " Pollen", this.group.position, "#ffd700");
@@ -953,10 +1017,8 @@
                         this.state = 'FOLLOW';
                     }
                 } else if (this.state === 'CONVERTING') {
-                    // Fly into specific hive slot cell face, spin around and give honey!
                     if (this.slotPos) {
                         this.targetPos.copy(this.slotPos);
-                        // Rotate/Spin inside hive slot
                         this.group.rotation.y += delta * 8.0;
 
                         if (this.group.position.distanceTo(this.slotPos) < 0.6) {
@@ -976,71 +1038,127 @@
             }
         }
 
-        // Add 3D Bee Face Mesh inside claimed Hive Slot Cell
-        function addBeeFaceToHiveSlot(hiveData, slotIndex) {
-            const pos = hiveData.slotPositions[slotIndex];
-            const faceGroup = new THREE.Group();
+        // --- DRAG AND DROP BASIC EGG TO HIVE SLOT SYSTEM ---
+        const raycaster = new THREE.Raycaster();
+        const mouseVector = new THREE.Vector2();
+        let isDraggingEgg = false;
 
-            const headMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.65, 0.5, 12), new THREE.MeshStandardMaterial({ color: 0xffcc00, roughness: 0.3 }));
-            headMesh.rotation.z = Math.PI / 2;
+        const slotEgg = document.getElementById('slot-egg');
 
-            const eyeGeo = new THREE.SphereGeometry(0.12, 8, 8);
-            const eyeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-            leftEye.position.set(-0.25, 0.2, 0.55);
-            const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-            rightEye.position.set(-0.25, -0.2, 0.55);
-
-            faceGroup.add(headMesh, leftEye, rightEye);
-            faceGroup.position.copy(pos);
-            scene.add(faceGroup);
-            hiveData.slotFaces.push(faceGroup);
-        }
-
-        function hatchEggInClaimedHive() {
-            if (gameState.claimedHive === null) {
-                createFloatingText("Claim a Hive first!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
-                return;
-            }
+        slotEgg.addEventListener('mousedown', (e) => {
             if (gameState.basicEggs <= 0) {
                 createFloatingText("No Basic Eggs in inventory! Buy at Shop", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
                 return;
             }
-            if (gameState.bees.length >= gameState.maxHiveSlots) {
-                createFloatingText("Your Hive is full!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
+            if (gameState.claimedHive === null) {
+                createFloatingText("Claim a Hive first!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
+                return;
+            }
+
+            isDraggingEgg = true;
+            dragGhost.style.display = 'block';
+            updateDragGhostPos(e);
+            highlightClaimedHiveSlots(true);
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDraggingEgg) {
+                updateDragGhostPos(e);
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (isDraggingEgg) {
+                isDraggingEgg = false;
+                dragGhost.style.display = 'none';
+                highlightClaimedHiveSlots(false);
+
+                // Raycast to check if mouse dropped over a hive cell slot
+                mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouseVector, camera);
+
+                if (gameState.claimedHive !== null) {
+                    const hiveData = hivePads[gameState.claimedHive];
+                    const intersects = raycaster.intersectObjects(hiveData.slotMeshes);
+
+                    if (intersects.length > 0) {
+                        const hitSlotMesh = intersects[0].object;
+                        const slotIndex = hitSlotMesh.userData.slotIndex;
+                        hatchEggIntoSlot(slotIndex);
+                    }
+                }
+            }
+        });
+
+        function updateDragGhostPos(e) {
+            dragGhost.style.left = `${e.clientX}px`;
+            dragGhost.style.top = `${e.clientY}px`;
+        }
+
+        function highlightClaimedHiveSlots(glow) {
+            if (gameState.claimedHive === null) return;
+            const hiveData = hivePads[gameState.claimedHive];
+
+            hiveData.slotMeshes.forEach((mesh, index) => {
+                if (!gameState.hiveSlotBees[index]) {
+                    mesh.material.color.setHex(glow ? 0xffd700 : 0x1a1a1a);
+                }
+            });
+        }
+
+        function hatchEggIntoSlot(slotIndex) {
+            if (gameState.claimedHive === null) {
+                createFloatingText("Claim a Hive first!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
+                return;
+            }
+            if (gameState.hiveSlotBees[slotIndex] !== null) {
+                createFloatingText("This Hive Slot is already occupied!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
+                return;
+            }
+            if (gameState.basicEggs <= 0) {
+                createFloatingText("No Basic Eggs in inventory!", { x: window.innerWidth / 2, y: window.innerHeight / 2, is2D: true }, "#ff5555");
                 return;
             }
 
             gameState.basicEggs--;
-            const slotIndex = gameState.bees.length;
             const hiveData = hivePads[gameState.claimedHive];
             const slotPos = hiveData.slotPositions[slotIndex];
 
-            // Add face texture mesh to hive cell
-            addBeeFaceToHiveSlot(hiveData, slotIndex);
+            // Add 1:1 Bee Face Mesh to Hive Cell Slot
+            const faceMat = new THREE.MeshBasicMaterial({ map: basicBeeFaceTexture });
+            const faceMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.82, 0.48, 6), faceMat);
+            faceMesh.rotation.z = Math.PI / 2;
+            faceMesh.position.copy(slotPos);
+            scene.add(faceMesh);
 
-            // Spawn follower bee into swarm
+            hiveData.slotFaces[slotIndex] = faceMesh;
+
+            // Spawn Follower Bee into 3D world
             const pPos = playerBody.position;
-            const newBee = new Bee(pPos.x, pPos.y + 3, pPos.z, slotIndex, slotIndex, slotPos);
+            const newBee = new Bee(pPos.x, pPos.y + 3, pPos.z, gameState.bees.length, slotIndex, slotPos);
+            
             gameState.bees.push(newBee);
+            gameState.hiveSlotBees[slotIndex] = newBee;
 
             updateUI();
-            createFloatingText("Hatching Basic Bee! 🐝", pPos, "#ffd700");
+            createFloatingText("Hatching Basic Bee! 🐝", slotPos, "#ffd700");
         }
 
-        // --- SCOOPING & FLOWER HEIGHT DEGRADATION ---
+        // --- SCOOPING & HARVESTING ---
         let isScooping = false;
         let scoopSwingTime = 0;
 
         document.addEventListener('mousedown', (e) => {
-            if (e.button === 0 && controls.isLocked) {
+            if (e.button === 0 && controls.isLocked && !isDraggingEgg) {
                 scoopPollen();
             }
         });
 
         function updateFlowerMesh(f) {
             if (f.stage <= 0) {
-                f.mesh.scale.set(1.0, 0.1, 1.0); // Harvested flat square tile
+                f.mesh.scale.set(1.0, 0.1, 1.0);
             } else {
                 const heightScale = f.stage / f.maxStage;
                 f.mesh.scale.set(1.0, heightScale, 1.0);
@@ -1072,7 +1190,7 @@
                         f.regrowTimer = 0;
                         updateFlowerMesh(f);
 
-                        totalPollenHarvested += f.pollenVal * 2;
+                        totalPollenHarvested += Number(f.pollenVal * 0.5);
                     }
                 }
             }
@@ -1126,7 +1244,7 @@
             if (!foundPrompt) {
                 for (let hive of hivePads) {
                     const dist = Math.hypot(pos.x - hive.x, pos.z - hive.z);
-                    if (dist < 4.0) {
+                    if (dist < 5.0) {
                         foundPrompt = true;
                         if (!hive.claimed) {
                             promptTitle.innerText = `Hive Pad #${hive.id + 1}`;
@@ -1137,7 +1255,7 @@
                                 promptDesc.innerText = "Bees Converting Pollen inside Hive Slots...";
                                 convertPollen();
                             } else {
-                                promptDesc.innerText = "Hive Ready! (Gather pollen or hatch eggs)";
+                                promptDesc.innerText = "Hive Ready! (Press K to unlock mouse & drag Basic Eggs into slots)";
                             }
                         } else {
                             promptTitle.innerText = `Hive Pad #${hive.id + 1}`;
@@ -1160,7 +1278,7 @@
             // 1. Claim Hive Pad check
             for (let hive of hivePads) {
                 const dist = Math.hypot(pos.x - hive.x, pos.z - hive.z);
-                if (dist < 4.0) {
+                if (dist < 5.0) {
                     if (!hive.claimed && gameState.claimedHive === null) {
                         hive.claimed = true;
                         hive.owner = "Player";
@@ -1201,7 +1319,6 @@
             if (gameState.pollen > 0 && !gameState.converting) {
                 gameState.converting = true;
                 
-                // Set bees state to fly into hive slot and spin!
                 for (let bee of gameState.bees) {
                     bee.state = 'CONVERTING';
                 }
@@ -1215,7 +1332,6 @@
                         createFloatingText("+" + amount + " Honey 🍯", playerBody.position, "#ffb300");
                     } else {
                         gameState.converting = false;
-                        // Return bees to follow player
                         for (let bee of gameState.bees) {
                             bee.state = 'FOLLOW';
                         }
