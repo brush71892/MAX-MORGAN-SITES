@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Max Morgan HUB</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #00adb5;
+            --hover-color: #00fff5;
+            --text-color: #eeeeee;
+            --text-muted: #aaaaaa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            padding: 2.5rem 1rem 1.5rem;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(0, 173, 181, 0.15) 0%, rgba(18, 18, 18, 0) 100%);
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--accent-color);
+            box-shadow: 0 0 15px rgba(0, 173, 181, 0.4);
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        p.subtitle {
+            margin-top: 0.5rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem 0;
+        }
+
+        .game-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 1px solid #333;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 255, 245, 0.2);
+            border-color: var(--hover-color);
+        }
+
+        .game-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .game-card:hover .game-title {
+            color: var(--hover-color);
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="MaxSamuelMorgan.png" alt="Max Samuel Morgan" class="avatar" onerror="this.style.display='none'">
+        <h1>Max Morgan Hub</h1>
+        <p class="subtitle">Select a game to start playing</p>
+    </header>
+
+    <main class="container">
+        <a href="+1 MAX MORGAN ESCAPE.html" class="game-card">
+            <div class="game-icon">🏃</div>
+            <div class="game-title">+1 Max Morgan Escape</div>
+        </a>
+
+        <a href="MAX MORGAN CLICKER.html" class="game-card">
+            <div class="game-icon">👆</div>
+            <div class="game-title">Max Morgan Clicker</div>
+        </a>
+
+        <a href="MAX SWARMGAN SIMULATOR.html" class="game-card">
+            <div class="game-icon">🐝</div>
+            <div class="game-title">Max Swarmgan Simulator</div>
+        </a>
+
+        <a href="MorganRNG.html" class="game-card">
+            <div class="game-icon">🎲</div>
+            <div class="game-title">Morgan RNG</div>
+        </a>
+    </main>
+
+    <footer>
+        <p>&copy; Max Morgan Games. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
