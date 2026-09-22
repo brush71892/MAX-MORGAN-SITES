@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAXWELL SAMUEL MORGAN RNG - FRC #3464 SIMCITY ULTIMATE EDITION</title>
+    <style>
+      :root {
+        --bg: #020617;
+        --panel: rgba(15, 23, 42, 0.94);
+        --panel-border: rgba(56, 189, 248, 0.3);
+        --primary: #2563eb;
+        --primary-glow: #38bdf8;
+        --accent: #22c55e;
+        --gold: #fbbf24;
+        --simcity-red: #ef4444;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        user-select: none;
+      }
+
+      #gameCanvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        z-index: 1;
+      }
+
+      /* COMPACT HUD TOPBAR */
+      .hud-topbar {
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        z-index: 10;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+      }
+
+      .hud-group {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        pointer-events: auto;
+      }
+
+      .hud-badge {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .hud-btn {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 5px 10px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        backdrop-filter: blur(12px);
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      }
+
+      .hud-btn:hover {
+        background: rgba(37, 99, 235, 0.35);
+        border-color: var(--primary-glow);
+        transform: translateY(-1px);
+      }
+
+      /* COMPACT BANNERS & STRIPS */
+      .event-banner {
+        position: fixed;
+        top: 44px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        background: linear-gradient(90deg, #ef4444, #f59e0b);
+        color: #fff;
+        font-weight: 900;
+        font-size: 0.72rem;
+        padding: 3px 12px;
+        border-radius: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        pointer-events: none;
+        display: none;
+        animation: pulseEvent 1.5s infinite alternate;
+      }
+
+      @keyframes pulseEvent {
+        0% { transform: translateX(-50%) scale(0.97); }
+        100% { transform: translateX(-50%) scale(1.02); }
+      }
+
+      .perk-strip {
+        position: fixed;
+        top: 44px;
+        left: 8px;
+        z-index: 10;
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        pointer-events: none;
+      }
+
+      .perk-tag {
+        background: rgba(15, 23, 42, 0.88);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        color: var(--accent);
+        font-size: 0.68rem;
+        font-weight: 800;
+        padding: 3px 7px;
+        border-radius: 6px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      }
+
+      /* COMPACT ROLL BAR */
+      .hud-roll-bar {
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        padding: 6px 14px;
+        border-radius: 14px;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+      }
+
+      .btn-roll {
+        background: linear-gradient(135deg, #1d4ed8, #0284c7);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 18px;
+        font-size: 0.88rem;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+        transition: all 0.15s ease;
+      }
+
+      .btn-roll:hover:not(:disabled) {
+        transform: scale(1.04);
+        box-shadow: 0 0 22px rgba(56, 189, 248, 0.7);
+      }
+
+      .btn-roll:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-toggle {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid var(--panel-border);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-weight: 800;
+        font-size: 0.72rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .btn-toggle.active {
+        background: rgba(34, 197, 94, 0.25);
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      .btn-toggle.auto-active {
+        background: rgba(56, 189, 248, 0.3);
+        border-color: var(--primary-glow);
+        color: var(--primary-glow);
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+      }
+
+      .pity-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 90px;
+      }
+
+      .pity-label {
+        font-size: 0.65rem;
+        font-weight: 800;
+        color: var(--muted);
+        text-transform: uppercase;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .pity-bar-bg {
+        width: 100%;
+        height: 7px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+      }
+
+      .pity-bar-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #2563eb, #38bdf8);
+        transition: width 0.3s ease;
+      }
+
+      .pity-bar-fill.ready {
+        background: linear-gradient(90deg, #22c55e, #fbbf24);
+        box-shadow: 0 0 8px #22c55e;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.85);
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .modal-backdrop.active { opacity: 1; pointer-events: auto; }
+
+      .modal-window {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 18px;
+        width: min(92vw, 720px);
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+        transform: scale(0.92);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        overflow: hidden;
+      }
+
+      .modal-backdrop.active .modal-window { transform: scale(1); }
+
+      .modal-header {
+        padding: 12px 18px;
+        border-bottom: 1px solid var(--panel-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255,255,255,0.02);
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--primary-glow);
+      }
+
+      .modal-close {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 0 6px;
+      }
+
+      .modal-body {
+        padding: 14px 18px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+      
+      .card-item {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--panel-border);
+        border-radius: 10px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .aura-tag {
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .btn-sm {
+        border: none;
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        cursor: pointer;
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .btn-sm.secondary { background: rgba(255,255,255,0.1); color: var(--text); }
+      .btn-sm.cheat { background: #dc2626; color: #fff; }
+      .btn-sm.cheat:hover { background: #ef4444; }
+
+      .cs-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.92);
+        backdrop-filter: blur(12px);
+        z-index: 400;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .cs-overlay.active { opacity: 1; pointer-events: auto; }
+
+      .cs-overlay.quick-mode {
+        inset: auto;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(90vw, 480px);
+        height: 100px;
+        border-radius: 16px;
+        border: 2px solid var(--primary-glow);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        background: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .cs-overlay.quick-mode.active { opacity: 1; pointer-events: auto; }
+      .cs-overlay.quick-mode .cs-title-text { display: none; }
+
+      .cs-viewport {
+        position: relative;
+        width: min(90vw, 600px);
+        height: 110px;
+        background: #090e1a;
+        border: 2px solid var(--panel-border);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: inset 0 0 25px rgba(0,0,0,0.8);
+      }
+
+      .cs-overlay.quick-mode .cs-viewport {
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 14px;
+      }
+
+      .cs-reel {
+        display: flex;
+        position: absolute;
+        top: 8px;
+        left: 0;
+        gap: 8px;
+        will-change: transform;
+      }
+
+      .cs-tile {
+        width: 95px;
+        height: 90px;
+        background: rgba(255,255,255,0.04);
+        border-radius: 10px;
+        border-bottom: 4px solid #94a3b8;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .cs-tile-name {
+        font-size: 0.7rem;
+        font-weight: 800;
+        margin-top: 3px;
+        text-transform: uppercase;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 100%;
+      }
+
+      .cs-pointer {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 3px;
+        background: #ef4444;
+        transform: translateX(-50%);
+        z-index: 10;
+        box-shadow: 0 0 10px #ef4444;
+      }
+
+      .cs-pointer::before, .cs-pointer::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0; height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+      }
+
+      .cs-pointer::before { top: 0; border-top: 8px solid #ef4444; }
+      .cs-pointer::after { bottom: 0; border-bottom: 8px solid #ef4444; }
+
+      #miniMap {
+        position: fixed;
+        bottom: 12px;
+        right: 12px;
+        width: 85px;
+        height: 85px;
+        border-radius: 50%;
+        border: 2px solid var(--panel-border);
+        background: rgba(15, 23, 42, 0.85);
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .roll-toast {
+        position: fixed;
+        top: 48px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-15px);
+        background: rgba(15, 23, 42, 0.95);
+        border: 2px solid var(--primary-glow);
+        border-radius: 12px;
+        padding: 6px 16px;
+        z-index: 300;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+        backdrop-filter: blur(12px);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease;
+      }
+
+      .roll-toast.active {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .controls-hint {
+        position: fixed;
+        bottom: 60px;
+        left: 12px;
+        z-index: 10;
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: var(--muted);
+        background: rgba(15, 23, 42, 0.7);
+        padding: 4px 8px;
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.1);
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="gameCanvas"></canvas>
+    <canvas id="miniMap" width="85" height="85"></canvas>
+
+    <div class="controls-hint">Move: WASD / Arrows | Roll: Space | Locker: E | Shop: M | Skills: K</div>
+
+    <!-- Active World Event Banner -->
+    <div class="event-banner" id="eventBanner">⚡ EVENT: SIMCITY OVERCLOCK (2X LUCK) ⚡</div>
+
+    <!-- Roll Toast Notification Banner -->
+    <div class="roll-toast" id="rollToast">
+      <span id="toastSparkle" style="font-size:1.2rem;">🤖</span>
+      <div>
+        <div id="toastName" style="font-weight:900; font-size:0.88rem; text-transform:uppercase;">AURA NAME</div>
+        <div id="toastRarity" style="font-size:0.7rem; font-weight:800; color:var(--muted);">RARITY · 1 in 0</div>
+      </div>
+    </div>
+
+    <!-- HUD Top Info Bar -->
+    <div class="hud-topbar">
+      <div class="hud-group">
+        <div class="hud-badge">🔩 Gears: <span id="coinVal">0</span></div>
+        <div class="hud-badge">✨ Luck: <span id="luckVal">+0% (1.0x)</span></div>
+        <div class="hud-badge">🛠️ Tool: <span id="gearVal">Robotics Wristband</span></div>
+        <div class="hud-badge">🔮 Aura: <span id="equippedVal">None</span></div>
+      </div>
+      <div class="hud-group">
+        <button class="hud-btn" id="btnOpenLocker">🎒 Locker [E]</button>
+        <button class="hud-btn" id="btnOpenShop">🤖 Workshop [M]</button>
+        <button class="hud-btn" id="btnOpenSkills">⚡ Skill Tree [K]</button>
+        <button class="hud-btn" id="btnOpenBadges">🏆 Badges</button>
+        <button class="hud-btn" id="btnOpenQuests">📜 Quests</button>
+        <button class="hud-btn" id="btnOpenCodex">📖 Index</button>
+        <button class="hud-btn" id="btnOpenStats">📊 Stats</button>
+        <button class="hud-btn" id="btnOpenSettings">⚙️ Settings</button>
+      </div>
+    </div>
+
+    <!-- Active HUD Dynamic Tags -->
+    <div class="perk-strip" id="perkStrip"></div>
+
+    <!-- Bottom Controls -->
+    <div class="hud-roll-bar">
+      <button class="btn-roll" id="rollBtn">ROLL AURA [Space]</button>
+      <button class="btn-toggle" id="autoToggleBtn">🔄 AUTO: OFF</button>
+      <button class="btn-toggle" id="quickToggleBtn">⚡ QUICK: OFF</button>
+      <div class="pity-container">
+        <div class="pity-label">
+          <span>2x Overdrive</span>
+          <span id="pityText">0/10</span>
+        </div>
+        <div class="pity-bar-bg">
+          <div class="pity-bar-fill" id="pityFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal System -->
+    <div class="modal-backdrop" id="modalBackdrop">
+      <div class="modal-window">
+        <div class="modal-header">
+          <h2 id="modalTitle">Menu</h2>
+          <button class="modal-close" id="modalCloseBtn">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <!-- CS-Style Case Reel -->
+    <div class="cs-overlay" id="csOverlay">
+      <div class="cs-title-text" style="color:var(--primary-glow); font-size:0.78rem; font-weight:800; letter-spacing:0.2em; margin-bottom:10px;">FRC #3464 SIMCITY REEL...</div>
+      <div class="cs-viewport" id="csViewport">
+        <div class="cs-pointer"></div>
+        <div class="cs-reel" id="csReel"></div>
+      </div>
+    </div>
+
+    <script>
+      // -------------------------------------------------------------
+      // AUDIO SYSTEM (Web Audio API Synthesizer)
+      // -------------------------------------------------------------
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      function playSfx(type) {
+        if (!settings.sfxEnabled) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'tick') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(680, now);
+          gain.gain.setValueAtTime(0.02, now); gain.gain.linearRampToValueAtTime(0.001, now + 0.025);
+          osc.start(now); osc.stop(now + 0.025);
+        } else if (type === 'potion') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+          gain.gain.setValueAtTime(0.08, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+          osc.start(now); osc.stop(now + 0.15);
+        } else if (type === 'rare') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(260, now); osc.frequency.exponentialRampToValueAtTime(1800, now + 0.7);
+          gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.7);
+          osc.start(now); osc.stop(now + 0.7);
+        } else if (type === 'charge') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(900, now + 0.4);
+          gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+          osc.start(now); osc.stop(now + 0.4);
+        }
+      }
+
+      // -------------------------------------------------------------
+      // SETUP & ENGINE CONFIG
+      // -------------------------------------------------------------
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      const miniCanvas = document.getElementById('miniMap');
+      const miniCtx = miniCanvas.getContext('2d');
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      const rarityColors = {
+        Common: '#94a3b8', Uncommon: '#4ade80', Rare: '#38bdf8', Epic: '#c084fc',
+        Legendary: '#fbbf24', Mythic: '#f43f5e', Divine: '#38bdf8', Celestial: '#a855f7',
+        Singularity: '#ec4899', Omnipotent: '#06b6d4', Genesis: '#f97316'
+      };
+
+      const defaultSettings = { sfxEnabled: true, autoEquipEnabled: true };
+
+      const defaultState = {
+        coins: 10, gearIndex: 0, maxGearIndex: 0, inventory: [], equippedAura: null,
+        totalRolls: 0, rollPity: 0, unlockedCodex: [], playerSkin: 'Default',
+        quickRoll: false, autoRoll: false, skinList: ['Default'],
+        claimedBadges: [], claimedQuests: [],
+        skills: { speedLevel: 0, overclockLevel: 0, luckLevel: 0 },
+        stats: { totalGearsCollected: 0, totalDistMoved: 0, totalPityTriggered: 0 },
+        player: { x: 1200, y: 1200, radius: 22, speed: 300, angle: 0 }
+      };
+
+      let settings = loadSettings();
+      let state = loadSaveData();
+      let isRolling = false;
+      let autoRollTimer = null;
+      let toastTimer = null;
+      let worldPotions = [];
+      let playerTrail = [];
+      let screenShake = 0;
+
+      // HIGH PERFORMANCE ZERO-ALLOCATION PARTICLE POOL
+      const MAX_AURA_PARTICLES = 120;
+      const auraParticlePool = Array.from({ length: MAX_AURA_PARTICLES }, () => ({
+        active: false, x: 0, y: 0, vx: 0, vy: 0, size: 0, color: '#fff', life: 0, decay: 0
+      }));
+
+      function spawnAuraParticle(x, y, vx, vy, size, color, decay) {
+        for (let i = 0; i < MAX_AURA_PARTICLES; i++) {
+          const p = auraParticlePool[i];
+          if (!p.active) {
+            p.active = true; p.x = x; p.y = y; p.vx = vx; p.vy = vy;
+            p.size = size; p.color = color; p.life = 1.0; p.decay = decay;
+            return;
+          }
+        }
+      }
+
+      // World Buffs & Dynamic Events
+      let chargingBuffTimer = 0;
+      let activeWorldEvent = { type: 'NONE', endTime: 0, name: '' };
+      let nextEventTimer = 60;
+
+      const world = { width: 2400, height: 2400 };
+      const keys = {};
+
+      // Dynamic Map Zones
+      const mapZones = [
+        { id: 'workshop', name: '6 Niel Drive Workshop', x: 200, y: 200, w: 650, h: 650, luckBonus: 0.5, gearBonus: 0.2, color: '#0284c7' },
+        { id: 'field', name: 'FRC Competition Field', x: 1550, y: 1550, w: 650, h: 650, luckBonus: 0.2, gearBonus: 0.6, color: '#eab308' }
+      ];
+
+      // Interactive Map Structures
+      const chargingStation = { x: 1200, y: 1200, radius: 55, chargeProgress: 0 };
+      const recyclingStation = { x: 500, y: 1800, radius: 55, progress: 0 };
+
+      // GEAR CATALOG (Primary source of Luck multipliers)
+      const gearCatalog = [
+        { id: 0, name: '1.71m Basic Wristband', cost: 0, luckBonus: 0, desc: 'Co-Captain standard issue strap (+0% Luck = 1.0x)' },
+        { id: 1, name: '6 Niel Drive Signal Ring', cost: 25, luckBonus: 35, desc: 'Calibrated at Max’s workshop (+35% Luck = 1.35x)' },
+        { id: 2, name: 'Matthew’s Precision Wrench', cost: 80, luckBonus: 90, desc: 'Passed down by Matthew Morgan (+90% Luck = 1.9x)' },
+        { id: 3, name: 'Gina’s Blessing Glove', cost: 220, luckBonus: 180, desc: 'Infused with Gina Morgan’s support (+180% Luck = 2.8x)' },
+        { id: 4, name: 'Autumn & Adele Dual Motors', cost: 550, luckBonus: 420, desc: 'Twin sister mechanical sync (+420% Luck = 5.2x)' },
+        { id: 5, name: 'SimCity Autonomous Core', cost: 1300, luckBonus: 950, desc: 'FRC #3464 robo-controller (+950% Luck = 10.5x)' },
+        { id: 6, name: '6 Niel Drive Fusion Gauntlet', cost: 3200, luckBonus: 2300, desc: 'Home base power PDU (+2,300% Luck = 24.0x)' },
+        { id: 7, name: 'FRC #3464 Co-Captain Crown', cost: 8500, luckBonus: 5800, desc: 'Leader of Team SimCity (+5,800% Luck = 59.0x)' },
+        { id: 8, name: 'Maxwell Samuel Morgan Overdrive', cost: 26000, luckBonus: 14000, desc: 'Peak 1.71m engineering (+14,000% Luck = 141.0x)' }
+      ];
+
+      // Achievements
+      const badgeCatalog = [
+        { id: 'b1', title: 'First Gear', desc: 'Roll your very first Aura', reward: 50, req: (s) => s.totalRolls >= 1 },
+        { id: 'b2', title: 'Workshop Regular', desc: 'Visit the 6 Niel Drive Workshop zone', reward: 150, req: (s) => s.player.x < 850 && s.player.y < 850 },
+        { id: 'b3', title: 'Charged Up', desc: 'Fully charge at the High Voltage Station', reward: 250, req: (s) => chargingBuffTimer > 0 },
+        { id: 'b4', title: 'Skillful Engineer', desc: 'Level up any Skill in the Skill Tree', reward: 300, req: (s) => (s.skills.speedLevel + s.skills.overclockLevel + s.skills.luckLevel) >= 1 },
+        { id: 'b5', title: 'Overdrive Master', desc: 'Trigger 2x Overdrive Pity 3 times', reward: 600, req: (s) => (s.stats.totalPityTriggered || 0) >= 3 },
+        { id: 'b6', title: 'Gear Sweeper', desc: 'Collect 100 loose gears from the ground', reward: 1000, req: (s) => (s.stats.totalGearsCollected || 0) >= 100 }
+      ];
+
+      // -------------------------------------------------------------
+      // UNIQUE VISUAL ARCHETYPES & AURA CATALOG
+      // -------------------------------------------------------------
+      function buildCatalog() {
+        const customLoreAuras = [
+          {
+            name: 'FRC #3464 SimCity', odds: 3464, rarity: 'Epic', primaryColor: '#ff2a5f', secondaryColor: '#ffb703',
+            renderType: 'gear_rotor'
+          },
+          {
+            name: '6 Niel Drive Core', odds: 6000, rarity: 'Epic', primaryColor: '#00f2fe', secondaryColor: '#4facfe',
+            renderType: 'circuit_hex'
+          },
+          {
+            name: 'Gina Morgan Grace', odds: 15000, rarity: 'Legendary', primaryColor: '#ff758c', secondaryColor: '#ff7eb3',
+            renderType: 'shield_rune'
+          },
+          {
+            name: 'Matthew Morgan Might', odds: 25000, rarity: 'Legendary', primaryColor: '#00c6ff', secondaryColor: '#0072ff',
+            renderType: 'electric_arc'
+          },
+          {
+            name: 'Autumn & Adele Twin Spark', odds: 50000, rarity: 'Mythic', primaryColor: '#b5179e', secondaryColor: '#7209b7',
+            renderType: 'twin_stars'
+          },
+          {
+            name: '1.71m Stature Prime', odds: 171000, rarity: 'Divine', primaryColor: '#38ef7d', secondaryColor: '#11998e',
+            renderType: 'height_pillar'
+          },
+          {
+            name: 'Maxwell Samuel Morgan Sovereign', odds: 3464000, rarity: 'Singularity', primaryColor: '#ffe259', secondaryColor: '#ffa751',
+            renderType: 'singularity'
+          },
+          {
+            name: 'SimCity World Champion', odds: 34640000, rarity: 'Omnipotent', primaryColor: '#00f2fe', secondaryColor: '#9b51e0',
+            renderType: 'crown_flare'
+          }
+        ];
+
+        const prefixes = [
+          'Robo', 'SimCity', 'Niel Drive', 'Co-Captain', 'Morgan', 'Servo', 'Hydraulic',
+          'Autonomous', 'Pneumatic', 'Chassis', 'CAN-Bus', 'Gearbox', 'Titanium', 'Micro',
+          'Vector', 'Kinetic', 'Seraphic', 'Apex', 'Serpentine', 'Hyper', 'Quantum', 'Eldritch'
+        ];
+
+        const suffixes = [
+          'Drive', 'Pulse', 'Spark', 'Torque', 'Core', 'Matrix', 'Engine', 'Link',
+          'Circuit', 'Overdrive', 'Framework', 'Flux', 'Vortex', 'Symphony', 'Ascension'
+        ];
+
+        const vibrantSecondary = ['#ffffff', '#00f2fe', '#ff007f', '#ffe600', '#7b2cbf', '#00ff66', '#ff4d00', '#00ffff'];
+        const renderTypes = ['gear_rotor', 'twin_stars', 'circuit_hex', 'shield_rune', 'height_pillar', 'singularity', 'electric_arc', 'crown_flare', 'orbit_rings', 'pulse_matrix'];
+
+        const catalog = [];
+        const total = 250;
+        let nameIndex = 0;
+        const usedNames = new Set();
+
+        for (let i = 0; i < total; i++) {
+          let auraName = "";
+          let odds = Math.round(Math.exp(Math.log(2) + (i / (total - 1)) * (Math.log(500000000) - Math.log(2))));
+          
+          let matchedCustom = customLoreAuras.find(c => Math.abs(c.odds - odds) < odds * 0.15 && !usedNames.has(c.name));
+          
+          let rarity = 'Common';
+          if (odds > 100000000) rarity = 'Genesis';
+          else if (odds > 25000000) rarity = 'Omnipotent';
+          else if (odds > 5000000) rarity = 'Singularity';
+          else if (odds > 1000000) rarity = 'Celestial';
+          else if (odds > 250000) rarity = 'Divine';
+          else if (odds > 50000) rarity = 'Mythic';
+          else if (odds > 10000) rarity = 'Legendary';
+          else if (odds > 1500) rarity = 'Epic';
+          else if (odds > 200) rarity = 'Rare';
+          else if (odds > 20) rarity = 'Uncommon';
+
+          if (matchedCustom) {
+            catalog.push({ id: i, ...matchedCustom });
+            usedNames.add(matchedCustom.name);
+          } else {
+            while (!auraName || usedNames.has(auraName)) {
+              const p = prefixes[nameIndex % prefixes.length];
+              const s = suffixes[Math.floor(nameIndex / prefixes.length) % suffixes.length];
+              auraName = `${p} ${s}`;
+              nameIndex++;
+            }
+            usedNames.add(auraName);
+
+            const rType = renderTypes[i % renderTypes.length];
+            const pColor = rarityColors[rarity];
+            const sColor = vibrantSecondary[i % vibrantSecondary.length];
+
+            catalog.push({
+              id: i,
+              name: auraName,
+              odds, rarity,
+              primaryColor: pColor,
+              secondaryColor: sColor,
+              renderType: rType
+            });
+          }
+        }
+
+        return catalog.sort((a,b) => a.odds - b.odds).map((item, idx) => ({ ...item, id: idx }));
+      }
+
+      const auraCatalog = buildCatalog();
+
+      const playerSkins = [
+        { id: 'Default', name: 'Max Morgan Standard (1.71m)', cost: 0, color: '#38bdf8', eyeColor: '#ffffff' },
+        { id: 'SimCityChassis', name: 'FRC #3464 Robot Chassis', cost: 60, color: '#ef4444', eyeColor: '#fbbf24' },
+        { id: 'NielDrivePower', name: '6 Niel Drive Power Core', cost: 200, color: '#fbbf24', eyeColor: '#38bdf8' },
+        { id: 'CaptainGold', name: 'Co-Captain Gold Edition', cost: 500, color: '#22c55e', eyeColor: '#ffffff' }
+      ];
+
+      const quests = [
+        { id: 'q1', text: 'Roll 10 Auras (SimCity Warmup)', target: 10, key: 'totalRolls', reward: 30 },
+        { id: 'q2', text: 'Roll 50 Auras (6 Niel Drive Calibration)', target: 50, key: 'totalRolls', reward: 100 },
+        { id: 'q3', text: 'Roll 150 Auras (Autumn & Adele Twin Boost)', target: 150, key: 'totalRolls', reward: 300 },
+        { id: 'q4', text: 'Roll 300 Auras (Gina & Matthew Support)', target: 300, key: 'totalRolls', reward: 700 },
+        { id: 'q5', text: 'Roll 1000 Auras (FRC #3464 Championship)', target: 1000, key: 'totalRolls', reward: 3000 }
+      ];
+
+      // -------------------------------------------------------------
+      // SAVING & CALCULATIONS
+      // -------------------------------------------------------------
+      function saveGame() { localStorage.setItem('mm_rng_maxwell_v4', JSON.stringify(state)); }
+      function loadSaveData() {
+        try {
+          const r = localStorage.getItem('mm_rng_maxwell_v4');
+          if (r) {
+            const parsed = JSON.parse(r);
+            return {
+              ...defaultState,
+              ...parsed,
+              skills: { ...defaultState.skills, ...(parsed.skills || {}) },
+              stats: { ...defaultState.stats, ...(parsed.stats || {}) },
+              player: { ...defaultState.player, ...(parsed.player || {}) },
+              claimedQuests: parsed.claimedQuests || [],
+              claimedBadges: parsed.claimedBadges || [],
+              maxGearIndex: parsed.maxGearIndex ?? parsed.gearIndex ?? 0
+            };
+          }
+          return { ...defaultState };
+        } catch(e) {
+          return { ...defaultState };
+        }
+      }
+      function saveSettings() { localStorage.setItem('mm_rng_settings_maxwell_v4', JSON.stringify(settings)); }
+      function loadSettings() {
+        try { const r = localStorage.getItem('mm_rng_settings_maxwell_v4'); return r ? { ...defaultSettings, ...JSON.parse(r) } : { ...defaultSettings }; }
+        catch(e) { return { ...defaultSettings }; }
+      }
+
+      function getCurrentZone() {
+        return mapZones.find(z => 
+          state.player.x >= z.x && state.player.x <= z.x + z.w &&
+          state.player.y >= z.y && state.player.y <= z.y + z.h
+        );
+      }
+
+      function getLuckBonus(isPityRoll = false) {
+        const gear = gearCatalog[state.gearIndex] || gearCatalog[0];
+        let baseLuck = gear.luckBonus;
+        
+        const skillLuckBonus = (state.skills.luckLevel || 0) * 0.25;
+        const currentZone = getCurrentZone();
+        const zoneLuckBonus = currentZone ? currentZone.luckBonus : 0;
+
+        baseLuck = baseLuck * (1 + skillLuckBonus + zoneLuckBonus);
+        
+        let multiplier = isPityRoll ? 2 : 1;
+        if (chargingBuffTimer > 0) multiplier *= 2;
+        if (activeWorldEvent.type === 'OVERCLOCK') multiplier *= 2;
+
+        return baseLuck * multiplier;
+      }
+
+      function getPlayerSpeed() {
+        const baseSpeed = 300;
+        const skillSpeedBonus = (state.skills.speedLevel || 0) * 0.10;
+        return baseSpeed * (1 + skillSpeedBonus);
+      }
+
+      function spawnPotions() {
+        while (worldPotions.length < 28) {
+          const isHighTier = Math.random() < 0.15;
+          worldPotions.push({
+            x: Math.random() * (world.width - 200) + 100,
+            y: Math.random() * (world.height - 200) + 100,
+            radius: isHighTier ? 12 : 8 + Math.random() * 4,
+            baseValue: isHighTier ? Math.floor(Math.random() * 25) + 20 : Math.floor(Math.random() * 10) + 6,
+            isHighTier,
+            pulse: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function equipBestOwned() {
+        if (!state.inventory.length) state.equippedAura = null;
+        else state.equippedAura = [...state.inventory].sort((a,b) => b.odds - a.odds)[0];
+        saveGame(); updateHUD();
+      }
+
+      function showRollToast(aura) {
+        const toast = document.getElementById('rollToast');
+        document.getElementById('toastName').textContent = aura.name;
+        document.getElementById('toastName').style.color = aura.primaryColor;
+        document.getElementById('toastRarity').textContent = `${aura.rarity} · 1 in ${aura.odds.toLocaleString()}`;
+        document.getElementById('toastRarity').style.color = aura.primaryColor;
+        document.getElementById('toastSparkle').style.color = aura.primaryColor;
+        toast.style.borderColor = aura.primaryColor;
+
+        toast.classList.add('active');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { toast.classList.remove('active'); }, 2400);
+      }
+
+      function sampleLuckWeightedAura(luckMult) {
+        const sorted = [...auraCatalog].sort((a, b) => b.odds - a.odds);
+        for (const aura of sorted) {
+          const chance = Math.min(1.0, luckMult / aura.odds);
+          if (Math.random() < chance) return aura;
+        }
+        return sorted[sorted.length - 1];
+      }
+
+      function rollAura() {
+        if (isRolling) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        isRolling = true;
+        document.getElementById('rollBtn').disabled = true;
+
+        const isPity = state.rollPity >= 9;
+        const luckBonus = getLuckBonus(isPity);
+        const luckMultiplier = 1 + (luckBonus / 100);
+
+        const won = sampleLuckWeightedAura(luckMultiplier);
+
+        const reelList = [];
+        const winIndex = 36;
+        for (let i = 0; i < 45; i++) {
+          if (i === winIndex) reelList.push(won);
+          else reelList.push(sampleLuckWeightedAura(luckMultiplier));
+        }
+
+        const csOverlay = document.getElementById('csOverlay');
+        const csReel = document.getElementById('csReel');
+        const csViewport = document.getElementById('csViewport');
+
+        if (state.quickRoll) csOverlay.classList.add('quick-mode');
+        else csOverlay.classList.remove('quick-mode');
+
+        csReel.innerHTML = reelList.map(a => `
+          <div class="cs-tile" style="border-bottom-color: ${a.primaryColor}">
+            <div style="font-weight:900; color:${a.primaryColor}; font-size:1rem;">⚙️</div>
+            <div class="cs-tile-name" style="color:${a.primaryColor}">${a.name}</div>
+            <div style="font-size:0.6rem; color:var(--muted); font-weight:800; margin-top:2px;">1 in ${a.odds.toLocaleString()}</div>
+          </div>
+        `).join('');
+
+        csReel.style.transition = 'none';
+        csReel.style.transform = 'translateX(0px)';
+
+        csOverlay.classList.add('active');
+
+        const tileWidth = 103;
+        const viewportWidth = csViewport.clientWidth;
+        const offsetInsideTile = Math.random() * 60 + 10;
+        const targetScroll = (winIndex * tileWidth) - (viewportWidth / 2) + (95 / 2) + (offsetInsideTile - 30);
+
+        setTimeout(() => {
+          const overclockBonus = (state.skills.overclockLevel || 0) * 0.15;
+          const baseDuration = state.quickRoll ? 0.75 : 2.2;
+          const duration = Math.max(0.3, baseDuration * (1 - overclockBonus));
+
+          csReel.style.transition = `transform ${duration}s cubic-bezier(0.12, 0.8, 0.2, 1.0)`;
+          csReel.style.transform = `translateX(-${targetScroll}px)`;
+
+          let lastTickIndex = -1;
+          const startTime = performance.now();
+
+          function tickCheck(now) {
+            const elapsed = (now - startTime) / 1000;
+            const progress = Math.min(1, elapsed / duration);
+            const easedProgress = 1 - Math.pow(1 - progress, 3);
+            const currentScroll = targetScroll * easedProgress;
+
+            const passedTile = Math.floor(currentScroll / tileWidth);
+            if (passedTile !== lastTickIndex && passedTile < winIndex) {
+              lastTickIndex = passedTile;
+              playSfx('tick');
+            }
+
+            if (progress < 1) requestAnimationFrame(tickCheck);
+          }
+          requestAnimationFrame(tickCheck);
+
+          setTimeout(() => {
+            setTimeout(() => {
+              csOverlay.classList.remove('active');
+              finishRoll(won, isPity);
+            }, state.quickRoll ? 80 : 200);
+          }, duration * 1000);
+        }, 40);
+      }
+
+      function finishRoll(won, wasPity) {
+        state.totalRolls++;
+        
+        if (wasPity) {
+          state.rollPity = 0;
+          state.stats.totalPityTriggered = (state.stats.totalPityTriggered || 0) + 1;
+        } else {
+          state.rollPity += 1;
+        }
+
+        if (!state.unlockedCodex.includes(won.id)) state.unlockedCodex.push(won.id);
+
+        const exists = state.inventory.some(i => i.id === won.id);
+        if (!exists) {
+          state.inventory.push({ ...won });
+          if (settings.autoEquipEnabled) equipBestOwned();
+        }
+
+        isRolling = false;
+        document.getElementById('rollBtn').disabled = false;
+
+        if (won.odds >= 1000) {
+          playSfx('rare');
+          screenShake = 16;
+        }
+        showRollToast(won);
+
+        updateHUD(); saveGame();
+
+        if (state.autoRoll) {
+          clearTimeout(autoRollTimer);
+          autoRollTimer = setTimeout(() => {
+            if (state.autoRoll && !isRolling) {
+              rollAura();
+            }
+          }, state.quickRoll ? 120 : 380);
+        }
+      }
+
+      // -------------------------------------------------------------
+      // HIGH-REFINEMENT VISUAL AURA SYSTEM (OPTIMIZED GPU LIGHTING)
+      // -------------------------------------------------------------
+      function updateAndDrawAura(dt, screenX, screenY, aura) {
+        if (!aura) return;
+
+        const now = Date.now() / 1000;
+        const color1 = aura.primaryColor || '#38bdf8';
+        const color2 = aura.secondaryColor || '#ffffff';
+        const rType = aura.renderType || 'orbit_rings';
+
+        ctx.save();
+        ctx.translate(screenX, screenY);
+
+        // AMBIENT LIGHTING BASELINE UNDER PLAYER
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const baseGlow = ctx.createRadialGradient(0, 0, 5, 0, 0, 85);
+        baseGlow.addColorStop(0, color1 + '66');
+        baseGlow.addColorStop(0.6, color2 + '22');
+        baseGlow.addColorStop(1, 'transparent');
+        ctx.fillStyle = baseGlow;
+        ctx.beginPath();
+        ctx.arc(0, 0, 85, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // HIGH VISUAL QUALITY ARCHETYPES
+        switch (rType) {
+          case 'gear_rotor': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            
+            ctx.rotate(now * 1.8);
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(0, 0, 52, 0, Math.PI * 2); ctx.stroke();
+
+            const outerTeeth = 10;
+            for (let i = 0; i < outerTeeth; i++) {
+              const ang = (i / outerTeeth) * Math.PI * 2;
+              ctx.fillStyle = color1;
+              ctx.fillRect(Math.cos(ang) * 48 - 6, Math.sin(ang) * 48 - 6, 12, 12);
+            }
+
+            ctx.rotate(-now * 3.5);
+            ctx.strokeStyle = color2;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.stroke();
+
+            const innerTeeth = 6;
+            for (let i = 0; i < innerTeeth; i++) {
+              const ang = (i / innerTeeth) * Math.PI * 2;
+              ctx.fillStyle = color2;
+              ctx.fillRect(Math.cos(ang) * 31 - 4, Math.sin(ang) * 31 - 4, 8, 8);
+            }
+
+            const coreR = 12 + Math.sin(now * 6) * 3;
+            ctx.fillStyle = color1;
+            ctx.beginPath(); ctx.arc(0, 0, coreR, 0, Math.PI * 2); ctx.fill();
+
+            ctx.restore();
+            break;
+          }
+
+          case 'twin_stars': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            const orbitR = 56 + Math.sin(now * 4) * 8;
+            const ang1 = now * 3.0;
+            const star1X = Math.cos(ang1) * orbitR;
+            const star1Y = Math.sin(ang1) * (orbitR * 0.55);
+            const star2X = -star1X;
+            const star2Y = -star1Y;
+
+            const beamGrad = ctx.createLinearGradient(star1X, star1Y, star2X, star2Y);
+            beamGrad.addColorStop(0, color1);
+            beamGrad.addColorStop(0.5, '#ffffff');
+            beamGrad.addColorStop(1, color2);
+            ctx.strokeStyle = beamGrad;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath(); ctx.moveTo(star1X, star1Y); ctx.lineTo(star2X, star2Y); ctx.stroke();
+
+            ctx.fillStyle = color1;
+            ctx.beginPath(); ctx.arc(star1X, star1Y, 14, 0, Math.PI * 2); ctx.fill();
+
+            ctx.fillStyle = color2;
+            ctx.beginPath(); ctx.arc(star2X, star2Y, 14, 0, Math.PI * 2); ctx.fill();
+
+            ctx.strokeStyle = color1 + '44';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.ellipse(0, 0, orbitR, orbitR * 0.55, 0, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.restore();
+            break;
+          }
+
+          case 'circuit_hex': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.rotate(now * 0.4);
+
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const angle = (i / 6) * Math.PI * 2;
+              const x = Math.cos(angle) * 64;
+              const y = Math.sin(angle) * 64;
+              if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            for (let i = 0; i < 6; i++) {
+              const angle = (i / 6) * Math.PI * 2;
+              const nx = Math.cos(angle) * 64;
+              const ny = Math.sin(angle) * 64;
+              
+              ctx.fillStyle = color2;
+              ctx.beginPath(); ctx.arc(nx, ny, 6, 0, Math.PI * 2); ctx.fill();
+
+              ctx.strokeStyle = color2 + '66';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath(); ctx.moveTo(nx, ny); ctx.lineTo(0, 0); ctx.stroke();
+            }
+
+            ctx.rotate(-now * 0.8);
+            ctx.strokeStyle = color2;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+              const angle = (i / 6) * Math.PI * 2;
+              const x = Math.cos(angle) * 38;
+              const y = Math.sin(angle) * 38;
+              if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.restore();
+            break;
+          }
+
+          case 'shield_rune': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            const fieldR = 60 + Math.sin(now * 3) * 5;
+            ctx.save();
+            ctx.scale(1.0, 0.55);
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(0, 0, fieldR, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.fillStyle = color1 + '22';
+            ctx.fill();
+            ctx.restore();
+
+            ctx.rotate(now * 1.2);
+            const runes = 8;
+            for (let i = 0; i < runes; i++) {
+              const ang = (i / runes) * Math.PI * 2;
+              const rx = Math.cos(ang) * (fieldR + 10);
+              const ry = Math.sin(ang) * (fieldR + 10);
+
+              ctx.fillStyle = color2;
+              ctx.beginPath(); ctx.arc(rx, ry, 4, 0, Math.PI * 2); ctx.fill();
+            }
+
+            ctx.restore();
+            break;
+          }
+
+          case 'height_pillar': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            const beamW = 68 + Math.sin(now * 5) * 8;
+            const beamGrad = ctx.createLinearGradient(0, -180, 0, 40);
+            beamGrad.addColorStop(0, 'transparent');
+            beamGrad.addColorStop(0.3, color1 + 'bb');
+            beamGrad.addColorStop(0.7, color2 + 'dd');
+            beamGrad.addColorStop(1, 'transparent');
+
+            ctx.fillStyle = beamGrad;
+            ctx.fillRect(-beamW / 2, -180, beamW, 220);
+
+            ctx.scale(1.0, 0.45);
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath(); ctx.arc(0, 60, beamW * 0.8, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.restore();
+            break;
+          }
+
+          case 'singularity': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            ctx.rotate(-now * 2.5);
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 6;
+            ctx.beginPath(); ctx.ellipse(0, 0, 75, 24, 0, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.strokeStyle = color2;
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.ellipse(0, 0, 85, 30, 0.5, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI * 2); ctx.fill();
+
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(0, 0, 33, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.restore();
+            break;
+          }
+
+          case 'electric_arc': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            ctx.fillStyle = color1;
+            ctx.beginPath(); ctx.arc(0, 0, 16 + Math.sin(now * 10) * 3, 0, Math.PI * 2); ctx.fill();
+
+            ctx.strokeStyle = color2;
+            ctx.lineWidth = 2.5;
+
+            const arcs = 4;
+            for (let a = 0; a < arcs; a++) {
+              ctx.beginPath();
+              const targetAngle = (a / arcs) * Math.PI * 2 + (now * 5);
+              const targetX = Math.cos(targetAngle) * 70;
+              const targetY = Math.sin(targetAngle) * 70;
+
+              let curX = 0, curY = 0;
+              ctx.moveTo(curX, curY);
+
+              for (let step = 1; step <= 5; step++) {
+                const frac = step / 5;
+                const jitterX = (Math.random() - 0.5) * 26;
+                const jitterY = (Math.random() - 0.5) * 26;
+                curX = targetX * frac + jitterX;
+                curY = targetY * frac + jitterY;
+                ctx.lineTo(curX, curY);
+              }
+              ctx.stroke();
+            }
+
+            ctx.restore();
+            break;
+          }
+
+          case 'crown_flare': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            ctx.rotate(now * 0.8);
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 3.5;
+
+            const rays = 12;
+            for (let i = 0; i < rays; i++) {
+              const ang = (i / rays) * Math.PI * 2;
+              const outerLen = 50 + Math.sin(now * 8 + i) * 20;
+              ctx.beginPath();
+              ctx.moveTo(Math.cos(ang) * 25, Math.sin(ang) * 25);
+              ctx.lineTo(Math.cos(ang) * outerLen, Math.sin(ang) * outerLen);
+              ctx.stroke();
+
+              ctx.fillStyle = color2;
+              ctx.beginPath(); ctx.arc(Math.cos(ang) * (outerLen + 6), Math.sin(ang) * (outerLen + 6), 3.5, 0, Math.PI * 2); ctx.fill();
+            }
+
+            ctx.strokeStyle = color2;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(0, 0, 48, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.restore();
+            break;
+          }
+
+          case 'orbit_rings': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            ctx.rotate(now * 1.5);
+            ctx.strokeStyle = color1;
+            ctx.lineWidth = 3.5;
+            ctx.beginPath(); ctx.ellipse(0, 0, 65, 22, 0, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.rotate(1.1);
+            ctx.strokeStyle = color2;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.ellipse(0, 0, 65, 22, 0, 0, Math.PI * 2); ctx.stroke();
+
+            ctx.restore();
+            break;
+          }
+
+          case 'pulse_matrix': {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            const ringCount = 3;
+            for (let i = 0; i < ringCount; i++) {
+              const progress = ((now * 1.5 + i / ringCount) % 1);
+              const r = progress * 80;
+              const alpha = 1 - progress;
+
+              ctx.strokeStyle = color1;
+              ctx.lineWidth = 3 * alpha;
+              ctx.globalAlpha = alpha;
+              ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+            }
+
+            ctx.restore();
+            break;
+          }
+        }
+
+        ctx.restore();
+
+        // FAST ZERO-ALLOCATION SPARKLE EMISSION
+        if (Math.random() < 0.85) {
+          const pAngle = Math.random() * Math.PI * 2;
+          const pDist = Math.random() * 50;
+          const pSpeed = Math.random() * 50 + 20;
+          spawnAuraParticle(
+            screenX + Math.cos(pAngle) * pDist,
+            screenY + Math.sin(pAngle) * pDist,
+            Math.cos(pAngle) * pSpeed,
+            Math.sin(pAngle) * pSpeed - Math.random() * 25,
+            Math.random() * 4 + 1.5,
+            Math.random() > 0.4 ? color1 : color2,
+            Math.random() * 0.9 + 0.6
+          );
+        }
+
+        // DRAW POOLED AURA PARTICLES
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let i = 0; i < MAX_AURA_PARTICLES; i++) {
+          const p = auraParticlePool[i];
+          if (!p.active) continue;
+
+          p.life -= p.decay * dt;
+          if (p.life <= 0) {
+            p.active = false;
+            continue;
+          }
+
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+
+          ctx.globalAlpha = p.life;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // -------------------------------------------------------------
+      // UI MODAL SYSTEM
+      // -------------------------------------------------------------
+      const modalBackdrop = document.getElementById('modalBackdrop');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalBody = document.getElementById('modalBody');
+
+      function openModal(title, html) {
+        modalTitle.textContent = title;
+        modalBody.innerHTML = html;
+        modalBackdrop.classList.add('active');
+      }
+
+      function closeModal() { modalBackdrop.classList.remove('active'); }
+      document.getElementById('modalCloseBtn').onclick = closeModal;
+
+      function showLockerModal() {
+        const html = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <button class="btn-sm" onclick="equipBestOwned(); showLockerModal();">Equip Highest Rarity Aura</button>
+            <span style="color:var(--muted); font-size:0.8rem;">Max's Collection: ${state.inventory.length} Auras</span>
+          </div>
+          <div class="grid-3">
+            ${state.inventory.slice().reverse().map(aura => {
+              const isEquipped = state.equippedAura && state.equippedAura.id === aura.id;
+              return `
+                <div class="card-item" style="border-left: 3px solid ${aura.primaryColor}">
+                  <div>
+                    <div style="font-weight:800; font-size:0.88rem;">${aura.name}</div>
+                    <div class="aura-tag" style="color:${aura.primaryColor}">${aura.rarity} · 1 in ${aura.odds.toLocaleString()}</div>
+                  </div>
+                  <button class="btn-sm ${isEquipped?'secondary':''}" onclick="equipAuraById(${aura.id})" style="margin-top:6px;">${isEquipped ? 'Equipped' : 'Equip'}</button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        openModal('Max Morgan Visual Aura Bag', html);
+      }
+
+      function showShopModal() {
+        const html = `
+          <h3 style="margin-top:0; color:var(--primary-glow); font-size:0.95rem;">FRC #3464 SimCity Tools (Luck Boosters)</h3>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            ${gearCatalog.map((g, idx) => {
+              const isOwned = idx <= state.maxGearIndex;
+              const isCurrent = idx === state.gearIndex;
+              const canBuy = state.coins >= g.cost && idx === state.maxGearIndex + 1;
+              const multiplier = (1 + g.luckBonus / 100).toFixed(2);
+              return `
+                <div class="card-item" style="flex-direction:row; align-items:center; justify-content:space-between; border-left:3px solid ${isCurrent?'var(--accent)':'var(--panel-border)'}">
+                  <div>
+                    <strong style="font-size:0.9rem; color:${isCurrent?'var(--accent)':'#fff'}">${g.name}</strong>
+                    <div style="color:var(--primary-glow); font-size:0.78rem; font-weight:700;">+${g.luckBonus}\% Luck (${multiplier}x Multiplier)</div>
+                    <div style="color:var(--muted); font-size:0.7rem;">${g.desc}</div>
+                  </div>
+                  <button class="btn-sm ${isCurrent ? 'secondary' : ''}" ${(!canBuy && !isOwned) ? 'disabled' : ''} onclick="buyGear(${idx},${g.cost})">
+                    ${isCurrent ? 'Equipped' : isOwned ? 'Equip' : `Craft ${g.cost} Gears`}
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+
+          <h3 style="margin-top:16px; color:var(--primary-glow); font-size:0.95rem;">Max's Custom Skins</h3>
+          <div class="grid-3">
+            ${playerSkins.map(s => {
+              const isUnlocked = state.skinList.includes(s.id);
+              const isEquipped = state.playerSkin === s.id;
+              return `
+                <div class="card-item">
+                  <strong style="color:${s.color}; font-size:0.85rem;">${s.name}</strong>
+                  <button class="btn-sm ${isEquipped?'secondary':''}" onclick="buyOrEquipSkin('${s.id}',${s.cost})">
+                    ${isEquipped ? 'Active' : isUnlocked ? 'Equip' : `Buy ${s.cost} Gears`}
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        openModal('SimCity Engineering Workshop', html);
+      }
+
+      function showSkillsModal() {
+        const speedLvl = state.skills.speedLevel || 0;
+        const overLvl = state.skills.overclockLevel || 0;
+        const luckLvl = state.skills.luckLevel || 0;
+
+        const speedCost = Math.round(50 * Math.pow(1.6, speedLvl));
+        const overCost = Math.round(80 * Math.pow(1.7, overLvl));
+        const luckCost = Math.round(120 * Math.pow(1.8, luckLvl));
+
+        const html = `
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div class="card-item" style="border-left:3px solid #38bdf8;">
+              <div>
+                <strong style="font-size:0.95rem; color:#38bdf8;">⚡ Motor Tuning (Level ${speedLvl})</strong>
+                <div style="color:var(--muted); font-size:0.75rem; margin-top:2px;">Increases base character movement speed by +10% per level.</div>
+                <div style="color:var(--accent); font-weight:800; font-size:0.78rem; margin-top:2px;">Current Bonus: +${speedLvl * 10}% Speed</div>
+              </div>
+              <button class="btn-sm" ${state.coins < speedCost ? 'disabled':''} onclick="upgradeSkill('speed', ${speedCost})" style="margin-top:6px;">Upgrade (${speedCost} Gears)</button>
+            </div>
+
+            <div class="card-item" style="border-left:3px solid #fbbf24;">
+              <div>
+                <strong style="font-size:0.95rem; color:#fbbf24;">⏩ Overclocking (Level ${overLvl})</strong>
+                <div style="color:var(--muted); font-size:0.75rem; margin-top:2px;">Reduces Case Reel roll animation spin duration by -15% per level.</div>
+                <div style="color:var(--accent); font-weight:800; font-size:0.78rem; margin-top:2px;">Current Reduction: -${Math.round(overLvl * 15)}% Duration</div>
+              </div>
+              <button class="btn-sm" ${state.coins < overCost ? 'disabled':''} onclick="upgradeSkill('overclock', ${overCost})" style="margin-top:6px;">Upgrade (${overCost} Gears)</button>
+            </div>
+
+            <div class="card-item" style="border-left:3px solid #a855f7;">
+              <div>
+                <strong style="font-size:0.95rem; color:#a855f7;">🔮 Luck Calibration (Level ${luckLvl})</strong>
+                <div style="color:var(--muted); font-size:0.75rem; margin-top:2px;">Permanently boosts total roll luck multiplier by +25% per level.</div>
+                <div style="color:var(--accent); font-weight:800; font-size:0.78rem; margin-top:2px;">Current Bonus: +${luckLvl * 25}% Base Luck</div>
+              </div>
+              <button class="btn-sm" ${state.coins < luckCost ? 'disabled':''} onclick="upgradeSkill('luck', ${luckCost})" style="margin-top:6px;">Upgrade (${luckCost} Gears)</button>
+            </div>
+          </div>
+        `;
+        openModal('Permanent Engineering Skill Tree', html);
+      }
+
+      function showBadgesModal() {
+        const html = badgeCatalog.map(b => {
+          const unlocked = (state.claimedBadges || []).includes(b.id);
+          const canClaim = !unlocked && b.req(state);
+          return `
+            <div class="card-item" style="border-left:3px solid ${unlocked ? 'var(--accent)' : 'var(--panel-border)'}">
+              <div>
+                <strong style="color:${unlocked?'var(--accent)':'#fff'}; font-size:0.88rem;">${b.title}</strong>
+                <div style="color:var(--muted); font-size:0.75rem;">${b.desc}</div>
+              </div>
+              <button class="btn-sm ${unlocked?'secondary':''}" ${(!canClaim && !unlocked) ? 'disabled':''} onclick="claimBadge('${b.id}')">
+                ${unlocked ? 'Unlocked' : canClaim ? `Claim +${b.reward} Gears` : 'Locked'}
+              </button>
+            </div>
+          `;
+        }).join('');
+        openModal('Achievement Badges & Trophies', html);
+      }
+
+      function showQuestsModal() {
+        if (!state.claimedQuests) state.claimedQuests = [];
+        const html = quests.map(q => {
+          const current = Math.min(q.target, state[q.key] || 0);
+          const done = current >= q.target;
+          const isClaimed = state.claimedQuests.includes(q.id);
+          return `
+            <div class="card-item">
+              <div>
+                <strong style="font-size:0.88rem;">${q.text}</strong>
+                <div style="color:var(--muted); font-size:0.75rem;">Progress: ${current} / ${q.target}</div>
+              </div>
+              <button class="btn-sm ${isClaimed ? 'secondary' : ''}" ${!done || isClaimed ? 'disabled' : ''} onclick="claimQuest('${q.id}')">
+                ${isClaimed ? 'Claimed' : done ? 'Claim' : `+${q.reward} Gears`}
+              </button>
+            </div>
+          `;
+        }).join('');
+        openModal('Maxwell\'s Milestones', html);
+      }
+
+      function showCodexModal() {
+        const html = `
+          <p style="color:var(--muted); font-size:0.8rem; margin:0 0 8px 0;">Discovered ${state.unlockedCodex.length} / ${auraCatalog.length} Unique Auras</p>
+          <div class="grid-3">
+            ${auraCatalog.map(a => {
+              const discovered = state.unlockedCodex.includes(a.id);
+              return `
+                <div class="card-item" style="opacity:${discovered ? 1 : 0.4}">
+                  <strong style="font-size:0.85rem;">${discovered ? a.name : '??? Hidden'}</strong>
+                  <div class="aura-tag" style="color:${a.primaryColor}">${a.rarity} · 1 in${a.odds.toLocaleString()}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+        openModal('SimCity Aura Codex Index', html);
+      }
+
+      function showStatsModal() {
+        const luckBonus = getLuckBonus(state.rollPity >= 9);
+        const luckMult = (1 + luckBonus / 100).toFixed(2);
+        const html = `
+          <div style="border:1px solid var(--primary-glow); border-radius:10px; padding:10px; background:rgba(37,99,235,0.1); margin-bottom:10px;">
+            <h3 style="margin:0 0 4px 0; color:#fff; font-size:0.95rem;">🤖 Maxwell Samuel Morgan Profile</h3>
+            <div style="font-size:0.8rem; color:var(--muted); display:flex; flex-direction:column; gap:2px;">
+              <div>• <strong>Role:</strong> Co-Captain of FRC Robotics #3464 SimCity</div>
+              <div>• <strong>Height:</strong> 1.71 Meters Tall</div>
+              <div>• <strong>Home Base:</strong> 6 Niel Drive</div>
+              <div>• <strong>Parents:</strong> Gina Morgan (Mom) & Matthew Morgan (Dad)</div>
+              <div>• <strong>Twin Sisters:</strong> Autumn & Adele Morgan</div>
+            </div>
+          </div>
+          <div class="card-item"><strong>Total Rolls Executed:</strong> ${state.totalRolls}</div>
+          <div class="card-item"><strong>Unique Auras Discovered:</strong> ${state.inventory.length} / ${auraCatalog.length}</div>
+          <div class="card-item"><strong>Ground Gears Collected:</strong> ${state.stats.totalGearsCollected || 0}</div>
+          <div class="card-item"><strong>Current Tool & Skill Luck Boost:</strong> +${Math.round(luckBonus)}% (${luckMult}x Multiplier)</div>
+        `;
+        openModal('Max Morgan Player Stats', html);
+      }
+
+      function showSettingsModal() {
+        const html = `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:0.85rem;">
+            <label>Sound Effects</label>
+            <input type="checkbox" ${settings.sfxEnabled?'checked':''} onchange="settings.sfxEnabled=this.checked; saveSettings();">
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:0.85rem;">
+            <label>Auto-Equip Highest Rarity Aura</label>
+            <input type="checkbox" ${settings.autoEquipEnabled?'checked':''} onchange="settings.autoEquipEnabled=this.checked; saveSettings();">
+          </div>
+          
+          <hr style="border:0; border-top:1px solid var(--panel-border); margin:10px 0;">
+          <h3 style="color:var(--primary-glow); margin:0 0 8px 0; font-size:0.88rem;">💾 SAVE GAME EXPORT & IMPORT</h3>
+          <div style="display:flex; gap:6px; margin-bottom:10px;">
+            <button class="btn-sm" onclick="exportSaveJSON()">Export JSON Save</button>
+            <button class="btn-sm secondary" onclick="importSaveJSON()">Import JSON Save</button>
+          </div>
+
+          <hr style="border:0; border-top:1px solid var(--panel-border); margin:10px 0;">
+          <h3 style="color:var(--gold); margin:0 0 8px 0; font-size:0.9rem; letter-spacing:0.05em;">🛠️ MAXWELL'S DEBUG OVERRIDE</h3>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            <button class="btn-sm cheat" onclick="cheatAddCoins(5000)">+5,000 Gears</button>
+            <button class="btn-sm cheat" onclick="cheatUnlockAll()">Unlock All Auras</button>
+            <button class="btn-sm cheat" onclick="cheatFillPity()">Ready Overdrive</button>
+            <button class="btn-sm cheat" onclick="cheatResetData()">Reset Save Data</button>
+          </div>
+        `;
+        openModal('Settings & Custom Controls', html);
+      }
+
+      window.exportSaveJSON = function() {
+        const str = JSON.stringify(state);
+        navigator.clipboard.writeText(str).then(() => {
+          alert('Save data JSON copied to clipboard!');
+        }).catch(() => {
+          prompt('Copy your save JSON:', str);
+        });
+      };
+
+      window.importSaveJSON = function() {
+        const json = prompt('Paste your valid save JSON here:');
+        if (json) {
+          try {
+            state = { ...defaultState, ...JSON.parse(json) };
+            saveGame(); updateHUD(); alert('Save imported successfully!'); closeModal();
+          } catch(e) {
+            alert('Invalid Save JSON data!');
+          }
+        }
+      };
+
+      window.upgradeSkill = function(type, cost) {
+        if (state.coins >= cost) {
+          state.coins -= cost;
+          if (type === 'speed') state.skills.speedLevel = (state.skills.speedLevel || 0) + 1;
+          if (type === 'overclock') state.skills.overclockLevel = (state.skills.overclockLevel || 0) + 1;
+          if (type === 'luck') state.skills.luckLevel = (state.skills.luckLevel || 0) + 1;
+          updateHUD(); saveGame(); showSkillsModal();
+        }
+      };
+
+      window.claimBadge = function(id) {
+        if (!state.claimedBadges) state.claimedBadges = [];
+        const b = badgeCatalog.find(x => x.id === id);
+        if (b && !state.claimedBadges.includes(id)) {
+          state.claimedBadges.push(id);
+          state.coins += b.reward;
+          updateHUD(); saveGame(); showBadgesModal();
+        }
+      };
+
+      window.cheatAddCoins = function(amount) {
+        state.coins += amount; updateHUD(); saveGame(); showSettingsModal();
+      };
+
+      window.cheatUnlockAll = function() {
+        auraCatalog.forEach(a => {
+          if (!state.unlockedCodex.includes(a.id)) state.unlockedCodex.push(a.id);
+          if (!state.inventory.some(i => i.id === a.id)) state.inventory.push({ ...a });
+        });
+        equipBestOwned(); updateHUD(); saveGame(); showSettingsModal();
+      };
+
+      window.cheatFillPity = function() {
+        state.rollPity = 9; updateHUD(); saveGame(); showSettingsModal();
+      };
+
+      window.cheatResetData = function() {
+        localStorage.removeItem('mm_rng_maxwell_v4');
+        state = JSON.parse(JSON.stringify(defaultState));
+        updateHUD(); saveGame(); showSettingsModal();
+      };
+
+      window.equipAuraById = function(id) {
+        state.equippedAura = state.inventory.find(i => i.id === id);
+        updateHUD(); saveGame(); showLockerModal();
+      };
+
+      window.buyGear = function(idx, cost) {
+        if (idx <= state.maxGearIndex) {
+          state.gearIndex = idx;
+          updateHUD(); saveGame(); showShopModal();
+        } else if (idx === state.maxGearIndex + 1 && state.coins >= cost) {
+          state.coins -= cost;
+          state.maxGearIndex = idx;
+          state.gearIndex = idx;
+          updateHUD(); saveGame(); showShopModal();
+        }
+      };
+
+      window.buyOrEquipSkin = function(id, cost) {
+        if (state.skinList.includes(id)) {
+          state.playerSkin = id;
+        } else if (state.coins >= cost) {
+          state.coins -= cost; state.skinList.push(id); state.playerSkin = id;
+        }
+        updateHUD(); saveGame(); showShopModal();
+      };
+
+      window.claimQuest = function(id) {
+        if (!state.claimedQuests) state.claimedQuests = [];
+        const q = quests.find(x => x.id === id);
+        if (q && !state.claimedQuests.includes(id)) {
+          state.claimedQuests.push(id);
+          state.coins += q.reward;
+          updateHUD(); saveGame(); showQuestsModal();
+        }
+      };
+
+      function toggleQuickRoll() {
+        state.quickRoll = !state.quickRoll;
+        updateHUD(); saveGame();
+      }
+
+      function toggleAutoRoll() {
+        state.autoRoll = !state.autoRoll;
+        updateHUD(); saveGame();
+        if (state.autoRoll && !isRolling) rollAura();
+      }
+
+      function updateHUD() {
+        const luckBonus = getLuckBonus(state.rollPity >= 9);
+        const luckMult = (1 + luckBonus / 100).toFixed(1);
+
+        document.getElementById('coinVal').textContent = state.coins.toLocaleString();
+        document.getElementById('luckVal').textContent = `+${Math.round(luckBonus)}% (${luckMult}x)`;
+        document.getElementById('gearVal').textContent = gearCatalog[state.gearIndex] ? gearCatalog[state.gearIndex].name : 'None';
+        document.getElementById('equippedVal').textContent = state.equippedAura ? state.equippedAura.name : 'None';
+
+        const perkStrip = document.getElementById('perkStrip');
+        const currentZone = getCurrentZone();
+
+        let perkHTML = '';
+        if (chargingBuffTimer > 0) perkHTML += `<div class="perk-tag" style="border-color:#38bdf8; color:#38bdf8;">⚡ VOLTAGE BUFF: 2X LUCK (${Math.ceil(chargingBuffTimer)}s)</div>`;
+        if (currentZone) perkHTML += `<div class="perk-tag" style="border-color:${currentZone.color}; color:${currentZone.color}">📍 ZONE: ${currentZone.name}</div>`;
+        if (state.equippedAura) {
+          perkHTML += `<div class="perk-tag" style="border-color:${state.equippedAura.primaryColor}; color:${state.equippedAura.primaryColor}">🔮 AURA: ${state.equippedAura.name}</div>`;
+        }
+        perkStrip.innerHTML = perkHTML;
+
+        const quickBtn = document.getElementById('quickToggleBtn');
+        if (state.quickRoll) {
+          quickBtn.textContent = '⚡ QUICK: ON';
+          quickBtn.classList.add('active');
+        } else {
+          quickBtn.textContent = '⚡ QUICK: OFF';
+          quickBtn.classList.remove('active');
+        }
+
+        const autoBtn = document.getElementById('autoToggleBtn');
+        if (state.autoRoll) {
+          autoBtn.textContent = '🔄 AUTO: ON';
+          autoBtn.classList.add('auto-active');
+        } else {
+          autoBtn.textContent = '🔄 AUTO: OFF';
+          autoBtn.classList.remove('auto-active');
+        }
+
+        const pityPercent = (state.rollPity / 9) * 100;
+        const fill = document.getElementById('pityFill');
+        fill.style.width = `${Math.min(100, pityPercent)}%`;
+        
+        if (state.rollPity >= 9) {
+          fill.classList.add('ready');
+          document.getElementById('pityText').textContent = '2X OVERDRIVE!';
+        } else {
+          fill.classList.remove('ready');
+          document.getElementById('pityText').textContent = `${state.rollPity}/10`;
+        }
+      }
+
+      // EVENT LISTENERS FOR BUTTONS & KEYS
+      document.getElementById('rollBtn').onclick = rollAura;
+      document.getElementById('autoToggleBtn').onclick = toggleAutoRoll;
+      document.getElementById('quickToggleBtn').onclick = toggleQuickRoll;
+      document.getElementById('btnOpenLocker').onclick = showLockerModal;
+      document.getElementById('btnOpenShop').onclick = showShopModal;
+      document.getElementById('btnOpenSkills').onclick = showSkillsModal;
+      document.getElementById('btnOpenBadges').onclick = showBadgesModal;
+      document.getElementById('btnOpenQuests').onclick = showQuestsModal;
+      document.getElementById('btnOpenCodex').onclick = showCodexModal;
+      document.getElementById('btnOpenStats').onclick = showStatsModal;
+      document.getElementById('btnOpenSettings').onclick = showSettingsModal;
+
+      window.addEventListener('keydown', (e) => {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const k = e.key.toLowerCase();
+        keys[k] = true;
+        if (e.code === 'Escape') closeModal();
+        if (e.code === 'Space' && !isRolling) { e.preventDefault(); rollAura(); }
+        if (k === 'e') showLockerModal();
+        if (k === 'm') showShopModal();
+        if (k === 'k') showSkillsModal();
+      });
+
+      window.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; });
+
+      // -------------------------------------------------------------
+      // GAME LOOP & RENDERING
+      // -------------------------------------------------------------
+      function updateAndDrawPlayer(dt, camX, camY) {
+        let dx = 0, dy = 0;
+        if (keys['w'] || keys['arrowup']) dy -= 1;
+        if (keys['s'] || keys['arrowdown']) dy += 1;
+        if (keys['a'] || keys['arrowleft']) dx -= 1;
+        if (keys['d'] || keys['arrowright']) dx += 1;
+
+        const currentSpeed = getPlayerSpeed();
+
+        if (dx !== 0 || dy !== 0) {
+          const len = Math.hypot(dx, dy);
+          const moveX = (dx / len) * currentSpeed * dt;
+          const moveY = (dy / len) * currentSpeed * dt;
+          state.player.x += moveX;
+          state.player.y += moveY;
+          state.player.angle = Math.atan2(dy, dx);
+
+          state.stats.totalDistMoved = (state.stats.totalDistMoved || 0) + Math.hypot(moveX, moveY);
+        }
+
+        state.player.x = Math.max(30, Math.min(world.width - 30, state.player.x));
+        state.player.y = Math.max(30, Math.min(world.height - 30, state.player.y));
+
+        const currentZone = getCurrentZone();
+        const zoneGearBonus = currentZone ? currentZone.gearBonus : 0;
+        const gearYieldMult = 1 + zoneGearBonus;
+        const magnetDist = 90;
+
+        worldPotions = worldPotions.filter(p => {
+          const dist = Math.hypot(state.player.x - p.x, state.player.y - p.y);
+          if (dist < magnetDist && dist > state.player.radius) {
+            const pullSpeed = (magnetDist - dist) * 8 * dt;
+            const angle = Math.atan2(state.player.y - p.y, state.player.x - p.x);
+            p.x += Math.cos(angle) * pullSpeed;
+            p.y += Math.sin(angle) * pullSpeed;
+          }
+
+          if (dist < state.player.radius + p.radius) {
+            state.coins += Math.round(p.baseValue * gearYieldMult);
+            state.stats.totalGearsCollected = (state.stats.totalGearsCollected || 0) + 1;
+            playSfx('potion'); updateHUD(); saveGame(); return false;
+          }
+          return true;
+        });
+        spawnPotions();
+
+        const chargeDist = Math.hypot(state.player.x - chargingStation.x, state.player.y - chargingStation.y);
+        if (chargeDist < chargingStation.radius) {
+          chargingStation.chargeProgress += dt;
+          if (chargingStation.chargeProgress >= 2.5) {
+            chargingStation.chargeProgress = 0;
+            chargingBuffTimer = 30;
+            playSfx('charge'); updateHUD();
+          }
+        } else {
+          chargingStation.chargeProgress = Math.max(0, chargingStation.chargeProgress - dt * 0.8);
+        }
+
+        const recycleDist = Math.hypot(state.player.x - recyclingStation.x, state.player.y - recyclingStation.y);
+        if (recycleDist < recyclingStation.radius && state.coins >= 10 && state.rollPity < 9) {
+          recyclingStation.progress += dt;
+          if (recyclingStation.progress >= 1.5) {
+            recyclingStation.progress = 0;
+            state.coins -= 10;
+            state.rollPity = Math.min(9, state.rollPity + 2);
+            playSfx('charge'); updateHUD(); saveGame();
+          }
+        } else {
+          recyclingStation.progress = Math.max(0, recyclingStation.progress - dt);
+        }
+
+        const screenX = state.player.x - camX;
+        const screenY = state.player.y - camY;
+
+        const skinObj = playerSkins.find(s => s.id === state.playerSkin) || playerSkins[0];
+        if (dx !== 0 || dy !== 0) {
+          playerTrail.push({ x: screenX, y: screenY, color: skinObj.color, opacity: 0.7, radius: state.player.radius * 0.7 });
+        }
+
+        for (let i = playerTrail.length - 1; i >= 0; i--) {
+          const t = playerTrail[i];
+          t.opacity -= dt * 2.5;
+          t.radius -= dt * 10;
+          if (t.opacity <= 0 || t.radius <= 0) {
+            playerTrail.splice(i, 1);
+            continue;
+          }
+          ctx.save();
+          ctx.globalAlpha = t.opacity;
+          ctx.fillStyle = t.color;
+          ctx.beginPath(); ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+
+        if (state.equippedAura) {
+          updateAndDrawAura(dt, screenX, screenY, state.equippedAura);
+        }
+
+        ctx.save();
+        ctx.translate(screenX, screenY);
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.beginPath();
+        ctx.ellipse(0, 16, state.player.radius * 0.95, state.player.radius * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = skinObj.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, state.player.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = '#020617';
+        ctx.stroke();
+
+        ctx.rotate(state.player.angle);
+        ctx.fillStyle = skinObj.eyeColor || '#ffffff';
+        ctx.beginPath();
+        ctx.arc(state.player.radius * 0.55, -4, 4, 0, Math.PI * 2);
+        ctx.arc(state.player.radius * 0.55, 4, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(state.player.radius * 0.65, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawMiniMap() {
+        miniCtx.clearRect(0, 0, 85, 85);
+        const scale = 85 / world.width;
+        
+        mapZones.forEach(z => {
+          miniCtx.fillStyle = z.color + '44';
+          miniCtx.fillRect(z.x * scale, z.y * scale, z.w * scale, z.h * scale);
+        });
+
+        miniCtx.fillStyle = '#38bdf8';
+        worldPotions.forEach(p => { miniCtx.fillRect(p.x * scale, p.y * scale, 2.5, 2.5); });
+
+        miniCtx.fillStyle = '#ef4444';
+        miniCtx.beginPath();
+        miniCtx.arc(state.player.x * scale, state.player.y * scale, 3.5, 0, Math.PI * 2);
+        miniCtx.fill();
+      }
+
+      function render(ts) {
+        if (!render.last) render.last = ts;
+        const dt = Math.min((ts - render.last) / 1000, 0.033);
+        render.last = ts;
+
+        if (chargingBuffTimer > 0) {
+          chargingBuffTimer = Math.max(0, chargingBuffTimer - dt);
+          if (chargingBuffTimer === 0) updateHUD();
+        }
+
+        nextEventTimer -= dt;
+        if (nextEventTimer <= 0) {
+          if (activeWorldEvent.type === 'NONE') {
+            const evs = ['OVERCLOCK', 'GEAR_RAIN'];
+            const chosen = evs[Math.floor(Math.random() * evs.length)];
+            activeWorldEvent = {
+              type: chosen,
+              endTime: Date.now() + 25000,
+              name: chosen === 'OVERCLOCK' ? '⚡ SIMCITY OVERCLOCK (2X LUCK)' : '🌧️ GEAR RAIN (3X ITEM SPAWNS)'
+            };
+            document.getElementById('eventBanner').textContent = activeWorldEvent.name;
+            document.getElementById('eventBanner').style.display = 'block';
+            nextEventTimer = 25;
+          } else {
+            activeWorldEvent = { type: 'NONE', endTime: 0, name: '' };
+            document.getElementById('eventBanner').style.display = 'none';
+            nextEventTimer = 50;
+          }
+        }
+
+        if (activeWorldEvent.type === 'GEAR_RAIN' && Math.random() < 0.4) {
+          spawnPotions();
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let camX = state.player.x - canvas.width / 2;
+        let camY = state.player.y - canvas.height / 2;
+
+        if (screenShake > 0) {
+          camX += (Math.random() - 0.5) * screenShake;
+          camY += (Math.random() - 0.5) * screenShake;
+          screenShake = Math.max(0, screenShake - dt * 35);
+        }
+
+        // DRAW GRID MAP TILES
+        const tileSize = 80;
+        const startX = Math.floor(camX / tileSize) * tileSize;
+        const startY = Math.floor(camY / tileSize) * tileSize;
+
+        for (let x = startX; x < camX + canvas.width + tileSize; x += tileSize) {
+          for (let y = startY; y < camY + canvas.height + tileSize; y += tileSize) {
+            ctx.fillStyle = ((x / tileSize) + (y / tileSize)) % 2 === 0 ? '#070d1e' : '#0b1329';
+            ctx.fillRect(x - camX, y - camY, tileSize, tileSize);
+          }
+        }
+
+        // DRAW MAP ZONES
+        mapZones.forEach(z => {
+          ctx.save();
+          ctx.fillStyle = z.color + '18';
+          ctx.strokeStyle = z.color;
+          ctx.lineWidth = 3;
+          ctx.fillRect(z.x - camX, z.y - camY, z.w, z.h);
+          ctx.strokeRect(z.x - camX, z.y - camY, z.w, z.h);
+
+          ctx.fillStyle = z.color;
+          ctx.font = 'bold 15px sans-serif';
+          ctx.fillText(z.name, z.x - camX + 16, z.y - camY + 28);
+          ctx.restore();
+        });
+
+        // DRAW CHARGING STATION
+        {
+          const sx = chargingStation.x - camX;
+          const sy = chargingStation.y - camY;
+          ctx.save();
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(sx, sy, chargingStation.radius, 0, Math.PI * 2); ctx.stroke();
+          
+          if (chargingStation.chargeProgress > 0) {
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+            ctx.beginPath();
+            ctx.arc(sx, sy, chargingStation.radius * (chargingStation.chargeProgress / 2.5), 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('⚡ VOLTAGE CHARGER', sx, sy - 10);
+          ctx.fillText(chargingStation.chargeProgress > 0 ? `${Math.round((chargingStation.chargeProgress/2.5)*100)}%` : 'Stand to Charge', sx, sy + 12);
+          ctx.restore();
+        }
+
+        // DRAW RECYCLING STATION
+        {
+          const rx = recyclingStation.x - camX;
+          const ry = recyclingStation.y - camY;
+          ctx.save();
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(rx, ry, recyclingStation.radius, 0, Math.PI * 2); ctx.stroke();
+
+          if (recyclingStation.progress > 0) {
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.3)';
+            ctx.beginPath();
+            ctx.arc(rx, ry, recyclingStation.radius * (recyclingStation.progress / 1.5), 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          ctx.fillStyle = '#fbbf24';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('♻️ OVERDRIVE RECYCLER', rx, ry - 10);
+          ctx.fillText('10 Gears -> +2 Pity', rx, ry + 12);
+          ctx.restore();
+        }
+
+        // BATCH DRAW WORLD GEAR PICKUPS
+        ctx.save();
+        worldPotions.forEach(p => {
+          const px = p.x - camX;
+          const py = p.y - camY;
+          p.pulse += dt * 3;
+          const pulseR = p.radius + Math.sin(p.pulse) * 1.5;
+
+          ctx.fillStyle = p.isHighTier ? '#fbbf24' : '#38bdf8';
+          ctx.beginPath(); ctx.arc(px, py, pulseR, 0, Math.PI * 2); ctx.fill();
+        });
+        ctx.restore();
+
+        // DRAW PLAYER & AURA
+        updateAndDrawPlayer(dt, camX, camY);
+
+        // DRAW MINIMAP
+        drawMiniMap();
+
+        requestAnimationFrame(render);
+      }
+
+      // INITIALIZE GAME
+      spawnPotions();
+      updateHUD();
+      requestAnimationFrame(render);
+    </script>
+  </body>
+</html>
