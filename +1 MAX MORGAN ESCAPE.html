@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Max Morgan!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            width: 100%;
+            max-width: 600px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        h1 {
+            color: #ff5252;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #2a2a2a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+        }
+        .stat-value {
+            color: #4caf50;
+            font-size: 1.4rem;
+        }
+        #morgan-area {
+            position: relative;
+            height: 200px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+        #morgan-avatar {
+            font-size: 4rem;
+            transition: transform 0.2s ease;
+            user-select: none;
+        }
+        #morgan-quote {
+            margin-top: 10px;
+            font-style: italic;
+            color: #aaa;
+            padding: 0 10px;
+        }
+        .btn {
+            background-color: #ff5252;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .btn:hover {
+            background-color: #ff1744;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .upgrades {
+            text-align: left;
+            margin-top: 20px;
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .upgrades h3 {
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .upgrade-btn {
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 10px;
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            transition: background 0.2s;
+        }
+        .upgrade-btn:hover:not(:disabled) {
+            background: #444;
+        }
+        .upgrade-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        #win-screen {
+            display: none;
+            background: #2e7d32;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>Escape Max Morgan!</h1>
+    <p style="margin-bottom: 15px; color: #bbb;">Max Morgan is chasing you! Run away to gain distance.</p>
+    
+    <div class="stats">
+        <div class="stat-box">
+            <span>Distance</span>
+            <span id="distance" class="stat-value">0 m</span>
+        </div>
+        <div class="stat-box">
+            <span>Per Click</span>
+            <span id="per-click" class="stat-value">+1 m</span>
+        </div>
+        <div class="stat-box">
+            <span>Speed</span>
+            <span id="auto-speed" class="stat-value">0 m/s</span>
+        </div>
+    </div>
+
+    <div id="morgan-area">
+        <div id="morgan-avatar">🕵️‍♂️</div>
+        <div id="morgan-quote">"You can't outrun me forever!"</div>
+    </div>
+
+    <button id="run-btn" class="btn">RUN! (+1 Max Morgan Escape)</button>
+
+    <div class="upgrades">
+        <h3>Escape Upgrades</h3>
+        <button id="buy-shoes" class="upgrade-btn" disabled>
+            <span>👟 Running Shoes (+1/click)</span>
+            <span id="shoes-cost">10 m</span>
+        </button>
+        <button id="buy-bike" class="upgrade-btn" disabled>
+            <span>🚲 Bicycle (+5/sec)</span>
+            <span id="bike-cost">50 m</span>
+        </button>
+        <button id="buy-car" class="upgrade-btn" disabled>
+            <span>🏎️ Sports Car (+25/sec)</span>
+            <span id="car-cost">250 m</span>
+        </button>
+    </div>
+
+    <div id="win-screen">
+        <h2>🎉 YOU ESCAPED! 🎉</h2>
+        <p>You reached 1,000 meters and left Max Morgan far behind!</p>
+    </div>
+</div>
+
+<script>
+    // Game State
+    let distance = 0;
+    let clickPower = 1;
+    let autoSpeed = 0;
+    const winTarget = 1000;
+
+    // Costs
+    let shoesCost = 10;
+    let bikeCost = 50;
+    let carCost = 250;
+
+    // Max Morgan Quotes
+    const quotes = [
+        "\"You can't outrun me forever!\"",
+        "\"I'm gaining on you!\"",
+        "\"Is that all you've got?\"",
+        "\"Wait, where are you going?!\"",
+        "\"My feet hurt... but I won't stop!\""
+    ];
+
+    // DOM Elements
+    const distanceEl = document.getElementById('distance');
+    const perClickEl = document.getElementById('per-click');
+    const autoSpeedEl = document.getElementById('auto-speed');
+    const runBtn = document.getElementById('run-btn');
+    const morganAvatar = document.getElementById('morgan-avatar');
+    const morganQuote = document.getElementById('morgan-quote');
+    const winScreen = document.getElementById('win-screen');
+
+    const buyShoesBtn = document.getElementById('buy-shoes');
+    const buyBikeBtn = document.getElementById('buy-bike');
+    const buyCarBtn = document.getElementById('buy-car');
+
+    const shoesCostEl = document.getElementById('shoes-cost');
+    const bikeCostEl = document.getElementById('bike-cost');
+    const carCostEl = document.getElementById('car-cost');
+
+    // Functions
+    function updateDisplay() {
+        distanceEl.textContent = Math.floor(distance) + ' m';
+        perClickEl.textContent = '+' + clickPower + ' m';
+        autoSpeedEl.textContent = autoSpeed + ' m/s';
+
+        // Check upgrades accessibility
+        buyShoesBtn.disabled = distance < shoesCost;
+        buyBikeBtn.disabled = distance < bikeCost;
+        buyCarBtn.disabled = distance < carCost;
+
+        // Check Win Condition
+        if (distance >= winTarget) {
+            winScreen.style.display = 'block';
+            morganQuote.textContent = '"Nooo! You escaped!"';
+            morganAvatar.textContent = '😿';
+        }
+    }
+
+    function triggerMorganReaction() {
+        // Pulse avatar
+        morganAvatar.style.transform = 'scale(1.3)';
+        setTimeout(() => {
+            morganAvatar.style.transform = 'scale(1)';
+        }, 150);
+
+        // Random quote occasionally
+        if (Math.random() < 0.15) {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            morganQuote.textContent = randomQuote;
+        }
+    }
+
+    // Event Listeners
+    runBtn.addEventListener('click', () => {
+        distance += clickPower;
+        triggerMorganReaction();
+        updateDisplay();
+    });
+
+    buyShoesBtn.addEventListener('click', () => {
+        if (distance >= shoesCost) {
+            distance -= shoesCost;
+            clickPower += 1;
+            shoesCost = Math.floor(shoesCost * 1.5);
+            shoesCostEl.textContent = shoesCost + ' m';
+            updateDisplay();
+        }
+    });
+
+    buyBikeBtn.addEventListener('click', () => {
+        if (distance >= bikeCost) {
+            distance -= bikeCost;
+            autoSpeed += 5;
+            bikeCost = Math.floor(bikeCost * 1.6);
+            bikeCostEl.textContent = bikeCost + ' m';
+            updateDisplay();
+        }
+    });
+
+    buyCarBtn.addEventListener('click', () => {
+        if (distance >= carCost) {
+            distance -= carCost;
+            autoSpeed += 25;
+            carCost = Math.floor(carCost * 1.7);
+            carCostEl.textContent = carCost + ' m';
+            updateDisplay();
+        }
+    });
+
+    // Game Loop (Passive Distance)
+    setInterval(() => {
+        if (autoSpeed > 0 && distance < winTarget) {
+            distance += autoSpeed / 10; // Runs every 100ms
+            updateDisplay();
+        }
+    }, 100);
+
+    // Initial Render
+    updateDisplay();
+</script>
+
+</body>
+</html>
