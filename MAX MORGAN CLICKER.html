@@ -39,7 +39,7 @@ h3,h4{margin:0 0 8px}
 ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 
 #fx-canvas{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:1}
-.container{position:relative;z-index:2;width:100%;max-width:1500px}
+.container{position:relative;z-index:2;width:100%;max-width:1640px}
 
 /* ---------- Ticker ---------- */
 .ticker-bar{width:100%;background:linear-gradient(90deg,var(--panel-2),var(--panel-bg));border:1px solid var(--panel-border);
@@ -54,16 +54,16 @@ h3,h4{margin:0 0 8px}
 .resource-header{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px;margin-bottom:12px}
 .res-card{background:linear-gradient(180deg,var(--panel-2),var(--panel-bg));border:1px solid var(--panel-border);
   padding:9px 10px;border-radius:var(--r);text-align:center;position:relative;overflow:hidden}
-.res-card .label{font-size:.68rem;color:var(--dim);text-transform:uppercase;letter-spacing:1.3px;font-weight:700}
-.res-card .val{font-size:1.32rem;font-weight:800;color:var(--accent);line-height:1.25;word-break:break-word}
-.res-card .sub{font-size:.7rem;color:var(--dim)}
+.res-card .label{font-size:.74rem;color:var(--dim);text-transform:uppercase;letter-spacing:1.3px;font-weight:700}
+.res-card .val{font-size:1.48rem;font-weight:800;color:var(--accent);line-height:1.25;word-break:break-word}
+.res-card .sub{font-size:.76rem;color:var(--dim)}
 .res-card.brt .val{color:var(--brt-color)}
 .res-card.ds .val{color:var(--ds-color)}
 .res-card.ss .val{color:var(--ss-color)}
 .res-card.cd .val{color:var(--cd-color)}
 
 /* ---------- Layout ---------- */
-.game-grid{display:grid;grid-template-columns:370px 1fr;gap:12px;align-items:start}
+.game-grid{display:grid;grid-template-columns:min(410px,38%) 1fr;gap:12px;align-items:start}
 @media(max-width:980px){.game-grid{grid-template-columns:1fr}}
 
 .panel{background:linear-gradient(180deg,var(--panel-2),var(--panel-bg));border:1px solid var(--panel-border);border-radius:var(--r)}
@@ -85,7 +85,7 @@ h3,h4{margin:0 0 8px}
 .combo-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),#ef4444);transition:width .1s linear}
 
 /* ---------- Maxwell target ---------- */
-.maxwell-target{width:190px;height:190px;border-radius:50%;border:5px solid var(--accent);
+.maxwell-target{width:210px;height:210px;border-radius:50%;border:5px solid var(--accent);
   background:radial-gradient(circle at 35% 28%,var(--panel-3),var(--panel-bg));
   cursor:pointer;box-shadow:0 0 30px var(--accent-glow),inset 0 0 40px rgba(0,0,0,.5);
   transition:transform .06s ease;position:relative;margin:8px 0 4px;display:flex;align-items:center;justify-content:center;z-index:2}
@@ -102,21 +102,21 @@ h3,h4{margin:0 0 8px}
 .anim-wobble{animation:wob 2.4s infinite ease-in-out}
 @keyframes wob{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
 
-.name-plate{font-size:1.18rem;font-weight:900;letter-spacing:.4px;cursor:pointer;text-align:center;
-  padding:7px 16px;border-radius:9px;border:1px solid var(--panel-border);background:var(--panel-3);
+.name-plate{font-size:1.3rem;font-weight:900;letter-spacing:.4px;cursor:pointer;text-align:center;
+  padding:8px 18px;border-radius:9px;border:1px solid var(--panel-border);background:var(--panel-3);
   transition:transform .06s,box-shadow .15s;position:relative;z-index:2;margin-top:2px;line-height:1.2}
-.name-plate small{display:block;font-size:.62rem;color:var(--dim);letter-spacing:2px;font-weight:700}
+.name-plate small{display:block;font-size:.68rem;color:var(--dim);letter-spacing:2px;font-weight:700}
 .name-plate:hover{box-shadow:0 0 18px var(--accent-glow)}
 .name-plate:active{transform:scale(.95)}
-.key-hint{font-size:.68rem;color:var(--dim);text-align:center;margin-top:6px}
-.stat-line{font-size:.78rem;color:var(--dim);text-align:center;margin:8px 0 2px}
+.key-hint{font-size:.74rem;color:var(--dim);text-align:center;margin-top:7px}
+.stat-line{font-size:.84rem;color:var(--dim);text-align:center;margin:8px 0 2px}
 .stat-line b{color:var(--text-color)}
 
 /* ---------- Abilities ---------- */
-.ability-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;width:100%;margin-top:10px}
+.ability-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;width:100%;margin-top:10px}
 .ab-btn{background:var(--panel-3);border:1px solid var(--panel-border);color:var(--text-color);
-  padding:7px 2px;border-radius:8px;font-size:.62rem;cursor:pointer;text-align:center;position:relative;overflow:hidden;line-height:1.35}
-.ab-btn .ico{font-size:1.05rem;display:block}
+  padding:9px 3px;border-radius:8px;font-size:.7rem;cursor:pointer;text-align:center;position:relative;overflow:hidden;line-height:1.35}
+.ab-btn .ico{font-size:1.25rem;display:block}
 .ab-btn:hover:not(:disabled){border-color:var(--accent)}
 .ab-btn:disabled{opacity:.45;cursor:not-allowed}
 .ab-btn .cdfill{position:absolute;inset:auto 0 0 0;background:var(--accent-glow);z-index:0;transition:height .2s linear}
@@ -127,15 +127,15 @@ h3,h4{margin:0 0 8px}
 .gear-box{width:100%;margin-top:12px;font-size:.78rem;border-top:1px solid var(--panel-border);padding-top:9px;position:relative;z-index:2}
 .gear-slots{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
 .gear-slot{flex:1 1 45%;min-width:100px;background:var(--panel-3);border:1px dashed var(--panel-border);border-radius:7px;
-  padding:5px 7px;font-size:.68rem;text-align:center;cursor:pointer}
+  padding:7px 9px;font-size:.76rem;text-align:center;cursor:pointer}
 .gear-slot.filled{border-style:solid}
 .gear-slot .gn{font-weight:800;display:block}
 
 /* ---------- Tabs ---------- */
 .tab-box{padding:14px}
 .tabs-header{display:flex;gap:5px;border-bottom:1px solid var(--panel-border);padding-bottom:9px;overflow-x:auto;scrollbar-width:thin}
-.tab-btn{background:var(--panel-3);color:var(--dim);border:1px solid var(--panel-border);padding:6px 11px;border-radius:7px;
-  cursor:pointer;font-size:.76rem;font-weight:800;white-space:nowrap;position:relative}
+.tab-btn{background:var(--panel-3);color:var(--dim);border:1px solid var(--panel-border);padding:8px 14px;border-radius:7px;
+  cursor:pointer;font-size:.82rem;font-weight:800;white-space:nowrap;position:relative}
 .tab-btn:hover{color:var(--text-color)}
 .tab-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
 .tab-btn .dot{position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--bad);display:none}
@@ -147,70 +147,73 @@ h3,h4{margin:0 0 8px}
 /* ---------- Generic controls ---------- */
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .btn-group{display:flex;gap:4px;flex-wrap:wrap}
-.sm-btn{background:var(--panel-3);border:1px solid var(--panel-border);color:var(--text-color);padding:5px 9px;
-  font-size:.74rem;border-radius:6px;cursor:pointer;font-weight:700;transition:border-color .12s}
+.sm-btn{background:var(--panel-3);border:1px solid var(--panel-border);color:var(--text-color);padding:7px 12px;
+  font-size:.8rem;border-radius:6px;cursor:pointer;font-weight:700;transition:border-color .12s}
 .sm-btn:hover:not(:disabled){border-color:var(--accent)}
 .sm-btn:disabled{opacity:.4;cursor:not-allowed}
 .sm-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
 .sm-btn.danger{background:var(--bad);color:#fff;border-color:var(--bad)}
 .sm-btn.good{background:var(--good);color:#04240f;border-color:var(--good)}
 .sm-btn.wide{width:100%;margin-top:6px}
-.pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:.64rem;font-weight:800;background:var(--panel-3);border:1px solid var(--panel-border)}
-.muted{color:var(--dim);font-size:.75rem}
-.tiny{font-size:.68rem}
+.pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:800;background:var(--panel-3);border:1px solid var(--panel-border)}
+.muted{color:var(--dim);font-size:.8rem}
+.tiny{font-size:.75rem}
 .hr{border:0;border-top:1px solid var(--panel-border);margin:11px 0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 @media(max-width:620px){.grid2,.grid3{grid-template-columns:1fr}.ability-grid{grid-template-columns:repeat(4,1fr)}}
 .box{background:var(--panel-3);border:1px solid var(--panel-border);border-radius:8px;padding:10px}
 input[type=text],input[type=number],select{background:var(--panel-bg);border:1px solid var(--panel-border);color:var(--text-color);
-  border-radius:6px;padding:5px 8px;font-size:.78rem;outline:none}
+  border-radius:6px;padding:7px 10px;font-size:.85rem;outline:none}
 input[type=text]:focus,select:focus{border-color:var(--accent)}
 input[type=range]{accent-color:var(--accent);width:120px;vertical-align:middle}
-label.chk{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:.82rem;cursor:pointer}
+label.chk{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:.88rem;cursor:pointer;line-height:1.4}
 
 /* ---------- Lists / cards ---------- */
 .upg-list{display:flex;flex-direction:column;gap:6px;max-height:430px;overflow-y:auto;padding-right:4px}
 .upg-list.short{max-height:250px}
 .upg-card{background:var(--panel-3);border:1px solid var(--panel-border);color:var(--text-color);text-align:left;
-  padding:8px 11px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;
-  cursor:pointer;transition:border-color .12s,transform .06s;width:100%;font-size:.86rem;position:relative;overflow:hidden}
+  padding:10px 13px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  cursor:pointer;transition:border-color .12s,transform .06s;width:100%;font-size:.92rem;position:relative;overflow:hidden}
 .upg-card:hover:not(.locked){border-color:var(--accent)}
 .upg-card:active:not(.locked){transform:scale(.99)}
 .upg-card.locked{opacity:.42;cursor:not-allowed}
 .upg-card.affordable{border-color:var(--good)}
 .upg-card .prog{position:absolute;inset:auto 0 0 0;height:2px;background:var(--accent);opacity:.6}
-.upg-title{font-weight:800;font-size:.86rem;display:block}
-.upg-sub{font-size:.72rem;color:var(--dim);display:block;margin-top:1px}
-.upg-cost{font-weight:800;color:var(--accent);font-size:.82rem;white-space:nowrap;text-align:right}
+.upg-title{font-weight:800;font-size:.92rem;display:block}
+.upg-sub{font-size:.78rem;color:var(--dim);display:block;margin-top:1px}
+.upg-cost{font-weight:800;color:var(--accent);font-size:.88rem;white-space:nowrap;text-align:right}
 .upg-cost.cant{color:var(--bad)}
-.upg-icon{font-size:1.4rem;margin-right:8px}
+.upg-icon{font-size:1.5rem;margin-right:8px}
 .flexline{display:flex;align-items:center;min-width:0}
-.owned-badge{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:6px;padding:1px 7px;font-size:.74rem;font-weight:800;margin-left:8px}
+.owned-badge{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:6px;padding:2px 8px;font-size:.8rem;font-weight:800;margin-left:8px}
+.upg-max-btn{background:var(--panel-bg);border:1px solid var(--accent);color:var(--accent);border-radius:6px;
+  padding:3px 8px;font-size:.7rem;font-weight:800;cursor:pointer;margin-left:8px;white-space:nowrap}
+.upg-max-btn:hover{background:var(--accent);color:#000}
 
-.upg-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:300px;overflow-y:auto;padding:2px}
-.upg-chip{width:52px;height:52px;border-radius:9px;background:var(--panel-3);border:2px solid var(--panel-border);
-  font-size:1.5rem;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .08s}
+.upg-grid{display:flex;flex-wrap:wrap;gap:7px;max-height:300px;overflow-y:auto;padding:2px}
+.upg-chip{width:58px;height:58px;border-radius:9px;background:var(--panel-3);border:2px solid var(--panel-border);
+  font-size:1.7rem;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:transform .08s}
 .upg-chip:hover{transform:translateY(-3px);border-color:var(--accent);z-index:3}
 .upg-chip.affordable{border-color:var(--good);box-shadow:0 0 9px rgba(34,197,94,.35)}
 .upg-chip.locked{opacity:.35;filter:grayscale(1);cursor:not-allowed}
 
-.ach-grid{display:flex;flex-wrap:wrap;gap:6px;max-height:420px;overflow-y:auto;padding:2px}
-.ach{width:48px;height:48px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;
+.ach-grid{display:flex;flex-wrap:wrap;gap:7px;max-height:420px;overflow-y:auto;padding:2px}
+.ach{width:54px;height:54px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;
   background:var(--panel-3);border:2px solid var(--panel-border);cursor:help;transition:transform .08s}
 .ach:hover{transform:scale(1.12);z-index:3}
-.ach.locked{filter:grayscale(1) brightness(.45);font-size:1.1rem}
+.ach.locked{filter:grayscale(1) brightness(.45);font-size:1.25rem}
 .ach.shadow{border-color:var(--ss-color)}
 .ach.got{border-color:var(--ds-color);box-shadow:0 0 9px rgba(245,158,11,.3)}
 
 .talent-branch{background:var(--panel-3);border:1px solid var(--panel-border);border-radius:9px;padding:9px}
-.talent-branch h4{color:var(--accent);font-size:.85rem;margin-bottom:6px;text-align:center}
-.talent-node{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:7px;padding:6px 8px;margin-bottom:5px;
-  font-size:.72rem;cursor:pointer;transition:border-color .12s}
+.talent-branch h4{color:var(--accent);font-size:.92rem;margin-bottom:6px;text-align:center}
+.talent-node{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:7px;padding:8px 10px;margin-bottom:6px;
+  font-size:.78rem;cursor:pointer;transition:border-color .12s}
 .talent-node:hover:not(.tl-locked){border-color:var(--accent)}
 .talent-node.tl-owned{border-color:var(--good);background:rgba(34,197,94,.08)}
 .talent-node.tl-locked{opacity:.4;cursor:not-allowed}
-.talent-node b{display:block;font-size:.76rem}
+.talent-node b{display:block;font-size:.84rem}
 
 .stock-card{background:var(--panel-3);border:1px solid var(--panel-border);border-radius:9px;padding:9px;display:grid;
   grid-template-columns:1fr 92px auto;gap:9px;align-items:center}
@@ -223,8 +226,8 @@ label.chk{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:.82rem;
 #mine-depth-big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.9rem;font-weight:900;
   text-shadow:0 2px 10px #000;letter-spacing:1px}
 
-.pet-card,.item-card{background:var(--panel-3);border:1px solid var(--panel-border);border-radius:8px;padding:7px 9px;
-  font-size:.75rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pet-card,.item-card{background:var(--panel-3);border:1px solid var(--panel-border);border-radius:8px;padding:9px 11px;
+  font-size:.82rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .r-common{border-color:#6b7280}.r-rare{border-color:#3b82f6}.r-epic{border-color:#a855f7}
 .r-legendary{border-color:#f59e0b}.r-mythic{border-color:#ef4444;box-shadow:0 0 10px rgba(239,68,68,.35)}
 .r-common .rn{color:#9ca3af}.r-rare .rn{color:#60a5fa}.r-epic .rn{color:#c084fc}
@@ -235,11 +238,11 @@ label.chk{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:.82rem;
 .qfill{height:100%;background:var(--accent);width:0;transition:width .3s}
 .quest.done{border-color:var(--good)}
 
-.lore-entry{background:var(--panel-3);border-left:3px solid var(--accent);border-radius:7px;padding:9px 11px;margin-bottom:7px;font-size:.8rem}
+.lore-entry{background:var(--panel-3);border-left:3px solid var(--accent);border-radius:7px;padding:10px 13px;margin-bottom:7px;font-size:.86rem}
 .lore-entry.lock{border-left-color:var(--panel-border);opacity:.5;font-style:italic}
 
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:7px}
-.stat-item{background:var(--panel-3);border:1px solid var(--panel-border);border-radius:7px;padding:7px 10px;font-size:.78rem;
+.stat-item{background:var(--panel-3);border:1px solid var(--panel-border);border-radius:7px;padding:9px 12px;font-size:.84rem;
   display:flex;justify-content:space-between;gap:8px}
 .stat-item b{color:var(--accent);text-align:right}
 
@@ -403,6 +406,7 @@ label.chk{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:.82rem;
       <div class="tabs-header" id="tabs-header">
         <button class="tab-btn active" data-tab="tab-shop">Shop</button>
         <button class="tab-btn" data-tab="tab-upgrades">Upgrades<span class="dot"></span></button>
+        <button class="tab-btn" data-tab="tab-automation">Automation</button>
         <button class="tab-btn" data-tab="tab-prestige">Rebirth &amp; Tiers</button>
         <button class="tab-btn" data-tab="tab-talents">Talents</button>
         <button class="tab-btn" data-tab="tab-stocks">Market</button>
@@ -428,7 +432,7 @@ label.chk{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:.82rem;
           </div>
           <div class="btn-group">
             <button class="sm-btn" id="btn-sell-mode">Mode: Buy</button>
-            <input type="text" id="shop-search" placeholder="filter..." style="width:104px">
+            <input type="text" id="shop-search" placeholder="filter..." style="width:140px">
           </div>
         </div>
 
@@ -443,10 +447,48 @@ label.chk{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:.82rem;
       <div id="tab-upgrades" class="tab-content">
         <div class="row"><h3>Kitchen Upgrades</h3><span class="tiny muted" id="upg-count">0 / 0 owned</span></div>
         <p class="muted tiny" style="margin:0 0 8px">Permanent multipliers. Hover for details. Unlocks as you buy buildings.</p>
+        <button class="sm-btn good wide" data-upgall style="margin-bottom:10px">Buy All Affordable (MAX)</button>
         <div class="upg-grid" id="upgrade-grid"></div>
         <hr class="hr">
         <h4>Owned Upgrades</h4>
         <div class="upg-grid" id="upgrade-owned" style="max-height:170px"></div>
+      </div>
+
+      <!-- AUTOMATION -->
+      <div id="tab-automation" class="tab-content">
+        <h3>Automation</h3>
+        <p class="muted tiny" style="margin:0 0 10px">Set it and forget it. Each toggle runs its purchase once per second whenever it's affordable — no clicking required.</p>
+
+        <h4 style="color:var(--accent)">Spending Burritos</h4>
+        <div class="grid2">
+          <label class="chk"><input type="checkbox" id="chk-auto-buildings"> Auto-buy cheapest building</label>
+          <label class="chk"><input type="checkbox" id="chk-auto-upgrades"> Auto-buy Kitchen Upgrades</label>
+        </div>
+        <p class="tiny muted" style="margin:4px 0 0">Buys the cheapest affordable option each second. Owning the <b>Celestial Autobuy</b> perk (Cosmic Forge) raises how much of your burritos it's willing to spend.</p>
+
+        <hr class="hr">
+        <h4 style="color:var(--ds-color)">Spending Dev Sauce (DS)</h4>
+        <div class="grid2">
+          <label class="chk"><input type="checkbox" id="chk-auto-dsperks"> Auto-buy Dev Point Perks</label>
+          <label class="chk"><input type="checkbox" id="chk-auto-sac"> Auto-sacrifice DS &rarr; Sam Shards</label>
+        </div>
+        <p class="tiny muted" style="margin:4px 0 0">Auto-sacrifice forges a Sam Shard the instant you can afford one — no confirmation prompt.</p>
+
+        <hr class="hr">
+        <h4 style="color:var(--ss-color)">Spending Sam Shards (SS)</h4>
+        <div class="grid2">
+          <label class="chk"><input type="checkbox" id="chk-auto-ssperks"> Auto-buy Shard Vault upgrades</label>
+          <label class="chk"><input type="checkbox" id="chk-auto-ascend"> Auto-ascend SS &rarr; Cosmic Dust</label>
+        </div>
+
+        <hr class="hr">
+        <h4 style="color:var(--cd-color)">Spending Cosmic Dust (CD)</h4>
+        <label class="chk"><input type="checkbox" id="chk-auto-cdperks"> Auto-buy Cosmic Forge upgrades</label>
+
+        <hr class="hr">
+        <h4>Events</h4>
+        <label class="chk"><input type="checkbox" id="chk-autogold-a"> Auto-catch Golden Sams</label>
+        <p class="tiny muted" style="margin:4px 0 0">Same setting as in Settings — changing it here updates it everywhere.</p>
       </div>
 
       <!-- PRESTIGE -->
@@ -682,8 +724,7 @@ label.chk{display:flex;align-items:center;gap:7px;margin:7px 0;font-size:.82rem;
             <label class="chk"><input type="checkbox" id="chk-tooltips" checked> Tooltips</label>
           </div>
           <div>
-            <label class="chk"><input type="checkbox" id="chk-autobuy"> Auto-buy cheapest building</label>
-            <label class="chk"><input type="checkbox" id="chk-autogold"> Auto-catch Golden Sams</label>
+            <p class="tiny muted" style="margin:0 0 4px">Auto-buy &amp; auto-catch toggles moved to the <b>Automation</b> tab.</p>
             <label class="chk"><input type="checkbox" id="chk-confirm" checked> Confirm prestige resets</label>
             <label class="chk">Numbers
               <select id="sel-notation">
@@ -1226,7 +1267,9 @@ function freshState() {
     buyAmount: 1, sellMode: false, stockQty: 1,
     theme: 'default', anim: 'anim-bounce', bgfx: 'burritos',
     settings: {sound:true, volume:35, particles:true, reduced:false, ticker:true, tooltips:true,
-               autoBuy:false, autoGold:false, confirm:true, notation:'short', autosave:15},
+               autoBuy:false, autoGold:false, confirm:true, notation:'short', autosave:15,
+               autoUpgrades:false, autoDsPerks:false, autoSac:false, autoSSPerks:false,
+               autoAscend:false, autoCDPerks:false},
     flags: {konami:false, typedBurrito:false, namePlate:false, pepper:false, cold:false,
             returned:false, broke:false, luckyStreak:false, idle:false},
     stats: {crits:0, goldens:0, bosses:0, rain:0, bestCombo:0, spins:0, hatched:0, crates:0,
@@ -1630,6 +1673,26 @@ function buyUpgrade(id) {
   chord([620, 780, 990], 0.13);
   toast('Upgrade purchased', u.name);
   recalc(); markDirty('all');
+}
+function buyAllUpgrades() {
+  let bought = 0;
+  for (let guard = 0; guard < 500; guard++) {
+    let best = null, bestCost = Infinity;
+    UPGRADES.forEach(u => {
+      if (game.upgrades[u.id]) return;
+      let ok = false; try { ok = u.req(game); } catch(e) {}
+      if (!ok) return;
+      const cost = u.cost * costMultiplier();
+      if (cost <= game.burritos && cost < bestCost) { bestCost = cost; best = u; }
+    });
+    if (!best) break;
+    game.burritos -= bestCost;
+    game.upgrades[best.id] = 1;
+    bought++;
+    recalc();
+  }
+  if (bought) { chord([620, 780, 990], 0.13); toast('Bought ' + bought + ' upgrades', 'Kitchen Upgrades'); markDirty('all'); }
+  else playSfx(140, 0.09, 'sawtooth');
 }
 function buyDSPerk(i) {
   const p = DS_PERKS[i], lvl = game.dsPerks[i] || 0;
@@ -2068,6 +2131,7 @@ function tick() {
     rollDailies();
     tickNews();
     autoBuyStep();
+    autoPerkStep();
     idleCheck();
     if (game.settings.autoGold) catchGoldenIfAuto();
     markDirty('quests');
@@ -2091,19 +2155,58 @@ function idleCheck() {
   if (game._wasRich && game.burritos < 10) game.flags.broke = true;
 }
 function autoBuyStep() {
-  if (!game.settings.autoBuy) return;
   const smart = cdLvl(3) > 0;
-  /* buy the cheapest affordable upgrade first when smart */
-  if (smart) {
-    const avail = UPGRADES.filter(u => !game.upgrades[u.id] && u.req(game) && u.cost * costMultiplier() <= game.burritos * 0.5);
-    if (avail.length) { avail.sort((a,b)=>a.cost-b.cost); buyUpgrade(avail[0].id); return; }
+  const thresh = smart ? 0.5 : 0.25;
+  /* auto-buy kitchen upgrades — independent toggle, unlocked from the start */
+  if (game.settings.autoUpgrades) {
+    const avail = UPGRADES.filter(u => !game.upgrades[u.id] && u.req(game) && u.cost * costMultiplier() <= game.burritos * thresh);
+    if (avail.length) { avail.sort((a,b)=>a.cost-b.cost); buyUpgrade(avail[0].id); }
   }
-  let best = -1, bestCost = Infinity;
-  for (let i = 0; i < BUILDINGS.length; i++) {
-    const c = bldCost(i, 1);
-    if (c <= game.burritos * (smart ? 0.5 : 0.25) && c < bestCost) { bestCost = c; best = i; }
+  /* auto-buy cheapest affordable building */
+  if (game.settings.autoBuy) {
+    let best = -1, bestCost = Infinity;
+    for (let i = 0; i < BUILDINGS.length; i++) {
+      const c = bldCost(i, 1);
+      if (c <= game.burritos * thresh && c < bestCost) { bestCost = c; best = i; }
+    }
+    if (best >= 0) buyBuilding(best, 1);
   }
-  if (best >= 0) buyBuilding(best, 1);
+}
+/* generic: buy the cheapest affordable level in a leveled perk shop (DS/SS/CD) */
+function autoBuyPerkList(list, ownedMap, currency, costFn, buyFn) {
+  const have = currency === 'ds' ? game.ds : currency === 'ss' ? game.ss : game.cd;
+  let bestI = -1, bestCost = Infinity;
+  list.forEach((p, i) => {
+    const lvl = ownedMap[i] || 0;
+    if (p.max && lvl >= p.max) return;
+    const cost = costFn(p, lvl);
+    if (cost <= have && cost < bestCost) { bestCost = cost; bestI = i; }
+  });
+  if (bestI >= 0) buyFn(bestI);
+}
+function autoSacStep() {
+  const cost = sacrificeCost();
+  if (game.ds < cost) return;
+  game.ds -= cost; game.ss += 1; game.stats.sacrifices++;
+  playSfx(392, 0.12, 'triangle');
+  recalc(); markDirty('all');
+}
+function autoAscendStep() {
+  const cost = ascendCost();
+  if (game.ss < cost) return;
+  game.ss -= cost; game.cd += 1; game.stats.ascensions++;
+  playSfx(523, 0.15, 'triangle');
+  recalc(); markDirty('all');
+}
+function autoPerkStep() {
+  if (game.settings.autoDsPerks)
+    autoBuyPerkList(DS_PERKS, game.dsPerks, 'ds', (p, l) => Math.floor(p.cost * Math.pow(2, l)), buyDSPerk);
+  if (game.settings.autoSSPerks)
+    autoBuyPerkList(SS_SHOP, game.ssShop, 'ss', (p, l) => Math.floor(p.cost * Math.pow(2.2, l)), buySS);
+  if (game.settings.autoCDPerks)
+    autoBuyPerkList(CD_SHOP, game.cdShop, 'cd', (p, l) => Math.floor(p.cost * Math.pow(3, l)), buyCD);
+  if (game.settings.autoSac) autoSacStep();
+  if (game.settings.autoAscend) autoAscendStep();
 }
 /* ---------------------- MARKET ---------------------- */
 let marketMood = 1, marketEventT = 120, marketLabel = 'calm', divTimer = 60, histTimer = 5;
@@ -2756,7 +2859,7 @@ function buildTalents() {
 }
 
 function buildPerks() {
-  const mk = (list, ownedMap, currency, buyAttr, container, costFn) => {
+  const mk = (list, ownedMap, currency, buyAttr, maxAttr, container, costFn) => {
     const c = $(container); c.innerHTML = '';
     list.forEach((p, i) => {
       const lvl = ownedMap[i] || 0;
@@ -2766,20 +2869,36 @@ function buildPerks() {
       const card = el('button', 'upg-card' + (maxed ? ' locked' : (have >= cost ? ' affordable' : '')));
       card.innerHTML = '<div><span class="upg-title">' + p.name + '</span><span class="upg-sub">' + p.desc +
         ' · Lv ' + lvl + (p.max ? '/' + p.max : '') + '</span></div>' +
+        '<div style="text-align:right;display:flex;align-items:center;gap:6px">' +
         '<span class="upg-cost" style="color:var(--' + (currency === 'ds' ? 'ds' : currency === 'ss' ? 'ss' : 'cd') + '-color)">' +
-        (maxed ? 'MAX' : fmt(cost) + ' ' + currency.toUpperCase()) + '</span>';
+        (maxed ? 'MAX' : fmt(cost) + ' ' + currency.toUpperCase()) + '</span>' +
+        (maxed ? '' : '<span class="upg-max-btn" data-' + maxAttr + '="' + i + '">MAX</span>') + '</div>';
       if (!maxed) card.dataset[buyAttr] = i;
       card.dataset.tip = tipFor(buyAttr + i, p.name, p.desc + '<br>Level <b>' + lvl + (p.max ? '/' + p.max : '') + '</b>' +
         (maxed ? '' : '<br>Next: <b>' + fmt(cost) + ' ' + currency.toUpperCase() + '</b>'), '');
       c.appendChild(card);
     });
   };
-  mk(DS_PERKS, game.dsPerks, 'ds', 'perk', 'ds-perks-list', (p, l) => Math.floor(p.cost * Math.pow(2, l)));
-  mk(SS_SHOP,  game.ssShop,  'ss', 'ssbuy', 'ss-shop-list', (p, l) => Math.floor(p.cost * Math.pow(2.2, l)));
-  mk(CD_SHOP,  game.cdShop,  'cd', 'cdbuy', 'cd-shop-list', (p, l) => Math.floor(p.cost * Math.pow(3, l)));
+  mk(DS_PERKS, game.dsPerks, 'ds', 'perk', 'perkmax', 'ds-perks-list', (p, l) => Math.floor(p.cost * Math.pow(2, l)));
+  mk(SS_SHOP,  game.ssShop,  'ss', 'ssbuy', 'ssbuymax', 'ss-shop-list', (p, l) => Math.floor(p.cost * Math.pow(2.2, l)));
+  mk(CD_SHOP,  game.cdShop,  'cd', 'cdbuy', 'cdbuymax', 'cd-shop-list', (p, l) => Math.floor(p.cost * Math.pow(3, l)));
   $('ds-have').textContent = fmt(game.ds) + ' DS';
   $('ss-have').textContent = fmt(game.ss) + ' SS';
   $('cd-have').textContent = fmt(game.cd) + ' CD';
+}
+function buyPerkMax(i, list, ownedMap, currency, costFn, buyFn) {
+  const p = list[i];
+  let bought = 0;
+  while (bought < 1000) {
+    const lvl = ownedMap[i] || 0;
+    if (p.max && lvl >= p.max) break;
+    const cost = costFn(p, lvl);
+    const have = currency === 'ds' ? game.ds : currency === 'ss' ? game.ss : game.cd;
+    if (have < cost) break;
+    buyFn(i);
+    bought++;
+  }
+  if (!bought) playSfx(140, 0.09, 'sawtooth');
 }
 
 function buildStocks() {
@@ -3383,6 +3502,7 @@ function wire() {
   /* delegated clicks */
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-tab],[data-bld],[data-clk],[data-upg],[data-perk],[data-ssbuy],[data-cdbuy],' +
+      '[data-perkmax],[data-ssbuymax],[data-cdbuymax],[data-upgall],' +
       '[data-talent],[data-ab],[data-sbuy],[data-ssell],[data-pet],[data-item],[data-slot],[data-quest],[data-ms],' +
       '[data-buy],[data-qty],[data-theme],[data-anim],[data-skin],[data-fx],[data-af],[data-cup]');
     if (!t) return;
@@ -3399,6 +3519,19 @@ function wire() {
     else if (d.perk !== undefined)  buyDSPerk(+d.perk);
     else if (d.ssbuy !== undefined) buySS(+d.ssbuy);
     else if (d.cdbuy !== undefined) buyCD(+d.cdbuy);
+    else if (d.perkmax !== undefined) {
+      e.stopPropagation();
+      buyPerkMax(+d.perkmax, DS_PERKS, game.dsPerks, 'ds', (p, l) => Math.floor(p.cost * Math.pow(2, l)), buyDSPerk);
+    }
+    else if (d.ssbuymax !== undefined) {
+      e.stopPropagation();
+      buyPerkMax(+d.ssbuymax, SS_SHOP, game.ssShop, 'ss', (p, l) => Math.floor(p.cost * Math.pow(2.2, l)), buySS);
+    }
+    else if (d.cdbuymax !== undefined) {
+      e.stopPropagation();
+      buyPerkMax(+d.cdbuymax, CD_SHOP, game.cdShop, 'cd', (p, l) => Math.floor(p.cost * Math.pow(3, l)), buyCD);
+    }
+    else if (d.upgall !== undefined) buyAllUpgrades();
     else if (d.talent)   learnTalent(d.talent);
     else if (d.ab !== undefined)    useAbility(+d.ab);
     else if (d.sbuy !== undefined)  buyStock(+d.sbuy);
@@ -3481,9 +3614,17 @@ function wire() {
   setChk('chk-reduced', 'reduced', () => { setTheme(game.theme); seedBg(); });
   setChk('chk-ticker', 'ticker', () => $('news-ticker').classList.toggle('off', !S.ticker));
   setChk('chk-tooltips', 'tooltips');
-  setChk('chk-autobuy', 'autoBuy');
-  setChk('chk-autogold', 'autoGold');
   setChk('chk-confirm', 'confirm');
+
+  /* automation tab */
+  setChk('chk-auto-buildings', 'autoBuy');
+  setChk('chk-auto-upgrades', 'autoUpgrades');
+  setChk('chk-auto-dsperks', 'autoDsPerks');
+  setChk('chk-auto-sac', 'autoSac');
+  setChk('chk-auto-ssperks', 'autoSSPerks');
+  setChk('chk-auto-ascend', 'autoAscend');
+  setChk('chk-auto-cdperks', 'autoCDPerks');
+  setChk('chk-autogold-a', 'autoGold');
   $('rng-volume').value = S.volume;
   $('rng-volume').addEventListener('input', e => { S.volume = +e.target.value; });
   $('sel-notation').value = S.notation;

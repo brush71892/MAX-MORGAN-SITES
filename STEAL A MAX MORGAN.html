@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Steal a Max Morgan 3D</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js 3D Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Outfit:wght@400;600;800&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0f19;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .font-game {
+            font-family: 'Fredoka One', cursive, sans-serif;
+        }
+
+        /* Glassmorphism UI Style */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.15s ease-in-out;
+        }
+
+        .glass-btn:active {
+            transform: scale(0.92);
+        }
+
+        /* Custom Scrollbar for Shop */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 3px;
+        }
+
+        /* Virtual Joystick */
+        #joystick-zone {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: none;
+            touch-action: none;
+        }
+
+        #joystick-knob {
+            position: absolute;
+            top: 35px;
+            left: 35px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.8);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.6);
+        }
+
+        /* Notification Animations */
+        @keyframes toastIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast-anim {
+            animation: toastIn 0.25s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="select-none overflow-hidden">
+
+    <!-- 3D WebGL Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- UI Overlay Layer -->
+    <div id="ui-container" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-5">
+        
+        <!-- Top Bar Header -->
+        <div class="flex flex-wrap justify-between items-start gap-3 w-full max-w-7xl mx-auto">
+            
+            <!-- Left Stats Panel -->
+            <div class="glass-panel rounded-2xl p-3 sm:p-4 text-white min-w-[200px] flex flex-col gap-2 pointer-events-auto">
+                <div class="flex items-center justify-between gap-4">
+                    <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Cash</span>
+                    <div class="flex items-center gap-1.5 text-emerald-400 font-game text-xl sm:text-2xl">
+                        <i class="fa-solid me-1 fa-dollar-sign"></i>
+                        <span id="player-cash">0</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-4 text-sm">
+                    <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Base Slots</span>
+                    <span id="player-slots" class="font-game text-indigo-300 text-base">0 / 8</span>
+                </div>
+                <div class="flex items-center justify-between gap-4 text-xs">
+                    <span class="text-slate-400 font-semibold">Income Rate</span>
+                    <span id="player-income" class="font-bold text-amber-400">+$0/s</span>
+                </div>
+            </div>
+
+            <!-- Top Center Notification Container -->
+            <div id="toast-container" class="flex flex-col items-center gap-2 pointer-events-none"></div>
+
+            <!-- Right Leaderboard Panel -->
+            <div class="glass-panel rounded-2xl p-3 sm:p-4 text-white w-48 sm:w-56 pointer-events-auto">
+                <div class="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-trophy"></i> Leaderboard
+                </div>
+                <div id="leaderboard-list" class="space-y-1.5 text-xs">
+                    <!-- Dynamic Leaderboard entries -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Camera Controls Bar -->
+        <div class="absolute top-20 right-4 sm:right-6 flex flex-col gap-2 pointer-events-auto ui-interactive">
+            <button id="btn-cam-left" title="Rotate Camera Left" class="glass-btn w-10 h-10 rounded-xl text-white hover:bg-indigo-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+            <button id="btn-cam-right" title="Rotate Camera Right" class="glass-btn w-10 h-10 rounded-xl text-white hover:bg-indigo-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <button id="btn-cam-zoom-in" title="Zoom In" class="glass-btn w-10 h-10 rounded-xl text-white hover:bg-indigo-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+            <button id="btn-cam-zoom-out" title="Zoom Out" class="glass-btn w-10 h-10 rounded-xl text-white hover:bg-indigo-600 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-minus"></i>
+            </button>
+            <button id="btn-cam-reset" title="Reset Camera" class="glass-btn w-10 h-10 rounded-xl text-amber-400 hover:bg-amber-600 hover:text-white flex items-center justify-center text-lg">
+                <i class="fa-solid fa-video"></i>
+            </button>
+        </div>
+
+        <!-- Bottom HUD Controls & Actions -->
+        <div class="w-full max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-end gap-4">
+            
+            <!-- Carried Item Status Badge -->
+            <div id="carried-status-panel" class="glass-panel rounded-2xl p-3 px-4 text-white pointer-events-auto flex items-center gap-3 border-l-4 border-slate-500">
+                <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-xl text-indigo-400">
+                    <i class="fa-solid fa-box-open" id="carried-icon"></i>
+                </div>
+                <div>
+                    <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Carrying Item</div>
+                    <div id="carried-name" class="font-game text-sm text-slate-200">Empty Hands</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons Grid -->
+            <div class="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pointer-events-auto ui-interactive">
+                <!-- Drop Item Button (G) -->
+                <button id="btn-drop" class="glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-amber-600/80 to-amber-700/80 hover:from-amber-500 hover:to-amber-600 shadow-lg shadow-amber-900/30">
+                    <i class="fa-solid fa-hand-holding-box text-lg"></i>
+                    <span>Drop (G)</span>
+                </button>
+
+                <!-- Pick Up / Steal Button (E) -->
+                <button id="btn-pickup" class="glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-emerald-600/80 to-emerald-700/80 hover:from-emerald-500 hover:to-emerald-600 shadow-lg shadow-emerald-900/30">
+                    <i class="fa-solid fa-hand text-lg"></i>
+                    <span>Pick/Steal (E)</span>
+                </button>
+
+                <!-- Slap Button (F) -->
+                <button id="btn-slap" class="relative glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-rose-600/80 to-rose-700/80 hover:from-rose-500 hover:to-rose-600 shadow-lg shadow-rose-900/30 overflow-hidden">
+                    <i class="fa-solid fa-hand-fist text-lg"></i>
+                    <span>Slap (F)</span>
+                    <div id="slap-cd-overlay" class="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-xs text-rose-400 hidden">
+                        <span id="slap-cd-time">1.2s</span>
+                    </div>
+                </button>
+
+                <!-- Shield Button (Q) -->
+                <button id="btn-shield" class="relative glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-cyan-600/80 to-blue-700/80 hover:from-cyan-500 hover:to-blue-600 shadow-lg shadow-cyan-900/30 overflow-hidden">
+                    <i class="fa-solid fa-shield-halved text-lg"></i>
+                    <span>Shield (Q)</span>
+                    <div id="shield-cd-overlay" class="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-xs text-cyan-400 hidden">
+                        <span id="shield-cd-time">30s</span>
+                    </div>
+                </button>
+
+                <!-- Shop Button (B) -->
+                <button id="btn-shop" class="glass-btn px-5 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-lg shadow-indigo-900/40">
+                    <i class="fa-solid fa-cart-shopping text-lg text-amber-300"></i>
+                    <span>Shop (B)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Virtual Joystick Zone -->
+    <div id="joystick-zone" class="ui-interactive">
+        <div id="joystick-knob"></div>
+    </div>
+
+    <!-- Shop Modal Overlay -->
+    <div id="shop-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden pointer-events-auto">
+        <div class="glass-panel w-full max-w-2xl rounded-3xl border border-indigo-500/30 overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Shop Header -->
+            <div class="p-5 border-b border-slate-700/50 flex justify-between items-center bg-indigo-950/40">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-xl">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-game text-xl text-white tracking-wide">ROBLOX UPGRADE SHOP</h2>
+                        <p class="text-xs text-slate-400">Boost your speed, slap knockback, and automated earnings</p>
+                    </div>
+                </div>
+                <button id="btn-close-shop" class="w-10 h-10 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-lg transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Shop Items Scrollable Grid -->
+            <div class="p-5 overflow-y-auto space-y-4 flex-1">
+                
+                <!-- Upgrade Item 1: Speed Boost -->
+                <div class="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-slate-700/60 hover:border-indigo-500/50 transition">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <div>
+                            <div class="font-game text-white text-base">Speed Boost</div>
+                            <div class="text-xs text-slate-400">+15% movement speed per level</div>
+                            <div class="text-xs text-indigo-400 mt-1 font-semibold">Level <span id="shop-lvl-speed">1</span> / 10</div>
+                        </div>
+                    </div>
+                    <button id="btn-buy-speed" class="glass-btn px-4 py-2.5 rounded-xl font-game text-sm text-emerald-400 bg-emerald-950/50 hover:bg-emerald-600 hover:text-white border border-emerald-500/40 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                        <span id="shop-cost-speed">100</span>
+                    </button>
+                </div>
+
+                <!-- Upgrade Item 2: Slap Power -->
+                <div class="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-slate-700/60 hover:border-indigo-500/50 transition">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-hand-fist"></i>
+                        </div>
+                        <div>
+                            <div class="font-game text-white text-base">Slap Force</div>
+                            <div class="text-xs text-slate-400">+25% slap knockback distance per level</div>
+                            <div class="text-xs text-indigo-400 mt-1 font-semibold">Level <span id="shop-lvl-slap">1</span> / 10</div>
+                        </div>
+                    </div>
+                    <button id="btn-buy-slap" class="glass-btn px-4 py-2.5 rounded-xl font-game text-sm text-emerald-400 bg-emerald-950/50 hover:bg-emerald-600 hover:text-white border border-emerald-500/40 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                        <span id="shop-cost-slap">150</span>
+                    </button>
+                </div>
+
+                <!-- Upgrade Item 3: Auto Collector -->
+                <div class="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-slate-700/60 hover:border-indigo-500/50 transition">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <div class="font-game text-white text-base">Auto-Collector Sentry</div>
+                            <div class="text-xs text-slate-400">Automatically pulls items off conveyor to base</div>
+                            <div class="text-xs text-indigo-400 mt-1 font-semibold">Level <span id="shop-lvl-auto">0</span> / 5</div>
+                        </div>
+                    </div>
+                    <button id="btn-buy-auto" class="glass-btn px-4 py-2.5 rounded-xl font-game text-sm text-emerald-400 bg-emerald-950/50 hover:bg-emerald-600 hover:text-white border border-emerald-500/40 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                        <span id="shop-cost-auto">500</span>
+                    </button>
+                </div>
+
+                <!-- Upgrade Item 4: Income Multiplier -->
+                <div class="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-slate-700/60 hover:border-indigo-500/50 transition">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-arrow-trend-up"></i>
+                        </div>
+                        <div>
+                            <div class="font-game text-white text-base">Income Multiplier</div>
+                            <div class="text-xs text-slate-400">+25% extra cash payout from all pedestals</div>
+                            <div class="text-xs text-indigo-400 mt-1 font-semibold">Level <span id="shop-lvl-mult">1</span> / 10</div>
+                        </div>
+                    </div>
+                    <button id="btn-buy-mult" class="glass-btn px-4 py-2.5 rounded-xl font-game text-sm text-emerald-400 bg-emerald-950/50 hover:bg-emerald-600 hover:text-white border border-emerald-500/40 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                        <span id="shop-cost-mult">300</span>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GAME SCRIPT ENGINE -->
+    <script>
+        // Game Constants & Rarity Registry
+        const RARITIES = [
+            { id: 0, name: "Classic Max", price: 0, income: 10, color: "#9e9e9e", border: "#cccccc", badge: "COMMON" },
+            { id: 1, name: "Scientist Max", price: 150, income: 35, color: "#4caf50", border: "#81c784", badge: "UNCOMMON" },
+            { id: 2, name: "Gamer Max", price: 500, income: 90, color: "#2196f3", border: "#64b5f6", badge: "RARE" },
+            { id: 3, name: "Golden Max", price: 2500, income: 250, color: "#ffc107", border: "#ffd54f", badge: "EPIC" },
+            { id: 4, name: "Speedrunner Max", price: 8000, income: 750, color: "#e91e63", border: "#f06292", badge: "LEGENDARY" },
+            { id: 5, name: "Brainrot God Max", price: 25000, income: 2500, color: "#9c27b0", border: "#ba68c8", badge: "MYTHIC" }
+        ];
+
+        // Base Layout Positions (Strictly separated Y layers)
+        const BASE_POSITIONS = [
+            { id: 0, name: "Player", x: -32, z: 32, color: 0x6366f1, hex: "#6366f1" },
+            { id: 1, name: "Red Bot", x: 32, z: 32, color: 0xef4444, hex: "#ef4444" },
+            { id: 2, name: "Green Bot", x: -32, z: -32, color: 0x22c55e, hex: "#22c55e" },
+            { id: 3, name: "Yellow Bot", x: 32, z: -32, color: 0xeab308, hex: "#eab308" }
+        ];
+
+        // Synthesized Web Audio Sound Effects
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            playPickUp() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+            playDrop() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.12);
+            }
+            playSlap() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(40, this.ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.1);
+            }
+            playCash() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(987.77, this.ctx.currentTime); // B5
+                osc.frequency.setValueAtTime(1318.51, this.ctx.currentTime + 0.08); // E6
+                gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.25);
+            }
+            playShield() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.3);
+            }
+        }
+        const sfx = new SoundFX();
+
+        // Three.js Core Globals
+        let scene, camera, renderer;
+        let groundMesh, conveyorGroup;
+
+        // Camera Orbit Controls State variables
+        let cameraAngleYaw = 0;
+        let cameraAnglePitch = 0.55;
+        let cameraDistance = 22.0;
+        let isDraggingCamera = false;
+        let lastPointerX = 0, lastPointerY = 0;
+
+        // Game Entities State
+        let player = {
+            x: -32, z: 32, angle: 0,
+            vx: 0, vz: 0,
+            speed: 12.0,
+            carriedItem: null,
+            cash: 100,
+            baseIndex: 0,
+            slapPower: 1.0,
+            slapCd: 0,
+            shieldCd: 0,
+            speedLvl: 1,
+            slapLvl: 1,
+            autoLvl: 0,
+            multLvl: 1,
+            mesh: null
+        };
+
+        let bots = [];
+        let bases = [];
+        let itemsOnConveyor = [];
+        let itemsOnGround = [];
+        let particles = [];
+
+        // Dynamic Time tracking
+        let clock = new THREE.Clock();
+        let lastIncomeTick = 0;
+        let spawnTimer = 0;
+
+        // Input Tracking
+        const keys = {};
+        let joystickVector = { x: 0, y: 0 };
+        let joystickActive = false;
+
+        // Initialize 3D Engine & Scene
+        function initEngine() {
+            const container = document.getElementById('game-canvas');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0b0f19);
+            scene.fog = new THREE.FogExp2(0x0b0f19, 0.008);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Ambient & Directional Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xffffff, 0.85);
+            sunLight.position.set(40, 60, 30);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 2048;
+            sunLight.shadow.mapSize.height = 2048;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 150;
+            const d = 50;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            scene.add(sunLight);
+
+            // Ground Grid (Layer Y = 0.0)
+            const groundGeo = new THREE.PlaneGeometry(120, 120);
+            const groundMat = new THREE.MeshStandardMaterial({
+                color: 0x111827,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            groundMesh = new THREE.Mesh(groundGeo, groundMat);
+            groundMesh.rotation.x = -Math.PI / 2;
+            groundMesh.position.y = 0.0; // Strictly Elevation Layer 0.0
+            groundMesh.receiveShadow = true;
+            scene.add(groundMesh);
+
+            // Arena Outer Neon Boundary
+            const gridHelper = new THREE.GridHelper(120, 30, 0x6366f1, 0x1e293b);
+            gridHelper.position.y = 0.01;
+            scene.add(gridHelper);
+
+            // Conveyor System (Y elevation strictly separated)
+            createConveyorSystem();
+
+            // Build 4 Base Pads with 8 Pedestals each
+            createBases();
+
+            // Build Player Avatar
+            player.mesh = createAvatarMesh(0x6366f1);
+            player.mesh.position.set(player.x, 0, player.z);
+            scene.add(player.mesh);
+
+            // Initialize 3 AI Bots
+            createBots();
+
+            // Setup Camera Control Handlers
+            setupCameraControls();
+
+            // Handle Window Resize
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // Conveyor Belt Construction
+        function createConveyorSystem() {
+            conveyorGroup = new THREE.Group();
+
+            // Base Structural Foundation (y = 0.25, height = 0.50 -> top y = 0.50)
+            const baseGeo = new THREE.BoxGeometry(4.5, 0.5, 58);
+            const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.5 });
+            const baseMesh = new THREE.Mesh(baseGeo, baseMat);
+            baseMesh.position.set(0, 0.25, 0);
+            baseMesh.receiveShadow = true;
+            baseMesh.castShadow = true;
+            conveyorGroup.add(baseMesh);
+
+            // Belt Tread Tread Surface (y = 0.52, height 0.04 -> top y = 0.54)
+            const beltGeo = new THREE.BoxGeometry(3.6, 0.04, 57.8);
+            const beltMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 });
+            const beltMesh = new THREE.Mesh(beltGeo, beltMat);
+            beltMesh.position.set(0, 0.52, 0);
+            conveyorGroup.add(beltMesh);
+
+            // Conveyor Side Neon Rails
+            const railGeo = new THREE.BoxGeometry(0.3, 0.3, 58);
+            const railMat = new THREE.MeshStandardMaterial({ color: 0x6366f1, emissive: 0x4f46e5, emissiveIntensity: 0.5 });
+            
+            const leftRail = new THREE.Mesh(railGeo, railMat);
+            leftRail.position.set(-2.2, 0.60, 0);
+            conveyorGroup.add(leftRail);
+
+            const rightRail = new THREE.Mesh(railGeo, railMat);
+            rightRail.position.set(2.2, 0.60, 0);
+            conveyorGroup.add(rightRail);
+
+            // Spawner Machine at z = -28
+            const spawnerGeo = new THREE.BoxGeometry(5, 3.5, 3);
+            const spawnerMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
+            const spawnerMesh = new THREE.Mesh(spawnerGeo, spawnerMat);
+            spawnerMesh.position.set(0, 1.75, -28);
+            conveyorGroup.add(spawnerMesh);
+
+            scene.add(conveyorGroup);
+        }
+
+        // Base Slabs & Pedestals Setup (8 Slots per base)
+        function createBases() {
+            BASE_POSITIONS.forEach((data, index) => {
+                const baseObj = {
+                    id: index,
+                    name: data.name,
+                    x: data.x,
+                    z: data.z,
+                    color: data.color,
+                    hex: data.hex,
+                    pedestals: [],
+                    shieldActive: false,
+                    shieldTimer: 0,
+                    shieldMesh: null,
+                    tagSprite: null
+                };
+
+                // Base Pad Slab (y = 0.20, height = 0.40 -> top surface at y = 0.40)
+                const padGeo = new THREE.BoxGeometry(14, 0.4, 14);
+                const padMat = new THREE.MeshStandardMaterial({
+                    color: data.color,
+                    roughness: 0.4,
+                    metalness: 0.3
+                });
+                const padMesh = new THREE.Mesh(padGeo, padMat);
+                padMesh.position.set(data.x, 0.20, data.z);
+                padMesh.receiveShadow = true;
+                padMesh.castShadow = true;
+                scene.add(padMesh);
+
+                // Create 8 Elevated Pedestals (2 rows of 4)
+                // Pedestal Box: y = 0.55, height 0.30 -> top surface at y = 0.70
+                const colOffsets = [-4.2, -1.4, 1.4, 4.2];
+                const rowOffsets = [-3.2, 3.2];
+
+                let pedestalId = 0;
+                for (let r = 0; r < 2; r++) {
+                    for (let c = 0; c < 4; c++) {
+                        const px = data.x + colOffsets[c];
+                        const pz = data.z + rowOffsets[r];
+
+                        const pedGeo = new THREE.BoxGeometry(2.0, 0.3, 2.0);
+                        const pedMat = new THREE.MeshStandardMaterial({
+                            color: 0x1e293b,
+                            roughness: 0.3,
+                            metalness: 0.6
+                        });
+                        const pedMesh = new THREE.Mesh(pedGeo, pedMat);
+                        pedMesh.position.set(px, 0.55, pz);
+                        pedMesh.receiveShadow = true;
+                        pedMesh.castShadow = true;
+                        scene.add(pedMesh);
+
+                        // Pedestal Glowing Rim Accent
+                        const rimGeo = new THREE.BoxGeometry(2.1, 0.05, 2.1);
+                        const rimMat = new THREE.MeshStandardMaterial({
+                            color: data.color,
+                            emissive: data.color,
+                            emissiveIntensity: 0.4
+                        });
+                        const rimMesh = new THREE.Mesh(rimGeo, rimMat);
+                        rimMesh.position.set(px, 0.70, pz);
+                        scene.add(rimMesh);
+
+                        baseObj.pedestals.push({
+                            id: pedestalId++,
+                            x: px,
+                            z: pz,
+                            item: null // Max Morgan item on top sitting at y = 1.30
+                        });
+                    }
+                }
+
+                // Forcefield Shield Dome Mesh (Hemisphere)
+                const shieldGeo = new THREE.SphereGeometry(8.8, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+                const shieldMat = new THREE.MeshStandardMaterial({
+                    color: data.color,
+                    transparent: true,
+                    opacity: 0.35,
+                    roughness: 0.1,
+                    emissive: data.color,
+                    emissiveIntensity: 0.6,
+                    side: THREE.DoubleSide
+                });
+                baseObj.shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+                baseObj.shieldMesh.position.set(data.x, 0.40, data.z);
+                baseObj.shieldMesh.visible = false;
+                scene.add(baseObj.shieldMesh);
+
+                // Overhead Base Billboard Status Tag
+                const tagSprite = createBaseHeaderTag(data.name, data.hex, "Slots: 0/8");
+                tagSprite.position.set(data.x, 6.5, data.z);
+                scene.add(tagSprite);
+                baseObj.tagSprite = tagSprite;
+
+                bases.push(baseObj);
+            });
+        }
+
+        // Accurate Roblox-style 3D Max Morgan Character Mesh Builder
+        function createMaxMorganMesh(rarityIndex) {
+            const rarity = RARITIES[rarityIndex];
+            const group = new THREE.Group();
+
+            // Color scheme based on rarity
+            const hoodieColor = new THREE.Color(rarity.color);
+            const skinColor = 0xffdbac;
+
+            // Head (Blocky 0.65 x 0.65 x 0.65)
+            const headGeo = new THREE.BoxGeometry(0.65, 0.65, 0.65);
+            const headMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.6 });
+            const headMesh = new THREE.Mesh(headGeo, headMat);
+            headMesh.position.y = 1.45;
+            headMesh.castShadow = true;
+            group.add(headMesh);
+
+            // Wavy Hair
+            const hairGeo = new THREE.BoxGeometry(0.72, 0.25, 0.72);
+            const hairMat = new THREE.MeshStandardMaterial({ color: 0x4a2e1b, roughness: 0.8 });
+            const hairMesh = new THREE.Mesh(hairGeo, hairMat);
+            hairMesh.position.set(0, 1.78, 0);
+            group.add(hairMesh);
+
+            // Tech Safety Goggles
+            const goggleGeo = new THREE.BoxGeometry(0.68, 0.18, 0.2);
+            const goggleMat = new THREE.MeshStandardMaterial({
+                color: 0x00d2ff,
+                emissive: 0x00d2ff,
+                emissiveIntensity: 0.6,
+                roughness: 0.2
+            });
+            const goggleMesh = new THREE.Mesh(goggleGeo, goggleMat);
+            goggleMesh.position.set(0, 1.52, 0.28);
+            group.add(goggleMesh);
+
+            // Hoodie Torso
+            const torsoGeo = new THREE.BoxGeometry(0.75, 0.85, 0.45);
+            const torsoMat = new THREE.MeshStandardMaterial({
+                color: hoodieColor,
+                roughness: 0.5,
+                metalness: 0.1
+            });
+            const torsoMesh = new THREE.Mesh(torsoGeo, torsoMat);
+            torsoMesh.position.y = 0.80;
+            torsoMesh.castShadow = true;
+            group.add(torsoMesh);
+
+            // Chest Badge ("SIM")
+            const badgeGeo = new THREE.PlaneGeometry(0.3, 0.2);
+            const badgeMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide });
+            const badgeMesh = new THREE.Mesh(badgeGeo, badgeMat);
+            badgeMesh.position.set(0, 0.90, 0.24);
+            group.add(badgeMesh);
+
+            // Arms holding tablet
+            const armGeo = new THREE.BoxGeometry(0.25, 0.7, 0.25);
+            const armMat = new THREE.MeshStandardMaterial({ color: hoodieColor });
+            
+            const leftArm = new THREE.Mesh(armGeo, armMat);
+            leftArm.position.set(-0.5, 0.80, 0.1);
+            leftArm.rotation.x = -0.4;
+            group.add(leftArm);
+
+            const rightArm = new THREE.Mesh(armGeo, armMat);
+            rightArm.position.set(0.5, 0.80, 0.1);
+            rightArm.rotation.x = -0.4;
+            group.add(rightArm);
+
+            // Tablet Device
+            const tabletGeo = new THREE.BoxGeometry(0.45, 0.3, 0.04);
+            const tabletMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, emissive: 0x38bdf8, emissiveIntensity: 0.4 });
+            const tabletMesh = new THREE.Mesh(tabletGeo, tabletMat);
+            tabletMesh.position.set(0, 0.70, 0.35);
+            tabletMesh.rotation.x = -0.3;
+            group.add(tabletMesh);
+
+            // Legs
+            const legGeo = new THREE.BoxGeometry(0.32, 0.75, 0.35);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x1e293b });
+            
+            const leftLeg = new THREE.Mesh(legGeo, legMat);
+            leftLeg.position.set(-0.2, 0.375, 0);
+            leftLeg.castShadow = true;
+            group.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeo, legMat);
+            rightLeg.position.set(0.2, 0.375, 0);
+            rightLeg.castShadow = true;
+            group.add(rightLeg);
+
+            // Create High-Res Overhead Billboard Tag
+            const labelSprite = createItemBillboardTag(rarity);
+            labelSprite.position.set(0, 2.3, 0);
+            group.add(labelSprite);
+
+            return group;
+        }
+
+        // Generic Player/Bot Avatar Generator
+        function createAvatarMesh(colorHex) {
+            const group = new THREE.Group();
+
+            // Head
+            const headGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+            const headMat = new THREE.MeshStandardMaterial({ color: 0xffdbac });
+            const headMesh = new THREE.Mesh(headGeo, headMat);
+            headMesh.position.y = 1.8;
+            headMesh.castShadow = true;
+            group.add(headMesh);
+
+            // Torso
+            const torsoGeo = new THREE.BoxGeometry(0.9, 1.1, 0.5);
+            const torsoMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 });
+            const torsoMesh = new THREE.Mesh(torsoGeo, torsoMat);
+            torsoMesh.position.y = 0.95;
+            torsoMesh.castShadow = true;
+            group.add(torsoMesh);
+
+            // Legs
+            const legGeo = new THREE.BoxGeometry(0.4, 0.9, 0.45);
+            const legMat = new THREE.MeshStandardMaterial({ color: 0x0f172a });
+            
+            const leftLeg = new THREE.Mesh(legGeo, legMat);
+            leftLeg.position.set(-0.23, 0.45, 0);
+            leftLeg.castShadow = true;
+            group.add(leftLeg);
+
+            const rightLeg = new THREE.Mesh(legGeo, legMat);
+            rightLeg.position.set(0.23, 0.45, 0);
+            rightLeg.castShadow = true;
+            group.add(rightLeg);
+
+            return group;
+        }
+
+        // Canvas Billboard Texture Generator for Max Morgan Items
+        function createItemBillboardTag(rarity) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+
+            // Dark Pill Background
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+            ctx.strokeStyle = rarity.border;
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.roundRect(16, 16, 480, 224, 28);
+            ctx.fill();
+            ctx.stroke();
+
+            // Rarity Badge Pill
+            ctx.fillStyle = rarity.color;
+            ctx.beginPath();
+            ctx.roundRect(32, 32, 160, 42, 12);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 22px Outfit, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(rarity.badge, 112, 61);
+
+            // Item Name
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 36px Fredoka One, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(rarity.name, 32, 120);
+
+            // Income Rate
+            ctx.fillStyle = '#4ade80';
+            ctx.font = 'bold 30px Outfit, sans-serif';
+            ctx.fillText('+' + formatMoney(rarity.income) + '/s', 32, 165);
+
+            // Cost / Value
+            ctx.fillStyle = '#facc15';
+            ctx.font = 'bold 28px Outfit, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(rarity.price === 0 ? 'FREE' : '$' + formatMoney(rarity.price), 460, 165);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMat);
+            sprite.scale.set(3.2, 1.6, 1.0);
+            return sprite;
+        }
+
+        // Base Overhead Header Status Billboard
+        function createBaseHeaderTag(baseName, hexColor, slotText) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 200;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+            ctx.strokeStyle = hexColor;
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+            ctx.roundRect(16, 16, 480, 168, 30);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = hexColor;
+            ctx.font = 'bold 42px Fredoka One, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(baseName.toUpperCase(), 256, 75);
+
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 34px Outfit, sans-serif';
+            ctx.fillText(slotText, 256, 135);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMat);
+            sprite.scale.set(5.5, 2.15, 1.0);
+            sprite.userData = { canvas, ctx, texture, baseName, hexColor };
+            return sprite;
+        }
+
+        function updateBaseHeaderTag(baseObj) {
+            if (!baseObj.tagSprite) return;
+            const { canvas, ctx, texture, baseName, hexColor } = baseObj.tagSprite.userData;
+            
+            const occupied = baseObj.pedestals.filter(p => p.item !== null).length;
+            const slotText = `Slots: ${occupied} / 8`;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+            ctx.strokeStyle = hexColor;
+            ctx.lineWidth = 10;
+            ctx.beginPath();
+            ctx.roundRect(16, 16, 480, 168, 30);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = hexColor;
+            ctx.font = 'bold 42px Fredoka One, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(baseName.toUpperCase(), 256, 75);
+
+            ctx.fillStyle = occupied === 8 ? '#f87171' : '#cbd5e1';
+            ctx.font = 'bold 34px Outfit, sans-serif';
+            ctx.fillText(slotText, 256, 135);
+
+            texture.needsUpdate = true;
+        }
+
+        // AI Bots Setup
+        function createBots() {
+            for (let i = 1; i <= 3; i++) {
+                const baseData = BASE_POSITIONS[i];
+                const bot = {
+                    id: i,
+                    name: baseData.name,
+                    x: baseData.x,
+                    z: baseData.z,
+                    angle: 0,
+                    vx: 0, vz: 0,
+                    speed: 11.0,
+                    carriedItem: null,
+                    cash: 50,
+                    baseIndex: i,
+                    slapPower: 1.0,
+                    slapCd: 0,
+                    targetItem: null,
+                    state: 'IDLE', // IDLE, MOVE_TO_ITEM, RETURN_TO_BASE, STEAL
+                    mesh: createAvatarMesh(baseData.color)
+                };
+                bot.mesh.position.set(bot.x, 0, bot.z);
+                scene.add(bot.mesh);
+                bots.push(bot);
+            }
+        }
+
+        // Camera Controls Handler (Fixes filter & pointer lock issues)
+        function setupCameraControls() {
+            // Pointer Down Listener (Filter UI elements)
+            window.addEventListener('pointerdown', (e) => {
+                if (e.target.closest('button, .ui-interactive, input, #shop-modal')) {
+                    return; // Ignore clicks on UI interactive controls
+                }
+                isDraggingCamera = true;
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (!isDraggingCamera) return;
+                const deltaX = e.clientX - lastPointerX;
+                const deltaY = e.clientY - lastPointerY;
+
+                cameraAngleYaw -= deltaX * 0.006;
+                cameraAnglePitch = Math.max(0.12, Math.min(1.35, cameraAnglePitch + deltaY * 0.005));
+
+                lastPointerX = e.clientX;
+                lastPointerY = e.clientY;
+            });
+
+            window.addEventListener('pointerup', () => { isDraggingCamera = false; });
+            window.addEventListener('pointercancel', () => { isDraggingCamera = false; });
+
+            // Mouse Zoom Wheel
+            window.addEventListener('wheel', (e) => {
+                if (e.target.closest('#shop-modal')) return;
+                cameraDistance += e.deltaY * 0.025;
+                cameraDistance = Math.max(3.0, Math.min(85.0, cameraDistance));
+            }, { passive: true });
+
+            // HUD Camera Control Buttons
+            document.getElementById('btn-cam-left').addEventListener('click', () => { cameraAngleYaw += 0.35; });
+            document.getElementById('btn-cam-right').addEventListener('click', () => { cameraAngleYaw -= 0.35; });
+            document.getElementById('btn-cam-zoom-in').addEventListener('click', () => { cameraDistance = Math.max(3.0, cameraDistance - 4.0); });
+            document.getElementById('btn-cam-zoom-out').addEventListener('click', () => { cameraDistance = Math.min(85.0, cameraDistance + 4.0); });
+            document.getElementById('btn-cam-reset').addEventListener('click', () => {
+                cameraAngleYaw = 0;
+                cameraAnglePitch = 0.55;
+                cameraDistance = 22.0;
+                showToast("Camera Reset", "info");
+            });
+
+            // Keyboard Control Listeners
+            window.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                if (e.code === 'KeyE') triggerPickUpOrSteal(player);
+                if (e.code === 'KeyG') triggerDropItem(player);
+                if (e.code === 'KeyF') triggerSlap(player);
+                if (e.code === 'KeyQ') triggerShield(player);
+                if (e.code === 'KeyB') toggleShopModal();
+            });
+
+            window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+            });
+
+            // UI Action Buttons
+            document.getElementById('btn-pickup').addEventListener('click', () => triggerPickUpOrSteal(player));
+            document.getElementById('btn-drop').addEventListener('click', () => triggerDropItem(player));
+            document.getElementById('btn-slap').addEventListener('click', () => triggerSlap(player));
+            document.getElementById('btn-shield').addEventListener('click', () => triggerShield(player));
+            document.getElementById('btn-shop').addEventListener('click', toggleShopModal);
+            document.getElementById('btn-close-shop').addEventListener('click', toggleShopModal);
+
+            // Setup Touch Joystick
+            setupTouchJoystick();
+        }
+
+        // Virtual Touch Joystick Implementation
+        function setupTouchJoystick() {
+            const zone = document.getElementById('joystick-zone');
+            const knob = document.getElementById('joystick-knob');
+            
+            if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+                zone.style.display = 'block';
+            }
+
+            let touchId = null;
+            let startX = 0, startY = 0;
+
+            zone.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const t = e.changedTouches[0];
+                touchId = t.identifier;
+                const rect = zone.getBoundingClientRect();
+                startX = rect.left + rect.width / 2;
+                startY = rect.top + rect.height / 2;
+                joystickActive = true;
+            }, { passive: false });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!joystickActive) return;
+                for (let t of e.changedTouches) {
+                    if (t.identifier === touchId) {
+                        const dx = t.clientX - startX;
+                        const dy = t.clientY - startY;
+                        const dist = Math.min(45, Math.hypot(dx, dy));
+                        const angle = Math.atan2(dy, dx);
+
+                        knob.style.transform = `translate(${Math.cos(angle) * dist}px, ${Math.sin(angle) * dist}px)`;
+                        
+                        joystickVector.x = (Math.cos(angle) * dist) / 45;
+                        joystickVector.y = (Math.sin(angle) * dist) / 45;
+                    }
+                }
+            }, { passive: true });
+
+            const resetJoystick = (e) => {
+                if (!joystickActive) return;
+                for (let t of e.changedTouches) {
+                    if (t.identifier === touchId) {
+                        joystickActive = false;
+                        knob.style.transform = `translate(0px, 0px)`;
+                        joystickVector.x = 0;
+                        joystickVector.y = 0;
+                    }
+                }
+            };
+
+            window.addEventListener('touchend', resetJoystick);
+            window.addEventListener('touchcancel', resetJoystick);
+        }
+
+        // Drop Item Mechanic (Key 'G' / Button)
+        function triggerDropItem(entity) {
+            if (!entity.carriedItem) return;
+
+            const item = entity.carriedItem;
+            // Drop in front of entity
+            const dropDist = 1.8;
+            const dx = Math.sin(entity.angle) * dropDist;
+            const dz = Math.cos(entity.angle) * dropDist;
+
+            item.mesh.position.set(entity.x + dx, 0.60, entity.z + dz); // Ground elevation
+            item.mesh.scale.set(1, 1, 1);
+            item.state = 'ground';
+            itemsOnGround.push(item);
+
+            entity.carriedItem = null;
+            sfx.playDrop();
+
+            if (entity === player) {
+                updateCarriedUI();
+                showToast("Item Dropped!", "info");
+            }
+        }
+
+        // Pick Up or Steal Item Mechanic (Key 'E' / Button)
+        function triggerPickUpOrSteal(entity) {
+            if (entity.carriedItem) return; // Hands full
+
+            // 1. Check nearby items on Conveyor
+            for (let i = itemsOnConveyor.length - 1; i >= 0; i--) {
+                const item = itemsOnConveyor[i];
+                const dist = Math.hypot(entity.x - item.mesh.position.x, entity.z - item.mesh.position.z);
+                if (dist < 2.5) {
+                    itemsOnConveyor.splice(i, 1);
+                    entity.carriedItem = item;
+                    item.state = 'carried';
+                    sfx.playPickUp();
+                    if (entity === player) {
+                        updateCarriedUI();
+                        showToast(`Picked up ${RARITIES[item.rarityIndex].name}!`, "success");
+                    }
+                    return;
+                }
+            }
+
+            // 2. Check nearby dropped Ground Items
+            for (let i = itemsOnGround.length - 1; i >= 0; i--) {
+                const item = itemsOnGround[i];
+                const dist = Math.hypot(entity.x - item.mesh.position.x, entity.z - item.mesh.position.z);
+                if (dist < 2.5) {
+                    itemsOnGround.splice(i, 1);
+                    entity.carriedItem = item;
+                    item.state = 'carried';
+                    sfx.playPickUp();
+                    if (entity === player) {
+                        updateCarriedUI();
+                        showToast(`Picked up ${RARITIES[item.rarityIndex].name}!`, "success");
+                    }
+                    return;
+                }
+            }
+
+            // 3. Check opponent pedestals for Stealing
+            for (let b = 0; b < bases.length; b++) {
+                if (b === entity.baseIndex) continue; // Don't steal from own base
+                const base = bases[b];
+
+                // Check shield defense
+                if (base.shieldActive) {
+                    if (entity === player && Math.hypot(entity.x - base.x, entity.z - base.z) < 9.0) {
+                        showToast("Base is protected by Shield!", "error");
+                    }
+                    continue;
+                }
+
+                for (let p of base.pedestals) {
+                    if (p.item) {
+                        const dist = Math.hypot(entity.x - p.x, entity.z - p.z);
+                        if (dist < 2.2) {
+                            const stolenItem = p.item;
+                            p.item = null;
+                            entity.carriedItem = stolenItem;
+                            stolenItem.state = 'carried';
+                            
+                            updateBaseHeaderTag(base);
+                            sfx.playPickUp();
+
+                            if (entity === player) {
+                                updateCarriedUI();
+                                showToast(`STOLEN ${RARITIES[stolenItem.rarityIndex].name} from ${base.name}!`, "warning");
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Slap Knockback Mechanic (Key 'F' / Button)
+        function triggerSlap(entity) {
+            if (entity.slapCd > 0) return;
+
+            entity.slapCd = 1.2; // 1.2s Cooldown
+            sfx.playSlap();
+
+            // Check targets in slap range
+            const targets = [player, ...bots].filter(e => e !== entity);
+            
+            targets.forEach(target => {
+                const dist = Math.hypot(entity.x - target.x, entity.z - target.z);
+                if (dist < 3.2) {
+                    // Apply knockback impulse velocity
+                    const angle = Math.atan2(target.z - entity.z, target.x - entity.x);
+                    const force = 22.0 * entity.slapPower;
+                    
+                    target.vx += Math.cos(angle) * force;
+                    target.vz += Math.sin(angle) * force;
+
+                    // Force target to drop carried item
+                    if (target.carriedItem) {
+                        triggerDropItem(target);
+                    }
+
+                    // Create Slap Particle Effect
+                    createBurstParticles((entity.x + target.x) / 2, 1.2, (entity.z + target.z) / 2, 0xef4444);
+
+                    if (target === player) {
+                        showToast("Slapped by competitor!", "error");
+                    } else if (entity === player) {
+                        showToast(`Slapped ${target.name}!`, "success");
+                    }
+                }
+            });
+        }
+
+        // Base Forcefield Shield Mechanic (Key 'Q' / Button)
+        function triggerShield(entity) {
+            if (entity.shieldCd > 0) return;
+
+            const base = bases[entity.baseIndex];
+            base.shieldActive = true;
+            base.shieldTimer = 15.0; // 15s Duration
+            base.shieldMesh.visible = true;
+            entity.shieldCd = 45.0; // Cooldown total
+
+            sfx.playShield();
+            if (entity === player) {
+                showToast("Base Shield Activated (15s)!", "success");
+            }
+        }
+
+        // Bot Decision Logic & Automation
+        function updateBots(dt) {
+            bots.forEach(bot => {
+                if (bot.slapCd > 0) bot.slapCd = Math.max(0, bot.slapCd - dt);
+
+                // Movement physics dampening
+                bot.x += bot.vx * dt;
+                bot.z += bot.vz * dt;
+                bot.vx *= 0.85;
+                bot.vz *= 0.85;
+
+                // Bot State Machine Logic
+                const ownBase = bases[bot.baseIndex];
+
+                if (bot.carriedItem) {
+                    // Carry item back to base
+                    bot.state = 'RETURN_TO_BASE';
+                    moveEntityTowards(bot, ownBase.x, ownBase.z, dt);
+
+                    // If reached base slab
+                    if (Math.hypot(bot.x - ownBase.x, bot.z - ownBase.z) < 5.0) {
+                        const emptyPed = ownBase.pedestals.find(p => p.item === null);
+                        if (emptyPed) {
+                            emptyPed.item = bot.carriedItem;
+                            bot.carriedItem.state = 'pedestal';
+                            bot.carriedItem.mesh.position.set(emptyPed.x, 1.30, emptyPed.z); // Elevated atop pedestal
+                            bot.carriedItem = null;
+                            updateBaseHeaderTag(ownBase);
+                        } else {
+                            // Base full, drop item
+                            triggerDropItem(bot);
+                        }
+                    }
+                } else {
+                    // Search for highest value item on conveyor
+                    let bestItem = null;
+                    let bestVal = -1;
+
+                    itemsOnConveyor.forEach(item => {
+                        const val = RARITIES[item.rarityIndex].income;
+                        if (val > bestVal) {
+                            bestVal = val;
+                            bestItem = item;
+                        }
+                    });
+
+                    if (bestItem) {
+                        bot.state = 'MOVE_TO_ITEM';
+                        moveEntityTowards(bot, bestItem.mesh.position.x, bestItem.mesh.position.z, dt);
+                        triggerPickUpOrSteal(bot);
+                    } else {
+                        // Roam back to base
+                        moveEntityTowards(bot, ownBase.x, ownBase.z, dt);
+                    }
+                }
+
+                // Auto-slap nearby rivals
+                if (bot.slapCd <= 0) {
+                    const rivalNear = [player, ...bots].find(e => e !== bot && Math.hypot(bot.x - e.x, bot.z - e.z) < 2.5);
+                    if (rivalNear) triggerSlap(bot);
+                }
+
+                // Update Bot mesh position
+                bot.mesh.position.set(bot.x, 0, bot.z);
+                bot.mesh.rotation.y = bot.angle;
+            });
+        }
+
+        function moveEntityTowards(entity, tx, tz, dt) {
+            const dx = tx - entity.x;
+            const dz = tz - entity.z;
+            const dist = Math.hypot(dx, dz);
+            if (dist > 0.5) {
+                entity.angle = Math.atan2(dx, dz);
+                const step = entity.speed * dt;
+                entity.x += (dx / dist) * step;
+                entity.z += (dz / dist) * step;
+            }
+        }
+
+        // Item Spawning & Conveyor Belt Logic
+        function updateConveyor(dt) {
+            spawnTimer += dt;
+            if (spawnTimer >= 3.2) { // Spawn every 3.2 seconds
+                spawnTimer = 0;
+
+                // Pick weighted random rarity
+                const rand = Math.random();
+                let rIdx = 0;
+                if (rand > 0.95) rIdx = 5;      // Brainrot God Max
+                else if (rand > 0.85) rIdx = 4; // Speedrunner Max
+                else if (rand > 0.70) rIdx = 3; // Golden Max
+                else if (rand > 0.50) rIdx = 2; // Gamer Max
+                else if (rand > 0.25) rIdx = 1; // Scientist Max
+                else rIdx = 0;                  // Classic Max
+
+                const itemMesh = createMaxMorganMesh(rIdx);
+                itemMesh.position.set(0, 0.95, -26); // Start at spawner top of belt
+                scene.add(itemMesh);
+
+                itemsOnConveyor.push({
+                    rarityIndex: rIdx,
+                    mesh: itemMesh,
+                    state: 'conveyor'
+                });
+            }
+
+            // Advance items down conveyor (speed = 4.5 units/s)
+            for (let i = itemsOnConveyor.length - 1; i >= 0; i--) {
+                const item = itemsOnConveyor[i];
+                item.mesh.position.z += 4.5 * dt;
+
+                // Despawn if reaches end of belt without being picked
+                if (item.mesh.position.z > 26) {
+                    scene.remove(item.mesh);
+                    itemsOnConveyor.splice(i, 1);
+                }
+            }
+        }
+
+        // Particle Burst FX Generator
+        function createBurstParticles(x, y, z, colorHex) {
+            for (let i = 0; i < 12; i++) {
+                const pGeo = new THREE.SphereGeometry(0.12 + Math.random() * 0.1, 8, 8);
+                const pMat = new THREE.MeshBasicMaterial({ color: colorHex });
+                const pMesh = new THREE.Mesh(pGeo, pMat);
+                pMesh.position.set(x, y, z);
+                
+                const velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 8,
+                    Math.random() * 6 + 2,
+                    (Math.random() - 0.5) * 8
+                );
+
+                scene.add(pMesh);
+                particles.push({ mesh: pMesh, vel: velocity, life: 0.6 });
+            }
+        }
+
+        function updateParticles(dt) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.life -= dt;
+                p.mesh.position.addScaledVector(p.vel, dt);
+                p.vel.y -= 9.8 * dt; // Gravity
+
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // Income Tick Generator (Every 1 Second)
+        function processIncomeTicks(currentTime) {
+            if (currentTime - lastIncomeTick >= 1.0) {
+                lastIncomeTick = currentTime;
+
+                // Calculate base earnings for player and bots
+                bases.forEach(base => {
+                    let totalIncome = 0;
+                    base.pedestals.forEach(p => {
+                        if (p.item) {
+                            totalIncome += RARITIES[p.item.rarityIndex].income;
+                        }
+                    });
+
+                    if (base.id === 0) {
+                        // Apply Player Multiplier
+                        totalIncome = Math.round(totalIncome * (1 + (player.multLvl - 1) * 0.25));
+                        if (totalIncome > 0) {
+                            player.cash += totalIncome;
+                            sfx.playCash();
+                        }
+                    } else {
+                        // Bot Cash
+                        const bot = bots.find(b => b.baseIndex === base.id);
+                        if (bot) bot.cash += totalIncome;
+                    }
+                });
+
+                updateUI();
+            }
+        }
+
+        // Main Frame Animation & Physics Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const dt = Math.min(clock.getDelta(), 0.1);
+            const time = clock.getElapsedTime();
+
+            // Handle Key & Joystick Player Input
+            let moveX = 0, moveZ = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) moveZ -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) moveZ += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveX -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
+
+            if (joystickActive) {
+                moveX = joystickVector.x;
+                moveZ = joystickVector.y;
+            }
+
+            // Normalize vector relative to camera rotation yaw
+            if (moveX !== 0 || moveZ !== 0) {
+                const length = Math.hypot(moveX, moveZ);
+                const normX = moveX / length;
+                const normZ = moveZ / length;
+
+                // Align movement to camera facing yaw angle
+                const worldMoveX = normX * Math.cos(cameraAngleYaw) + normZ * Math.sin(cameraAngleYaw);
+                const worldMoveZ = -normX * Math.sin(cameraAngleYaw) + normZ * Math.cos(cameraAngleYaw);
+
+                player.x += worldMoveX * player.speed * dt;
+                player.z += worldMoveZ * player.speed * dt;
+
+                player.angle = Math.atan2(worldMoveX, worldMoveZ);
+            }
+
+            // Apply player knockback dampening
+            player.x += player.vx * dt;
+            player.z += player.vz * dt;
+            player.vx *= 0.85;
+            player.vz *= 0.85;
+
+            // Constrain arena boundaries
+            player.x = Math.max(-55, Math.min(55, player.x));
+            player.z = Math.max(-55, Math.min(55, player.z));
+
+            // Auto Snap carried item to Player hands
+            if (player.carriedItem) {
+                player.carriedItem.mesh.position.set(
+                    player.x + Math.sin(player.angle) * 0.8,
+                    2.10,
+                    player.z + Math.cos(player.angle) * 0.8
+                );
+                player.carriedItem.mesh.rotation.y = player.angle;
+            }
+
+            // Check if player steps into own base while carrying item (Auto-Place)
+            const playerBase = bases[0];
+            if (player.carriedItem && Math.hypot(player.x - playerBase.x, player.z - playerBase.z) < 5.5) {
+                const emptyPed = playerBase.pedestals.find(p => p.item === null);
+                if (emptyPed) {
+                    emptyPed.item = player.carriedItem;
+                    player.carriedItem.state = 'pedestal';
+                    player.carriedItem.mesh.position.set(emptyPed.x, 1.30, emptyPed.z); // Elevated on pedestal
+                    player.carriedItem = null;
+                    updateCarriedUI();
+                    updateBaseHeaderTag(playerBase);
+                    showToast("Item placed on pedestal!", "success");
+                }
+            }
+
+            // Update Player Cooldowns
+            if (player.slapCd > 0) player.slapCd = Math.max(0, player.slapCd - dt);
+            if (player.shieldCd > 0) player.shieldCd = Math.max(0, player.shieldCd - dt);
+
+            // Update Shield Timers across all bases
+            bases.forEach(base => {
+                if (base.shieldActive) {
+                    base.shieldTimer -= dt;
+                    if (base.shieldTimer <= 0) {
+                        base.shieldActive = false;
+                        base.shieldMesh.visible = false;
+                    }
+                }
+            });
+
+            // Update Player Mesh Position
+            player.mesh.position.set(player.x, 0, player.z);
+            player.mesh.rotation.y = player.angle;
+
+            // Update AI Competitor Bots
+            updateBots(dt);
+
+            // Update Conveyor Belt
+            updateConveyor(dt);
+
+            // Update Particle FX
+            updateParticles(dt);
+
+            // Process Income Earnings
+            processIncomeTicks(time);
+
+            // Update Orbit Camera Position & Target
+            const targetY = 1.6; // Focus slightly above feet
+            const cx = player.x + cameraDistance * Math.cos(cameraAnglePitch) * Math.sin(cameraAngleYaw);
+            const cy = targetY + cameraDistance * Math.sin(cameraAnglePitch);
+            const cz = player.z + cameraDistance * Math.cos(cameraAnglePitch) * Math.cos(cameraAngleYaw);
+
+            camera.position.set(cx, cy, cz);
+            camera.lookAt(player.x, targetY, player.z);
+
+            // Render 3D Frame
+            renderer.render(scene, camera);
+        }
+
+        // UI & HUD Update Handlers
+        function updateUI() {
+            document.getElementById('player-cash').textContent = formatMoney(player.cash);
+
+            const occupied = bases[0].pedestals.filter(p => p.item !== null).length;
+            document.getElementById('player-slots').textContent = `${occupied} / 8`;
+
+            let currentIncome = 0;
+            bases[0].pedestals.forEach(p => {
+                if (p.item) currentIncome += RARITIES[p.item.rarityIndex].income;
+            });
+            currentIncome = Math.round(currentIncome * (1 + (player.multLvl - 1) * 0.25));
+            document.getElementById('player-income').textContent = `+$${formatMoney(currentIncome)}/s`;
+
+            // Slap Button Overlay
+            const slapCdOverlay = document.getElementById('slap-cd-overlay');
+            if (player.slapCd > 0) {
+                slapCdOverlay.classList.remove('hidden');
+                document.getElementById('slap-cd-time').textContent = player.slapCd.toFixed(1) + 's';
+            } else {
+                slapCdOverlay.classList.add('hidden');
+            }
+
+            // Shield Button Overlay
+            const shieldCdOverlay = document.getElementById('shield-cd-overlay');
+            if (player.shieldCd > 0) {
+                shieldCdOverlay.classList.remove('hidden');
+                document.getElementById('shield-cd-time').textContent = Math.ceil(player.shieldCd) + 's';
+            } else {
+                shieldCdOverlay.classList.add('hidden');
+            }
+
+            // Update Leaderboard
+            updateLeaderboard();
+        }
+
+        function updateCarriedUI() {
+            const panel = document.getElementById('carried-status-panel');
+            const nameEl = document.getElementById('carried-name');
+            const iconEl = document.getElementById('carried-icon');
+
+            if (player.carriedItem) {
+                const rarity = RARITIES[player.carriedItem.rarityIndex];
+                nameEl.textContent = `${rarity.name} (+$${formatMoney(rarity.income)}/s)`;
+                panel.style.borderColor = rarity.color;
+                iconEl.className = "fa-solid fa-box text-amber-400";
+            } else {
+                nameEl.textContent = "Empty Hands";
+                panel.style.borderColor = "#64748b";
+                iconEl.className = "fa-solid fa-box-open text-slate-400";
+            }
+        }
+
+        function updateLeaderboard() {
+            const entries = [
+                { name: "You (Player)", cash: player.cash, slots: bases[0].pedestals.filter(p=>p.item).length, color: "#6366f1" },
+                ...bots.map(b => ({
+                    name: b.name,
+                    cash: b.cash,
+                    slots: bases[b.baseIndex].pedestals.filter(p=>p.item).length,
+                    color: BASE_POSITIONS[b.baseIndex].hex
+                }))
+            ];
+
+            entries.sort((a, b) => b.cash - a.cash);
+
+            const listEl = document.getElementById('leaderboard-list');
+            listEl.innerHTML = entries.map((e, idx) => `
+                <div class="flex items-center justify-between py-0.5">
+                    <span class="truncate max-w-[110px]" style="color: ${e.color}">${idx+1}. ${e.name}</span>
+                    <span class="font-game text-emerald-400">$${formatMoney(e.cash)}</span>
+                </div>
+            `).join('');
+        }
+
+        // Shop Upgrades Transaction Handlers
+        function toggleShopModal() {
+            const modal = document.getElementById('shop-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        document.getElementById('btn-buy-speed').addEventListener('click', () => {
+            const cost = player.speedLvl * 100;
+            if (player.cash >= cost && player.speedLvl < 10) {
+                player.cash -= cost;
+                player.speedLvl++;
+                player.speed += 1.8;
+                document.getElementById('shop-lvl-speed').textContent = player.speedLvl;
+                document.getElementById('shop-cost-speed').textContent = player.speedLvl * 100;
+                showToast("Speed Boost Purchased!", "success");
+                updateUI();
+            }
+        });
+
+        document.getElementById('btn-buy-slap').addEventListener('click', () => {
+            const cost = player.slapLvl * 150;
+            if (player.cash >= cost && player.slapLvl < 10) {
+                player.cash -= cost;
+                player.slapLvl++;
+                player.slapPower += 0.25;
+                document.getElementById('shop-lvl-slap').textContent = player.slapLvl;
+                document.getElementById('shop-cost-slap').textContent = player.slapLvl * 150;
+                showToast("Slap Force Upgraded!", "success");
+                updateUI();
+            }
+        });
+
+        document.getElementById('btn-buy-mult').addEventListener('click', () => {
+            const cost = player.multLvl * 300;
+            if (player.cash >= cost && player.multLvl < 10) {
+                player.cash -= cost;
+                player.multLvl++;
+                document.getElementById('shop-lvl-mult').textContent = player.multLvl;
+                document.getElementById('shop-cost-mult').textContent = player.multLvl * 300;
+                showToast("Income Multiplier Upgraded!", "success");
+                updateUI();
+            }
+        });
+
+        // Toast Notification System
+        function showToast(msg, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bg = "bg-slate-800/90 border-slate-600";
+            if (type === "success") bg = "bg-emerald-900/90 border-emerald-500 text-emerald-200";
+            if (type === "warning") bg = "bg-amber-900/90 border-amber-500 text-amber-200";
+            if (type === "error") bg = "bg-rose-900/90 border-rose-500 text-rose-200";
+
+            toast.className = `toast-anim glass-panel px-4 py-2 rounded-xl text-xs font-semibold text-white border ${bg} shadow-lg`;
+            toast.textContent = msg;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 2500);
+        }
+
+        // Helper Utility: Number Formatter
+        function formatMoney(amount) {
+            if (amount >= 1e6) return (amount / 1e6).toFixed(1) + 'M';
+            if (amount >= 1e3) return (amount / 1e3).toFixed(1) + 'k';
+            return amount.toLocaleString();
+        }
+
+        // Window Resize Handler
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Launch Game on Window Load
+        window.onload = function() {
+            initEngine();
+            animate();
+            showToast("Welcome to Steal a Max Morgan! Use WASD or Drag to move & orbit.", "info");
+        };
+    </script>
+</body>
+</html>
