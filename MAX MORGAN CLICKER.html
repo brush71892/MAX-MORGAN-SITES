@@ -134,7 +134,7 @@ h3,h4{margin:0 0 8px}
 /* ---------- Tabs ---------- */
 .tab-box{padding:14px}
 .tabs-header{display:flex;gap:5px;border-bottom:1px solid var(--panel-border);padding-bottom:9px;overflow-x:auto;scrollbar-width:thin}
-.tab-btn{background:var(--panel-3);color:var(--dim);border:1px solid var(--panel-border);padding:8px 14px;border-radius:7px;
+.tab-btn{background:var(--panel-3);color:var(--dim);border:1px solid var(--panel-border);padding:10px 12px;border-radius:7px;min-height:40px;
   cursor:pointer;font-size:.82rem;font-weight:800;white-space:nowrap;position:relative}
 .tab-btn:hover{color:var(--text-color)}
 .tab-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
@@ -147,14 +147,14 @@ h3,h4{margin:0 0 8px}
 /* ---------- Generic controls ---------- */
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .btn-group{display:flex;gap:4px;flex-wrap:wrap}
-.sm-btn{background:var(--panel-3);border:1px solid var(--panel-border);color:var(--text-color);padding:7px 12px;
-  font-size:.8rem;border-radius:6px;cursor:pointer;font-weight:700;transition:border-color .12s}
+.sm-btn{background:var(--panel-3);border:1px solid var(--panel-border);color:var(--text-color);padding:8px 11px;
+  min-height:36px;width:auto;max-width:100%;font-size:.8rem;border-radius:6px;cursor:pointer;font-weight:700;transition:border-color .12s;line-height:1.15}
 .sm-btn:hover:not(:disabled){border-color:var(--accent)}
 .sm-btn:disabled{opacity:.4;cursor:not-allowed}
 .sm-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
 .sm-btn.danger{background:var(--bad);color:#fff;border-color:var(--bad)}
 .sm-btn.good{background:var(--good);color:#04240f;border-color:var(--good)}
-.sm-btn.wide{width:100%;margin-top:6px}
+
 .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:800;background:var(--panel-3);border:1px solid var(--panel-border)}
 .muted{color:var(--dim);font-size:.8rem}
 .tiny{font-size:.75rem}
@@ -172,9 +172,17 @@ label.chk{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:.88rem;
 /* ---------- Lists / cards ---------- */
 .upg-list{display:flex;flex-direction:column;gap:6px;max-height:430px;overflow-y:auto;padding-right:4px}
 .upg-list.short{max-height:250px}
+/* Perk/shop cards should size to their content instead of stretching across the whole panel. */
+#ds-perks-list .upg-card,#ss-shop-list .upg-card,#cd-shop-list .upg-card{
+  width:fit-content;min-width:min(320px,100%);max-width:100%;align-self:flex-start;
+}
+@media(max-width:620px){
+  .sm-btn.wide{max-width:100%}
+  #ds-perks-list .upg-card,#ss-shop-list .upg-card,#cd-shop-list .upg-card{min-width:0;width:fit-content;max-width:100%}
+}
 .upg-card{background:var(--panel-3);border:1px solid var(--panel-border);color:var(--text-color);text-align:left;
   padding:10px 13px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;
-  cursor:pointer;transition:border-color .12s,transform .06s;width:100%;font-size:.92rem;position:relative;overflow:hidden}
+  cursor:pointer;transition:border-color .12s,transform .06s;width:fit-content;min-width:min(320px,100%);max-width:100%;align-self:flex-start;font-size:.92rem;position:relative;overflow:hidden}
 .upg-card:hover:not(.locked){border-color:var(--accent)}
 .upg-card:active:not(.locked){transform:scale(.99)}
 .upg-card.locked{opacity:.42;cursor:not-allowed}
@@ -447,7 +455,7 @@ label.chk{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:.88rem;
       <div id="tab-upgrades" class="tab-content">
         <div class="row"><h3>Kitchen Upgrades</h3><span class="tiny muted" id="upg-count">0 / 0 owned</span></div>
         <p class="muted tiny" style="margin:0 0 8px">Permanent multipliers. Hover for details. Unlocks as you buy buildings.</p>
-        <button class="sm-btn good wide" data-upgall style="margin-bottom:10px">Buy All Affordable (MAX)</button>
+        <button class="sm-btn good" data-upgall style="margin:0 0 10px;display:block">Upgrade Each Thing</button>
         <div class="upg-grid" id="upgrade-grid"></div>
         <hr class="hr">
         <h4>Owned Upgrades</h4>
@@ -457,7 +465,7 @@ label.chk{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:.88rem;
       <!-- AUTOMATION -->
       <div id="tab-automation" class="tab-content">
         <h3>Automation</h3>
-        <p class="muted tiny" style="margin:0 0 10px">Set it and forget it. Each toggle runs its purchase once per second whenever it's affordable — no clicking required.</p>
+        <p class="muted tiny" style="margin:0 0 10px">Set it and forget it. Automation checks four times per second whenever something is affordable — no clicking required.</p>
 
         <h4 style="color:var(--accent)">Spending Burritos</h4>
         <div class="grid2">
@@ -472,7 +480,7 @@ label.chk{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:.88rem;
           <label class="chk"><input type="checkbox" id="chk-auto-dsperks"> Auto-buy Dev Point Perks</label>
           <label class="chk"><input type="checkbox" id="chk-auto-sac"> Auto-sacrifice DS &rarr; Sam Shards</label>
         </div>
-        <p class="tiny muted" style="margin:4px 0 0">Auto-sacrifice forges a Sam Shard the instant you can afford one — no confirmation prompt.</p>
+        <p class="tiny muted" style="margin:4px 0 0">Auto-sacrifice checks four times per second and forges a Sam Shard as soon as you can afford one — no confirmation prompt.</p>
 
         <hr class="hr">
         <h4 style="color:var(--ss-color)">Spending Sam Shards (SS)</h4>
@@ -507,7 +515,7 @@ label.chk{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:.88rem;
             <p class="tiny muted">Burn DS to forge Sam Shards. Shards boost DS gain and unlock the Shard Vault.</p>
             <div>Cost: <b id="sac-cost" style="color:var(--ds-color)">500</b> DS</div>
             <div class="tiny muted" id="sac-gain">Gain 1 Sam Shard</div>
-            <button class="sm-btn wide" id="btn-sacrifice">Sacrifice</button>
+            <div class="btn-group" style="justify-content:center;margin-top:4px"><button class="sm-btn" id="btn-sacrifice">Sacrifice</button><button class="sm-btn" id="btn-sacrifice-max">Max Sacrifice</button></div>
           </div>
           <div class="box" style="text-align:center">
             <h4>Tier 3: Celestial</h4>
@@ -1032,7 +1040,15 @@ const PETS = [
   {id:'p9', name:'Quantum Quokka',    icon:'🦘', rar:'epic',      eff:'click', val:0.75, desc:'+75% click power'},
   {id:'p10',name:'Cosmic Capybara',   icon:'🦫', rar:'legendary', eff:'all',   val:0.60, desc:'+60% to click AND production'},
   {id:'p11',name:'Dyson Dragon',      icon:'🐉', rar:'legendary', eff:'bps',   val:2.0,  desc:'+200% production'},
-  {id:'p12',name:'The Samuel Sphinx', icon:'🐈‍⬛',rar:'mythic',   eff:'all',   val:1.5,  desc:'+150% to click AND production'}
+  {id:'p12',name:'The Samuel Sphinx', icon:'🐈‍⬛',rar:'mythic',   eff:'all',   val:1.5,  desc:'+150% to click AND production'},
+  {id:'p13',name:'Burrito Bat',       icon:'🦇', rar:'common',    eff:'click', val:0.15, desc:'+15% click power'},
+  {id:'p14',name:'Bean Bunny',        icon:'🐇', rar:'common',    eff:'bps',   val:0.16, desc:'+16% production'},
+  {id:'p15',name:'Salsa Axolotl',     icon:'🦎', rar:'rare',      eff:'gold',  val:0.35, desc:'+35% Golden Sam rate'},
+  {id:'p16',name:'Wrap Wolf',         icon:'🐺', rar:'rare',      eff:'click', val:0.45, desc:'+45% click power'},
+  {id:'p17',name:'Queso Owl',         icon:'🦉', rar:'epic',      eff:'crit',  val:8,    desc:'+8% crit chance'},
+  {id:'p18',name:'Rocket Raccoon',    icon:'🦝', rar:'epic',      eff:'bps',   val:1.10, desc:'+110% production'},
+  {id:'p19',name:'Nebula Narwhal',    icon:'🦄', rar:'legendary', eff:'all',   val:0.90, desc:'+90% to click AND production'},
+  {id:'p20',name:'Infinite Burrito',  icon:'🌯', rar:'mythic',    eff:'all',   val:2.50, desc:'+250% to click AND production'}
 ];
 const PET_BY_ID = {}; PETS.forEach(p => PET_BY_ID[p.id] = p);
 
@@ -1050,7 +1066,17 @@ const ARTIFACTS = [
   {id:'a11',name:'Infinite Foil',        icon:'🪙', rar:'legendary', eff:'critdmg',val:40},
   {id:'a12',name:'Ledger of Sam',        icon:'📕', rar:'legendary', eff:'divid', val:1.0},
   {id:'a13',name:'The Middle Name',      icon:'✒️',rar:'mythic',    eff:'all',   val:2.0},
-  {id:'a14',name:'Tortilla of Eternity', icon:'🌯', rar:'mythic',    eff:'bps',   val:4.0}
+  {id:'a14',name:'Tortilla of Eternity', icon:'🌯', rar:'mythic',    eff:'bps',   val:4.0},
+  {id:'a15',name:'Silver Spatula',       icon:'🥄', rar:'common',    eff:'click', val:0.22},
+  {id:'a16',name:'Bean Compass',         icon:'🧭', rar:'common',    eff:'bps',   val:0.22},
+  {id:'a17',name:'Golden Apron',         icon:'🧥', rar:'rare',      eff:'gold',  val:0.50},
+  {id:'a18',name:'Chef Timer',           icon:'⏱️', rar:'rare',      eff:'cost',  val:0.05},
+  {id:'a19',name:'Salsa Prism',          icon:'🔷', rar:'epic',      eff:'crit',  val:9},
+  {id:'a20',name:'Quantum Ladle',        icon:'🥣', rar:'epic',      eff:'all',   val:0.50},
+  {id:'a21',name:'Cosmic Recipe Book',   icon:'📖', rar:'legendary', eff:'bps',   val:1.50},
+  {id:'a22',name:'Crown of the Kitchen', icon:'👑', rar:'legendary', eff:'all',   val:1.20},
+  {id:'a23',name:'Omnifork',             icon:'🍴', rar:'mythic',    eff:'all',   val:3.0},
+  {id:'a24',name:'Burrito Singularity',  icon:'🌀', rar:'mythic',    eff:'bps',   val:6.0}
 ];
 const ART_BY_ID = {}; ARTIFACTS.forEach(a => ART_BY_ID[a.id] = a);
 const RARITY_WEIGHT = {common:60, rare:25, epic:11, legendary:3.5, mythic:0.5};
@@ -1504,7 +1530,25 @@ function nextDSAt() {
   let target = pendingDS() + 1;
   return Math.pow(target / (3 * (1 + perk(13)*0.1) * (1 + game.ss*0.01)), 1/0.45) * 1e6;
 }
-function sacrificeCost(){ return 500 + game.stats.sacrifices * 250; }
+const SACRIFICE_BASE = 500;
+const SACRIFICE_STEP = 200;
+function sacrificeCost(){ return SACRIFICE_BASE + game.stats.sacrifices * SACRIFICE_STEP; }
+function totalSacrificeCost(count, startingSacrifices = game.stats.sacrifices) {
+  if (count <= 0) return 0;
+  return count * SACRIFICE_BASE + SACRIFICE_STEP * (count * (2 * startingSacrifices + count - 1) / 2);
+}
+function maxSacrificeCount(ds = game.ds, startingSacrifices = game.stats.sacrifices) {
+  if (!Number.isFinite(ds) || ds < sacrificeCost()) return 0;
+  // Find the largest integer count whose full cumulative cost fits in DS.
+  let lo = 0, hi = 1;
+  while (totalSacrificeCost(hi, startingSacrifices) <= ds && hi < Number.MAX_SAFE_INTEGER / 2) hi *= 2;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi + 1) / 2);
+    if (totalSacrificeCost(mid, startingSacrifices) <= ds) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo;
+}
 function ascendCost(){ return 100 + game.stats.ascensions * 50; }
 function bankRate(){ return 0.02 + game.bankLevel * 0.005 + perk(10) * 0.01; }
 function bankCap(){ return 1e6 * Math.pow(25, game.bankLevel) * (1 + game.rebirths); }
@@ -1674,25 +1718,31 @@ function buyUpgrade(id) {
   toast('Upgrade purchased', u.name);
   recalc(); markDirty('all');
 }
-function buyAllUpgrades() {
+function upgradeEachThing() {
   let bought = 0;
-  for (let guard = 0; guard < 500; guard++) {
-    let best = null, bestCost = Infinity;
-    UPGRADES.forEach(u => {
-      if (game.upgrades[u.id]) return;
-      let ok = false; try { ok = u.req(game); } catch(e) {}
-      if (!ok) return;
-      const cost = u.cost * costMultiplier();
-      if (cost <= game.burritos && cost < bestCost) { bestCost = cost; best = u; }
-    });
-    if (!best) break;
-    game.burritos -= bestCost;
-    game.upgrades[best.id] = 1;
-    bought++;
-    recalc();
+  /* One upgrade per currently eligible upgrade line, rather than draining
+     the entire wallet into the cheapest upgrades. */
+  const candidates = UPGRADES.filter(u => {
+    if (game.upgrades[u.id]) return false;
+    try { return u.req(game); } catch(e) { return false; }
+  });
+  for (const u of candidates) {
+    if (game.upgrades[u.id]) continue;
+    const cost = u.cost * costMultiplier();
+    if (cost <= game.burritos) {
+      game.burritos -= cost;
+      game.upgrades[u.id] = 1;
+      bought++;
+      recalc();
+    }
   }
-  if (bought) { chord([620, 780, 990], 0.13); toast('Bought ' + bought + ' upgrades', 'Kitchen Upgrades'); markDirty('all'); }
-  else playSfx(140, 0.09, 'sawtooth');
+  if (bought) {
+    chord([620,780,990],0.13);
+    toast('Upgraded each thing', '+' + bought + ' kitchen upgrade' + (bought === 1 ? '' : 's'));
+    markDirty('all');
+  } else {
+    playSfx(140,0.09,'sawtooth');
+  }
 }
 function buyDSPerk(i) {
   const p = DS_PERKS[i], lvl = game.dsPerks[i] || 0;
@@ -1939,6 +1989,29 @@ function doRebirth() {
       [{t:'Rebirth', cls:'good', fn: go}, {t:'Cancel', fn:()=>{}}]);
   } else go();
 }
+function doMaxSacrifice() {
+  const count = maxSacrificeCount();
+  if (count <= 0) {
+    toast('Not enough DS', 'You cannot forge another Sam Shard yet', 'bad');
+    return;
+  }
+  const cost = totalSacrificeCost(count);
+  const go = () => {
+    // Apply the whole transaction at once. This avoids the old artificial
+    // 100,000-sacrifice cap and prevents the UI from looping thousands of times.
+    game.ds -= cost;
+    game.ss += count;
+    game.stats.sacrifices += count;
+    toast('Max sacrifice complete', '+' + fmt(count) + ' Sam Shard' + (count === 1 ? '' : 's'), 'good');
+    chord([392,523,659,784], 0.22);
+    recalc(); markDirty('all');
+  };
+  if (game.settings.confirm) {
+    modal('Max Sacrifice?', 'Forge <b>' + fmt(count) + ' Sam Shards</b> for <b>' + fmt(cost) + ' DS</b>, using every currently affordable sacrifice.', [
+      {t:'Max Sacrifice', cls:'good', fn:go},{t:'Cancel',fn:()=>{}}
+    ]);
+  } else go();
+}
 function doSacrifice() {
   const cost = sacrificeCost();
   if (game.ds < cost) { toast('Need ' + cost + ' DS', 'to forge a Sam Shard', 'bad'); return; }
@@ -2046,7 +2119,7 @@ function grantReward(kind, amt, scaled) {
 }
 
 /* ---------------------- MAIN LOOP ---------------------- */
-let lastTick = Date.now(), uiAccum = 0, secAccum = 0, rainAccum = 0, divAccum = 0;
+let lastTick = Date.now(), uiAccum = 0, secAccum = 0, autoAccum = 0, rainAccum = 0, divAccum = 0;
 
 function tick() {
   const now = Date.now();
@@ -2123,17 +2196,21 @@ function tick() {
   divAccum += dt;
   if (divAccum >= 1) { divAccum = 0; marketSecond(); }
 
-  /* per-second work */
+  /* frequent automation + per-second housekeeping */
+  autoAccum += dt;
+  if (autoAccum >= 0.25) {
+    autoAccum = 0;
+    autoBuyStep();
+    autoPerkStep();
+    if (game.settings.autoGold) catchGoldenIfAuto();
+  }
   secAccum += dt;
   if (secAccum >= 1) {
     secAccum = 0;
     checkAchievements();
     rollDailies();
     tickNews();
-    autoBuyStep();
-    autoPerkStep();
     idleCheck();
-    if (game.settings.autoGold) catchGoldenIfAuto();
     markDirty('quests');
   }
 
@@ -2397,8 +2474,16 @@ function rollArtifact(bonus) {
           id: def.id, roll: +(0.8 + Math.random() * 0.6).toFixed(2)};
 }
 function addToInventory(item) {
+  /* Keep a generous crate inventory and never delete an equipped artifact.
+     The old shift()-based cap could silently remove a gear item when slots were added. */
+  if (!item.uid) item.uid = 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   game.inventory.push(item);
-  if (game.inventory.length > 60) game.inventory.shift();
+  const CAP = 120;
+  while (game.inventory.length > CAP) {
+    const idx = game.inventory.findIndex(x => !game.gear.includes(x.uid));
+    if (idx < 0) break; // all remaining artifacts are equipped; keep them safe
+    game.inventory.splice(idx, 1);
+  }
   markDirty('pets');
 }
 function openCrate() {
@@ -2978,7 +3063,7 @@ function buildPets() {
 
   const inv = $('inventory-list'); inv.innerHTML = '';
   if (!game.inventory.length) inv.appendChild(el('div', 'muted tiny', 'No artifacts. Open a crate!'));
-  const sorted = game.inventory.slice().sort((a, b) =>
+  const sorted = game.inventory.filter(it => ART_BY_ID[it.id]).slice().sort((a, b) =>
     RARITY_ORDER.indexOf(ART_BY_ID[b.id].rar) - RARITY_ORDER.indexOf(ART_BY_ID[a.id].rar));
   sorted.forEach(it => {
     const d = ART_BY_ID[it.id]; if (!d) return;
@@ -3356,6 +3441,9 @@ function applySave(obj) {
   fresh.stocks.forEach((s, i) => { if (!Array.isArray(s.hist) || !s.hist.length) s.hist = [STOCK_DEFS[i].price]; });
   if (!Array.isArray(fresh.gear)) fresh.gear = [null, null];
   while (fresh.gear.length < 2 + (fresh.ssShop[4] || 0)) fresh.gear.push(null);
+  /* Remove stale gear references caused by older saves/inventory caps. */
+  const validGear = new Set(fresh.inventory.map(x => x.uid));
+  fresh.gear = fresh.gear.map(uid => (uid && validGear.has(uid)) ? uid : null);
   game = fresh;
 }
 
@@ -3531,7 +3619,7 @@ function wire() {
       e.stopPropagation();
       buyPerkMax(+d.cdbuymax, CD_SHOP, game.cdShop, 'cd', (p, l) => Math.floor(p.cost * Math.pow(3, l)), buyCD);
     }
-    else if (d.upgall !== undefined) buyAllUpgrades();
+    else if (d.upgall !== undefined) upgradeEachThing();
     else if (d.talent)   learnTalent(d.talent);
     else if (d.ab !== undefined)    useAbility(+d.ab);
     else if (d.sbuy !== undefined)  buyStock(+d.sbuy);
@@ -3565,6 +3653,7 @@ function wire() {
   const bind = (id, fn) => { const e2 = $(id); if (e2) e2.addEventListener('click', fn); };
   bind('btn-rebirth', doRebirth);
   bind('btn-sacrifice', doSacrifice);
+  bind('btn-sacrifice-max', doMaxSacrifice);
   bind('btn-ascend', doAscend);
   bind('btn-respec', respec);
   bind('btn-deposit', () => deposit(0.1));
