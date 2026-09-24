@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maxwell Samuel Morgan — Burrito Clicker</title>
+<link rel="icon" type="image/png" href="MaxSamuelMorgan.png">
 <style>
 :root{
   --bg-color:#090d16; --bg-2:#0c1220;
@@ -92,6 +93,13 @@ h3,h4{margin:0 0 8px}
   transition:transform .06s ease;position:relative;margin:8px 0 4px;display:flex;align-items:center;justify-content:center;z-index:2}
 .maxwell-target:active{transform:scale(.93)}
 .maxwell-target svg{width:100%;height:100%;display:block;pointer-events:none}
+.maxwell-target #mx-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;display:none;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.maxwell-target.has-photo #mx-photo{display:block}
+.maxwell-target.has-photo svg{position:relative;z-index:1}
+/* When the PNG loads, hide the drawn face; tier accessories (stache/shades/hat/crown/halo/aura) stay on top */
+.maxwell-target.has-photo #mx-hair,.maxwell-target.has-photo #mx-eyes,.maxwell-target.has-photo #mx-mouth,
+.maxwell-target.has-photo #maxwell-svg > ellipse:not(#mx-halo),
+.maxwell-target.has-photo #maxwell-svg > path{display:none}
 .maxwell-target.shake{animation:shake .25s}
 @keyframes shake{0%,100%{transform:translate(0)}25%{transform:translate(-5px,3px) rotate(-2deg)}75%{transform:translate(5px,-3px) rotate(2deg)}}
 .anim-bounce{animation:pulseBounce 1.1s infinite alternate ease-in-out}
@@ -437,6 +445,9 @@ label.chk{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:.88rem;
       </div>
 
       <div class="maxwell-target anim-bounce" id="maxwell-target" title="Click Maxwell!">
+        <img id="mx-photo" src="MaxSamuelMorgan.png" alt="Max Samuel Morgan" draggable="false"
+             onload="document.getElementById('maxwell-target').classList.add('has-photo')"
+             onerror="this.remove()">
         <svg id="maxwell-svg" viewBox="0 0 200 200">
           <defs>
             <radialGradient id="auraG"><stop offset="40%" stop-color="transparent"/><stop offset="100%" stop-color="var(--accent)" stop-opacity=".55"/></radialGradient>
@@ -6198,7 +6209,9 @@ function setSkin(s) { game.skin = s; lastSkin = ''; updatePortrait(); markDirty(
 function setBgFx(f) { game.bgfx = f; markDirty('cosmetics'); }
 
 /* ---------------------- SAVE / LOAD ---------------------- */
+let resetting = false; /* set by hardReset(): blocks every save path so the wiped data cannot be rewritten */
 function saveGame(silent) {
+  if (resetting) return;
   game.lastSave = Date.now();
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(game));
@@ -6390,11 +6403,22 @@ function importString(str) {
 function hardReset() {
   modal('Reset everything?', 'This permanently deletes your burritos, buildings, DS, Sam Shards, Cosmic Dust, pets, artifacts and achievements. There is no undo.',
     [{t:'Delete it all', cls:'danger', fn(){
-      localStorage.removeItem(SAVE_KEY);
-      localStorage.removeItem(V5_KEY); /* otherwise the v5 backup would be migrated back in on reload */
-      localStorage.removeItem(OLD_KEY);
-      localStorage.setItem('mmc_was_reset', '1');
+      /* Lock saving FIRST. The beforeunload / visibilitychange / autosave handlers all call saveGame(),
+         and would otherwise write the current game straight back after we delete it. */
+      resetting = true;
+      try {
+        /* remove every save slot this game has ever used (v6, v5 backup, v4 legacy) */
+        [SAVE_KEY, V5_KEY, OLD_KEY].forEach(k => localStorage.removeItem(k));
+        Object.keys(localStorage).forEach(k => { if (k.indexOf('maxwell_clicker') === 0) localStorage.removeItem(k); });
+        localStorage.setItem('mmc_was_reset', '1');
+      } catch (e) {
+        resetting = false;
+        toast('Reset failed', String(e.message || e), 'bad');
+        return;
+      }
       location.reload();
+      /* safety net: if the reload is somehow blocked, unlock saving again after a moment */
+      setTimeout(() => { resetting = false; }, 4000);
     }}, {t:'Keep my burritos', fn:()=>{}}]);
 }
 
