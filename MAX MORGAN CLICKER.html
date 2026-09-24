@@ -4594,6 +4594,7 @@ function grantReward(kind, amt, scaled) {
 let lastTick = Date.now(), uiAccum = 0, secAccum = 0, autoAccum = 0, rainAccum = 0, divAccum = 0;
 
 function tick() {
+  requestAnimationFrame(tick);
   const now = Date.now();
   let dt = (now - lastTick) / 1000;
   lastTick = now;
@@ -4700,7 +4701,6 @@ function tick() {
   /* UI */
   uiAccum += dt;
   if (uiAccum >= 0.1) { uiAccum = 0; renderUI(); }
-  requestAnimationFrame(tick);
 }
 
 function catchGoldenIfAuto() {
@@ -5224,6 +5224,7 @@ function seedBg() {
   }
 }
 function drawFX() {
+  requestAnimationFrame(drawFX);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const mode = game.bgfx || 'burritos';
   const accent = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#38bdf8';
@@ -5263,7 +5264,6 @@ function drawFX() {
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill();
   }
   ctx.globalAlpha = 1;
-  requestAnimationFrame(drawFX);
 }
 
 /* ---------------------- NEWS ---------------------- */
