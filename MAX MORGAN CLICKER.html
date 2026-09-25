@@ -448,11 +448,7 @@
                 z-index: 1;
             }
             /* When the PNG loads, hide the drawn face; tier accessories (stache/shades/hat/crown/halo/aura) stay on top */
-            .maxwell-target.has-photo #mx-hair,
-            .maxwell-target.has-photo #mx-eyes,
-            .maxwell-target.has-photo #mx-mouth,
-            .maxwell-target.has-photo #maxwell-svg > ellipse:not(#mx-halo),
-            .maxwell-target.has-photo #maxwell-svg > path {
+            .maxwell-target.has-photo #mx-face-base {
                 display: none;
             }
             .maxwell-target.shake {
@@ -1234,6 +1230,119 @@
                 color: #f87171;
             }
 
+            .gacha-reel-wrap {
+                position: relative;
+                overflow: hidden;
+                height: 96px;
+                border: 1px solid var(--panel-border);
+                border-radius: 8px;
+                background: var(--panel-3);
+            }
+            .gacha-reel {
+                display: flex;
+                align-items: center;
+                height: 100%;
+                will-change: transform;
+            }
+            .gacha-reel-item {
+                flex: 0 0 84px;
+                height: 76px;
+                margin: 0 4px;
+                border-radius: 6px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                text-align: center;
+                border: 2px solid #6b7280;
+                background: var(--panel-bg);
+            }
+            .gri-ico {
+                font-size: 1.6rem;
+            }
+            .gacha-reel-marker {
+                position: absolute;
+                left: 50%;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: var(--accent);
+                transform: translateX(-1px);
+                pointer-events: none;
+            }
+            #case-vignette {
+                position: fixed;
+                inset: 0;
+                z-index: 500;
+                pointer-events: none;
+                background: radial-gradient(
+                    ellipse at center,
+                    transparent 35%,
+                    rgba(0, 0, 0, 0.75) 100%
+                );
+                opacity: 0;
+                transition: opacity 0.7s ease;
+            }
+            #case-vignette.on {
+                opacity: 1;
+            }
+            .gacha-terminal {
+                background: #0a0f0a;
+                border: 1px solid #1f3d1f;
+                border-radius: 8px;
+                padding: 8px;
+                font-family:
+                    ui-monospace, "Consolas", "SFMono-Regular", monospace;
+                max-height: 260px;
+                overflow-y: auto;
+            }
+            .gt-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 5px 4px;
+                border-bottom: 1px solid #14241a;
+                font-size: 0.78rem;
+                color: #7bdc7b;
+            }
+            .gt-row:last-child {
+                border-bottom: none;
+            }
+            .gt-name {
+                color: #c9f7c9;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .gt-up {
+                color: #4ade80;
+            }
+            .gt-down {
+                color: #f87171;
+            }
+            .gt-buy {
+                background: #123312;
+                color: #baffba;
+                border: 1px solid #2b5c2b;
+                border-radius: 4px;
+                padding: 3px 8px;
+                font-size: 0.72rem;
+                cursor: pointer;
+                font-family: inherit;
+            }
+            .gt-buy:hover {
+                background: #1c4a1c;
+            }
+            .tu-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding: 6px 4px;
+            }
+
             .quest {
                 background: var(--panel-3);
                 border: 1px solid var(--panel-border);
@@ -1915,7 +2024,7 @@
                     <div class="sub" id="res-crit">5% crit</div>
                 </div>
                 <div class="res-card ds">
-                    <div class="label">DS (Dev Points)</div>
+                    <div class="label">DS (Dough Shards)</div>
                     <div class="val" id="res-ds">0</div>
                     <div class="sub" id="res-rebirths">0 Rebirths</div>
                 </div>
@@ -1933,6 +2042,11 @@
                     <div class="label">Market Capital</div>
                     <div class="val" id="res-mc">0</div>
                     <div class="sub" id="res-mkt">Portfolio x1.00</div>
+                </div>
+                <div class="res-card" style="border-color: #eab308">
+                    <div class="label">🔑 Maxwell Keys</div>
+                    <div class="val" id="res-keys">0</div>
+                    <div class="sub">Opens any case</div>
                 </div>
                 <div class="res-card">
                     <div class="label">Multiplier</div>
@@ -2006,7 +2120,9 @@
                                 stroke-width="6"
                                 opacity=".95"
                                 style="display: none"
+                                transform="translate(0,-10)"
                             />
+                            <g id="mx-face-base">
                             <g id="mx-hair">
                                 <path
                                     d="M52 86c-3-34 21-54 48-54s51 20 48 54c-6-16-18-22-28-18-8-12-30-14-40-4-10-4-23 4-28 22z"
@@ -2078,7 +2194,11 @@
                                 fill="none"
                                 stroke-linecap="round"
                             />
-                            <g id="mx-shades" style="display: none">
+                            <g
+                                id="mx-shades"
+                                style="display: none"
+                                transform="translate(0,16)"
+                            >
                                 <rect
                                     x="60"
                                     y="90"
@@ -2122,13 +2242,19 @@
                                 fill="none"
                                 stroke-linecap="round"
                             />
+                            </g>
                             <path
                                 id="mx-stache"
                                 d="M70 130q14 10 30 0q16 10 30 0q-14 14-30 8q-16 6-30-8z"
                                 fill="var(--mx-hair,#2f2418)"
                                 style="display: none"
+                                transform="translate(-3,12)"
                             />
-                            <g id="mx-sombrero" style="display: none">
+                            <g
+                                id="mx-sombrero"
+                                style="display: none"
+                                transform="translate(0,-16)"
+                            >
                                 <ellipse
                                     cx="100"
                                     cy="56"
@@ -2153,7 +2279,11 @@
                                     opacity=".65"
                                 />
                             </g>
-                            <g id="mx-crown" style="display: none">
+                            <g
+                                id="mx-crown"
+                                style="display: none"
+                                transform="translate(0,-8)"
+                            >
                                 <path
                                     d="M58 46l10-30 14 18 18-26 18 26 14-18 10 30z"
                                     fill="#fbbf24"
@@ -2225,6 +2355,9 @@
                         </button>
                         <button class="tab-btn" data-tab="tab-pets">
                             Pets &amp; Loot
+                        </button>
+                        <button class="tab-btn" data-tab="tab-gacha">
+                            🎰 Maxwell Skins
                         </button>
                         <button class="tab-btn" data-tab="tab-industry">
                             🏭 Industry<span class="dot"></span>
@@ -2426,7 +2559,7 @@
 
                         <hr class="hr" />
                         <h4 style="color: var(--ds-color)">
-                            Spending Dev Points (DS)
+                            Spending Dough Shards (DS)
                             <span
                                 class="lock-note"
                                 data-modnote="devAuto"
@@ -2439,7 +2572,7 @@
                                         type="checkbox"
                                         id="chk-auto-dsperks"
                                     />
-                                    Auto-buy Dev Point Perks</label
+                                    Auto-buy Dough Shard Perks</label
                                 >
                             </div>
                             <div class="auto-row" data-modrow="devAuto">
@@ -2630,7 +2763,7 @@
                         <hr class="hr" />
                         <div class="sec-head">
                             <h4>
-                                Dev Point Perks
+                                Dough Shard Perks
                                 <span class="pill" id="ds-have">0 DS</span>
                             </h4>
                             <button class="maxall-btn" data-maxall="ds">
@@ -2864,6 +2997,68 @@
                             </div>
                         </div>
 
+                        <div
+                            class="box"
+                            style="text-align: center; margin-top: 10px"
+                        >
+                            <h4>Maxwell's Loan Shark</h4>
+                            <p class="tiny muted">
+                                Borrow burritos now, pay dearly later.
+                                Interest compounds fast and collectors
+                                auto-garnish half your income every tick
+                                until you're square.
+                            </p>
+                            <div>
+                                Owed:
+                                <b id="debt-bal" style="color: #ef4444">0</b>
+                            </div>
+                            <div class="tiny muted">
+                                Interest: <b id="debt-rate">40</b>%/hr
+                            </div>
+                            <div
+                                class="btn-group"
+                                style="
+                                    justify-content: center;
+                                    margin-top: 6px;
+                                "
+                            >
+                                <button class="sm-btn" id="btn-loan-small">
+                                    Borrow
+                                </button>
+                                <button class="sm-btn" id="btn-loan-big">
+                                    Borrow Big
+                                </button>
+                                <button class="sm-btn danger" id="btn-repay">
+                                    Repay All
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            class="box"
+                            style="text-align: center; margin-top: 10px"
+                        >
+                            <h4>🔒 Maxwell's Vault</h4>
+                            <p class="tiny muted">
+                                The only way to earn a 🔑 Maxwell Key on
+                                demand. A long-cooldown gamble — most
+                                attempts come up empty, but a fair
+                                consolation of burritos softens the miss.
+                            </p>
+                            <div class="tiny muted">
+                                Odds: <b>12%</b> per attempt · Cooldown:
+                                <b>25 min</b>
+                            </div>
+                            <div class="tiny" id="vault-status">Ready</div>
+                            <button
+                                class="sm-btn"
+                                id="btn-vault"
+                                style="margin-top: 6px"
+                            >
+                                Crack the Vault
+                            </button>
+                        </div>
+
                         <div class="box" style="margin-top: 10px">
                             <div class="row">
                                 <h4 style="margin: 0">Dig Site Ore Pit</h4>
@@ -2954,6 +3149,16 @@
                     <!-- PETS & LOOT -->
                     <div id="tab-pets" class="tab-content">
                         <h3>Companions &amp; Loot Crates</h3>
+                        <p class="tiny muted">
+                            Pet eggs, artifact crates, Maxwell Skin cases and
+                            Theme cases all run on the same currency:
+                            <b>🔑 Maxwell Keys</b> — you have
+                            <b id="pets-key-count">0</b>. Keys can't be
+                            bought — they trickle in from catching Golden
+                            Sams by hand, downing raid bosses, the tiniest
+                            chance on every click, and cracking
+                            <b>Maxwell's Vault</b> in the Minigames tab.
+                        </p>
                         <div class="grid-auto">
                             <div>
                                 <div class="row">
@@ -2964,9 +3169,8 @@
                                 </div>
                                 <div class="btn-group" style="margin-top: 6px">
                                     <button class="sm-btn" id="btn-hatch">
-                                        Hatch Pet Egg (<span id="hatch-cost"
-                                            >1,000</span
-                                        >)
+                                        Hatch Pet Egg (🔑
+                                        <span id="hatch-cost">1</span>)
                                     </button>
                                     <button class="sm-btn" id="btn-pet-slot">
                                         Buy Pet Slot
@@ -2978,6 +3182,14 @@
                                     >
                                         ⬆ Buy Max All
                                     </button>
+                                </div>
+                                <div
+                                    class="gacha-reel-wrap"
+                                    id="pet-reel-wrap"
+                                    style="margin-top: 8px"
+                                >
+                                    <div class="gacha-reel" id="pet-reel"></div>
+                                    <div class="gacha-reel-marker"></div>
                                 </div>
                                 <div
                                     class="upg-list short"
@@ -2994,10 +3206,8 @@
                                 </div>
                                 <div class="btn-group" style="margin-top: 6px">
                                     <button class="sm-btn" id="btn-crate">
-                                        Open Mystery Crate (<span
-                                            id="crate-cost"
-                                            >5,000</span
-                                        >)
+                                        Open Mystery Crate (🔑
+                                        <span id="crate-cost">1</span>)
                                     </button>
                                     <button class="sm-btn" id="btn-salvage">
                                         Salvage All Commons
@@ -3010,17 +3220,116 @@
                                     </button>
                                 </div>
                                 <div
+                                    class="gacha-reel-wrap"
+                                    id="crate-reel-wrap"
+                                    style="margin-top: 8px"
+                                >
+                                    <div
+                                        class="gacha-reel"
+                                        id="crate-reel"
+                                    ></div>
+                                    <div class="gacha-reel-marker"></div>
+                                </div>
+                                <div
                                     class="upg-list short"
                                     id="inventory-list"
                                     style="margin-top: 6px"
                                 ></div>
+                                <div class="row" style="margin-top: 6px">
+                                    <button class="sm-btn" id="btn-gear-slot-key">
+                                        +1 Artifact Slot (🔑
+                                        <span id="gear-slot-key-cost">1</span>)
+                                    </button>
+                                    <button class="sm-btn" id="btn-gear-slot-cd">
+                                        +1 Artifact Slot (<span
+                                            id="gear-slot-cd-cost"
+                                            >—</span
+                                        >
+                                        CD)
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <p class="tiny muted" style="margin-top: 8px">
                             Duplicate pets merge into levels. Artifacts equip
                             into gear slots on the left panel. Pets away on
-                            expeditions give no bonus until they return.
+                            expeditions give no bonus until they return. Pet
+                            slots cap at 19.
                         </p>
+                    </div>
+
+                    <!-- SKIN CASES (CS:GO-style gambling) -->
+                    <div id="tab-gacha" class="tab-content">
+                        <h3>🎰 Maxwell Skins</h3>
+                        <p class="tiny muted">
+                            Open a case for a chance at a Maxwell skin —
+                            equip one to visually reskin Maxwell's photo,
+                            not just boost his stats. Rarer skins and better
+                            wear (lower float) roll stronger, cleaner
+                            recolors. Cases cost 🔑 Maxwell Keys, a very
+                            rare currency shared with Pet Eggs, Artifact
+                            Crates and Theme Cases — see Pets &amp; Loot for
+                            how to earn them. Only one case can spin at
+                            once.
+                        </p>
+                        <div class="row">
+                            <button class="sm-btn" id="btn-gacha-open">
+                                Open Skin Case (🔑
+                                <span id="gacha-cost">1</span>)
+                            </button>
+                            <span class="pill" id="gacha-count"
+                                >0 cases opened</span
+                            >
+                            <button class="sm-btn danger" id="btn-sell-all">
+                                💰 Sell All Unequipped
+                            </button>
+                        </div>
+                        <div
+                            class="gacha-reel-wrap"
+                            id="gacha-reel-wrap"
+                            style="margin-top: 8px"
+                        >
+                            <div class="gacha-reel" id="gacha-reel"></div>
+                            <div class="gacha-reel-marker"></div>
+                        </div>
+
+                        <div class="grid-auto" style="margin-top: 12px">
+                            <div>
+                                <h4 style="margin: 0 0 6px">
+                                    🖥️ Skin Terminal
+                                </h4>
+                                <p class="tiny muted" style="margin: 0 0 6px">
+                                    Live market. Prices float like the stock
+                                    ticker and scale with your burrito
+                                    stockpile.
+                                </p>
+                                <div
+                                    class="gacha-terminal"
+                                    id="gacha-terminal"
+                                ></div>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 6px">
+                                    🔧 Trade-Up Contracts
+                                </h4>
+                                <p class="tiny muted" style="margin: 0 0 6px">
+                                    Trade <b id="tu-count">5</b> unequipped
+                                    skins of the same rarity for one random
+                                    skin of the next rarity up.
+                                </p>
+                                <div
+                                    class="upg-list short"
+                                    id="gacha-tradeups"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <h4 style="margin: 14px 0 6px">My Skins</h4>
+                        <div
+                            class="upg-list short"
+                            id="gacha-list"
+                            style="margin-top: 4px"
+                        ></div>
                     </div>
 
                     <!-- MORGANVERSE FACILITY TABS (built by script) -->
@@ -3132,46 +3441,81 @@
                     <!-- COSMETICS -->
                     <div id="tab-cosmetics" class="tab-content">
                         <h3>Themes &amp; Graphics</h3>
-                        <h4>UI Theme</h4>
-                        <div class="btn-group" id="theme-group"></div>
-                        <h4 style="margin-top: 12px">Maxwell Animation</h4>
-                        <div class="btn-group" id="anim-group">
-                            <button class="sm-btn" data-anim="anim-bounce">
-                                Pulse Bounce
+                        <p class="tiny muted">
+                            Maxwell's <b>look and animation</b> now come from
+                            whichever <b>Maxwell Skin</b> you equip below,
+                            and the <b>UI theme and background FX</b> come
+                            from whichever <b>Theme Skin</b> you equip.
+                            Nothing here is free-pick anymore — gamble for
+                            both in their case sections below.
+                        </p>
+                        <h4 style="margin-top: 16px">🎨 Background Theme Cases</h4>
+                        <p class="tiny muted">
+                            Gamble for collectible theme skins — equipping
+                            one switches the UI to that theme, sets
+                            Maxwell's animation and background FX to match,
+                            and makes its colors punchier the rarer and
+                            better-worn it is. Cases cost 🔑 Maxwell Keys,
+                            the same very-rare currency used by Pet Eggs,
+                            Artifact Crates and Maxwell Skin cases. Only one
+                            case can spin at once.
+                        </p>
+                        <div class="row">
+                            <button class="sm-btn" id="btn-theme-open">
+                                Open Theme Case (🔑
+                                <span id="theme-cost">1</span>)
                             </button>
-                            <button class="sm-btn" data-anim="anim-spin">
-                                Slow Spin
-                            </button>
-                            <button class="sm-btn" data-anim="anim-float">
-                                Float
-                            </button>
-                            <button class="sm-btn" data-anim="anim-wobble">
-                                Wobble
-                            </button>
-                            <button class="sm-btn" data-anim="none">
-                                Static
-                            </button>
-                        </div>
-                        <h4 style="margin-top: 12px">
-                            Maxwell Skins
-                            <span class="tiny muted"
-                                >(unlocked by progress)</span
+                            <span class="pill" id="theme-count"
+                                >0 cases opened</span
                             >
-                        </h4>
-                        <div class="btn-group" id="skin-group"></div>
-                        <h4 style="margin-top: 12px">Background FX</h4>
-                        <div class="btn-group" id="fx-group">
-                            <button class="sm-btn" data-fx="burritos">
-                                Falling Burritos
-                            </button>
-                            <button class="sm-btn" data-fx="stars">
-                                Star Drift
-                            </button>
-                            <button class="sm-btn" data-fx="matrix">
-                                Matrix Rain
-                            </button>
-                            <button class="sm-btn" data-fx="none">None</button>
                         </div>
+                        <div
+                            class="gacha-reel-wrap"
+                            id="theme-reel-wrap"
+                            style="margin-top: 8px"
+                        >
+                            <div class="gacha-reel" id="theme-reel"></div>
+                            <div class="gacha-reel-marker"></div>
+                        </div>
+
+                        <div class="grid-auto" style="margin-top: 12px">
+                            <div>
+                                <h4 style="margin: 0 0 6px">
+                                    🖥️ Theme Terminal
+                                </h4>
+                                <p class="tiny muted" style="margin: 0 0 6px">
+                                    Live market for theme skins you hold.
+                                </p>
+                                <div
+                                    class="gacha-terminal"
+                                    id="theme-terminal"
+                                ></div>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 6px">
+                                    🔧 Theme Trade-Ups
+                                </h4>
+                                <p class="tiny muted" style="margin: 0 0 6px">
+                                    Trade
+                                    <b id="theme-tu-count">5</b> unequipped
+                                    theme skins of the same rarity for one
+                                    random theme skin of the next rarity up.
+                                    Theme trade-ups only ever use theme
+                                    skins — never Maxwell Skins.
+                                </p>
+                                <div
+                                    class="upg-list short"
+                                    id="theme-tradeups"
+                                ></div>
+                            </div>
+                        </div>
+
+                        <h4 style="margin: 14px 0 6px">My Theme Skins</h4>
+                        <div
+                            class="upg-list short"
+                            id="theme-list"
+                            style="margin-top: 4px"
+                        ></div>
                     </div>
 
                     <!-- SETTINGS -->
@@ -3223,6 +3567,14 @@
                                         checked
                                     />
                                     Tooltips</label
+                                >
+                                <label class="chk"
+                                    ><input
+                                        type="checkbox"
+                                        id="chk-toasts"
+                                        checked
+                                    />
+                                    Notification banners</label
                                 >
                             </div>
                             <div>
@@ -3332,18 +3684,19 @@
         </div>
         <div id="toast-stack"></div>
         <div id="tooltip"></div>
+        <div id="case-vignette"></div>
         <div id="modal-back"><div class="modal" id="modal"></div></div>
         <script>
             "use strict";
             /* ============================================================
    MAXWELL SAMUEL MORGAN — BURRITO CLICKER
-   Single-file idle game. Save v6 (migrates v5 saves, and v4 "Sam's" saves).
+   Single-file idle game. Save v7 (migrates v6, v5, and v4 "Sam's" saves).
    ============================================================ */
 
             const SAVE_KEY = "maxwell_clicker_v6_save";
             const V5_KEY = "maxwell_clicker_v5_save";
             const OLD_KEY = "maxwell_clicker_v4_save";
-            const SAVE_VER = 6;
+            const SAVE_VER = 7;
 
             /* ---------------------- NUMBER FORMAT ---------------------- */
             const SUFFIX = [
@@ -3989,7 +4342,7 @@
                     name: "DS Magnet",
                     icon: "🧲",
                     cd: 180,
-                    desc: "Pulls 5 + rebirths Dev Points out of thin air.",
+                    desc: "Pulls 5 + rebirths Dough Shards out of thin air.",
                 },
                 {
                     id: 5,
@@ -4843,6 +5196,13 @@
                 "legendary",
                 "mythic",
             ];
+            const RARITY_COLOR = {
+                common: "#6b7280",
+                rare: "#3b82f6",
+                epic: "#a855f7",
+                legendary: "#f59e0b",
+                mythic: "#ef4444",
+            };
             const EFF_LABEL = {
                 click: "click power",
                 bps: "production",
@@ -4853,6 +5213,151 @@
                 cost: "building costs",
                 divid: "dividends",
             };
+
+            /* ---------------------- SKIN CASES (CS:GO-style gambling) ---------------------- */
+            const GACHA_RARITIES = [
+                {
+                    id: "consumer",
+                    name: "Consumer Grade",
+                    color: "#b0c3d9",
+                    weight: 40,
+                    mult: 0.5,
+                },
+                {
+                    id: "industrial",
+                    name: "Industrial Grade",
+                    color: "#5e98d9",
+                    weight: 27,
+                    mult: 0.8,
+                },
+                {
+                    id: "milspec",
+                    name: "Mil-Spec",
+                    color: "#4b69ff",
+                    weight: 18,
+                    mult: 1.2,
+                },
+                {
+                    id: "restricted",
+                    name: "Restricted",
+                    color: "#8847ff",
+                    weight: 9,
+                    mult: 1.8,
+                },
+                {
+                    id: "classified",
+                    name: "Classified",
+                    color: "#d32ce6",
+                    weight: 4.5,
+                    mult: 2.6,
+                },
+                {
+                    id: "covert",
+                    name: "Covert",
+                    color: "#eb4b4b",
+                    weight: 1.4,
+                    mult: 3.8,
+                },
+                {
+                    id: "rare",
+                    name: "Rare Special",
+                    color: "#ffd700",
+                    weight: 0.1,
+                    mult: 6,
+                },
+            ];
+            const GACHA_RAR_ORDER = GACHA_RARITIES.map((r) => r.id);
+            const GACHA_WEARS = [
+                { id: "fn", name: "Factory New", max: 0.07, mult: 1.4 },
+                { id: "mw", name: "Minimal Wear", max: 0.15, mult: 1.2 },
+                { id: "ft", name: "Field-Tested", max: 0.38, mult: 1.0 },
+                { id: "ww", name: "Well-Worn", max: 0.45, mult: 0.85 },
+                { id: "bs", name: "Battle-Scarred", max: 1.0, mult: 0.7 },
+            ];
+            const GACHA_SKINS = [
+                {
+                    id: "g1",
+                    name: "Maxwell | Tortilla Camo",
+                    icon: "🌯",
+                    rar: "consumer",
+                    eff: "click",
+                    val: 0.2,
+                    hue: 20,
+                    anim: "anim-bounce",
+                },
+                {
+                    id: "g2",
+                    name: "Maxwell | Salsa Fade",
+                    icon: "🌶️",
+                    rar: "industrial",
+                    eff: "bps",
+                    val: 0.2,
+                    hue: 340,
+                    anim: "anim-wobble",
+                },
+                {
+                    id: "g3",
+                    name: "Maxwell | Guac Slick",
+                    icon: "🥑",
+                    rar: "milspec",
+                    eff: "gold",
+                    val: 0.4,
+                    hue: 90,
+                    anim: "anim-float",
+                },
+                {
+                    id: "g4",
+                    name: "Maxwell | Queso Drip",
+                    icon: "🧀",
+                    rar: "restricted",
+                    eff: "crit",
+                    val: 4,
+                    hue: 45,
+                    anim: "anim-wobble",
+                },
+                {
+                    id: "g5",
+                    name: "Maxwell | Foil Wrap",
+                    icon: "✨",
+                    rar: "classified",
+                    eff: "critdmg",
+                    val: 20,
+                    hue: 190,
+                    anim: "anim-spin",
+                },
+                {
+                    id: "g6",
+                    name: "Maxwell | Hot Sauce Slaughter",
+                    icon: "🔥",
+                    rar: "covert",
+                    eff: "all",
+                    val: 0.3,
+                    hue: 355,
+                    anim: "anim-spin",
+                },
+                {
+                    id: "g7",
+                    name: "Maxwell | Cosmic Burrito",
+                    icon: "🌀",
+                    rar: "rare",
+                    eff: "all",
+                    val: 0.6,
+                    hue: 270,
+                    anim: "anim-float",
+                },
+                {
+                    id: "g8",
+                    name: "Maxwell | Golden Wrapper",
+                    icon: "🏆",
+                    rar: "rare",
+                    eff: "cost",
+                    val: 0.05,
+                    hue: 40,
+                    anim: "anim-spin",
+                },
+            ];
+            const GACHA_BY_ID = {};
+            GACHA_SKINS.forEach((s) => (GACHA_BY_ID[s.id] = s));
 
             const STOCK_DEFS = [
                 {
@@ -4948,65 +5453,108 @@
                 { name: "Cosmic Diamond", icon: "💎", w: 1, mul: 220 },
             ];
 
-            const SKINS = [
+            /* Maxwell's skin/hair colors now follow the selected UI theme instead of a
+   separate progress-gated picker. "konami" is the hidden easter-egg override. */
+            const MX_THEME_COLORS = {
+                default: { skin: "#e8b08a", hair: "#2f2418", hue: 0 },
+                cyber: { skin: "#e78ad0", hair: "#2a1030", hue: 300 },
+                hacker: { skin: "#7fd97f", hair: "#0a1a0a", hue: 120 },
+                solar: { skin: "#f5c542", hair: "#8a6a12", hue: 35 },
+                burrito: { skin: "#d99a6c", hair: "#3d2712", hue: 15 },
+                mint: { skin: "#8fbf9a", hair: "#1f4d33", hue: 110 },
+                blood: { skin: "#e05a4a", hair: "#3d0f0a", hue: 350 },
+                vapor: { skin: "#c792ea", hair: "#3a1f4d", hue: 280 },
+                mono: { skin: "#b0b0b0", hair: "#202020", hue: 0 },
+                gold: { skin: "#f5c542", hair: "#5c4408", hue: 42 },
+                ice: { skin: "#9ae6e0", hair: "#1f4d4a", hue: 180 },
+                konami: { skin: "#c0c0c0", hair: "#101010", hue: 0 },
+            };
+
+            /* ---------------------- BACKGROUND THEME CASES ---------------------- */
+            /* A second, independent gacha pool — one collectible per UI theme. Shares the
+   GACHA_RARITIES/GACHA_WEARS tables but keeps its own inventory, so trade-ups can never
+   mix a Maxwell Skin with a Theme Skin. */
+            const THEME_SKINS = [
                 {
-                    id: "classic",
-                    name: "Classic",
-                    skin: "#e8b08a",
-                    hair: "#2f2418",
-                    req: 0,
+                    id: "default",
+                    name: "Theme | Standard Feed",
+                    icon: "📺",
+                    rar: "consumer",
+                    fx: "burritos",
                 },
                 {
-                    id: "sunkiss",
-                    name: "Sun-Kissed",
-                    skin: "#d99a6c",
-                    hair: "#1e1710",
-                    req: 1e6,
+                    id: "hacker",
+                    name: "Theme | Hacker Green",
+                    icon: "💻",
+                    rar: "consumer",
+                    fx: "matrix",
                 },
                 {
-                    id: "golden",
-                    name: "Golden Sam",
-                    skin: "#f5c542",
-                    hair: "#8a6a12",
-                    req: 1e9,
+                    id: "burrito",
+                    name: "Theme | Burrito Warmth",
+                    icon: "🌯",
+                    rar: "industrial",
+                    fx: "burritos",
                 },
                 {
-                    id: "guac",
-                    name: "Guacamole",
-                    skin: "#8fbf5a",
-                    hair: "#2e4d14",
-                    req: 1e12,
+                    id: "cyber",
+                    name: "Theme | Cyberpunk",
+                    icon: "🌃",
+                    rar: "industrial",
+                    fx: "matrix",
                 },
                 {
-                    id: "spicy",
-                    name: "Ghost Pepper",
-                    skin: "#e05a4a",
-                    hair: "#3d0f0a",
-                    req: 1e15,
+                    id: "mint",
+                    name: "Theme | Mint Crema",
+                    icon: "🌿",
+                    rar: "milspec",
+                    fx: "stars",
                 },
                 {
-                    id: "void",
-                    name: "Void Morgan",
-                    skin: "#4b3f72",
-                    hair: "#0d0a18",
-                    req: 1e18,
+                    id: "solar",
+                    name: "Theme | Solar Flare",
+                    icon: "☀️",
+                    rar: "restricted",
+                    fx: "stars",
                 },
                 {
-                    id: "holo",
-                    name: "Holographic",
-                    skin: "#9ae6e0",
-                    hair: "#2b6a68",
-                    req: 1e21,
+                    id: "ice",
+                    name: "Theme | Ice Queso",
+                    icon: "❄️",
+                    rar: "classified",
+                    fx: "stars",
                 },
                 {
-                    id: "konami",
-                    name: "Contra Morgan",
-                    skin: "#c0c0c0",
-                    hair: "#101010",
-                    req: -1,
-                    secret: true,
+                    id: "blood",
+                    name: "Theme | Blood Salsa",
+                    icon: "🩸",
+                    rar: "covert",
+                    fx: "none",
+                },
+                {
+                    id: "vapor",
+                    name: "Theme | Vaporwave",
+                    icon: "🌆",
+                    rar: "covert",
+                    fx: "stars",
+                },
+                {
+                    id: "mono",
+                    name: "Theme | Monochrome",
+                    icon: "⚫",
+                    rar: "rare",
+                    fx: "none",
+                },
+                {
+                    id: "gold",
+                    name: "Theme | Gold Foil",
+                    icon: "🏆",
+                    rar: "rare",
+                    fx: "burritos",
                 },
             ];
+            const THEME_SKIN_BY_ID = {};
+            THEME_SKINS.forEach((s) => (THEME_SKIN_BY_ID[s.id] = s));
 
             const TITLES = [
                 [0, "THE BURRITO APPRENTICE"],
@@ -5791,7 +6339,7 @@
                     name: "Dev Automation Module",
                     shop: "ds",
                     cost: 40,
-                    desc: "Unlocks Auto-buy Dev Point Perks and Auto-Sacrifice.",
+                    desc: "Unlocks Auto-buy Dough Shard Perks and Auto-Sacrifice.",
                 },
                 {
                     id: "vaultAuto",
@@ -12280,9 +12828,17 @@
                     gear: [null, null],
                     inventory: [],
                     petSlotsBought: 0,
+                    gearSlotsBonus: 0,
                     lore: [],
-                    skins: ["classic"],
-                    skin: "classic",
+                    mxOverride: null,
+                    gachaSkins: [],
+                    equippedGachaSkin: null,
+                    skinMarket: GACHA_SKINS.map(() => ({ mult: 1, hist: [1] })),
+                    themeSkins: [],
+                    equippedThemeSkin: null,
+                    themeMarket: THEME_SKINS.map(() => ({ mult: 1, hist: [1] })),
+                    keys: 0,
+                    debt: 0,
                     quests: { daily: [], dailyDay: 0, claimed: {} },
                     buyAmount: 1,
                     sellMode: false,
@@ -12297,6 +12853,7 @@
                         reduced: false,
                         ticker: true,
                         tooltips: true,
+                        toasts: true,
                         autoBuy: false,
                         autoGold: false,
                         confirm: true,
@@ -12331,6 +12888,7 @@
                         broke: false,
                         luckyStreak: false,
                         idle: false,
+                        debtWarned: false,
                     },
                     stats: {
                         crits: 0,
@@ -12360,11 +12918,17 @@
                         dsBanked: 0,
                         mcEarned: 0,
                         paradoxes: 0,
+                        gachaCases: 0,
+                        debtPaid: 0,
+                        themeCases: 0,
+                        keysFound: 0,
+                        vaultCracks: 0,
                     },
                     lastSave: Date.now(),
                     started: Date.now(),
                     lastWheel: 0,
                     lastSmash: 0,
+                    lastVault: 0,
                     lastClickTime: Date.now(),
                     totalBuildings() {
                         let n = 0;
@@ -12381,6 +12945,10 @@
                 bossHP = 0,
                 bossMax = 0,
                 bossTimer = 0;
+            let gachaSpinning = false;
+            let themeSpinning = false;
+            let petSpinning = false;
+            let crateSpinning = false;
             let rouletteStreak = 0,
                 rouletteWinStreak = 0,
                 smashUntil = 0;
@@ -12434,10 +13002,17 @@
                 return Object.keys(game.achievements).length;
             }
             function gearSlots() {
-                return 2 + ssLvl(4);
+                return 2 + ssLvl(4) + (game.gearSlotsBonus || 0);
             }
+            const PET_SLOT_CAP = 19;
             function petSlots() {
-                return 2 + game.petSlotsBought + (tal("f6") ? 1 : 0);
+                return Math.min(
+                    PET_SLOT_CAP,
+                    2 + game.petSlotsBought + (tal("f6") ? 1 : 0),
+                );
+            }
+            function petSlotsBoughtCap() {
+                return PET_SLOT_CAP - 2 - (tal("f6") ? 1 : 0);
             }
 
             function equippedArtifacts() {
@@ -12483,6 +13058,77 @@
                         else m *= 1 + v;
                     }
                 });
+                return m;
+            }
+            function wearInfo(w) {
+                for (const t of GACHA_WEARS) if (w <= t.max) return t;
+                return GACHA_WEARS[GACHA_WEARS.length - 1];
+            }
+            function rollGachaRarity() {
+                const total = GACHA_RARITIES.reduce((s, r) => s + r.weight, 0);
+                let x = Math.random() * total;
+                for (const r of GACHA_RARITIES) {
+                    x -= r.weight;
+                    if (x <= 0) return r;
+                }
+                return GACHA_RARITIES[0];
+            }
+            function gachaSkinValue(item) {
+                const def = GACHA_BY_ID[item.id];
+                if (!def) return 0;
+                const rar =
+                    GACHA_RARITIES.find((r) => r.id === item.rar) ||
+                    GACHA_RARITIES[0];
+                return def.val * rar.mult * wearInfo(item.wear).mult;
+            }
+            function equippedGachaDef() {
+                if (!game.equippedGachaSkin) return null;
+                const item = game.gachaSkins.find(
+                    (x) => x.uid === game.equippedGachaSkin,
+                );
+                if (!item) return null;
+                const def = GACHA_BY_ID[item.id];
+                if (!def) return null;
+                return { item, def };
+            }
+            /* Visual reskin of Maxwell himself: an equipped Maxwell Skin recolors his
+   photo/portrait via a CSS filter, stronger and cleaner the rarer & better-worn it is.
+   With nothing equipped, Maxwell just wears a light tint of the active UI theme. */
+            function mxSkinFilter() {
+                const eq = equippedGachaDef();
+                if (eq) {
+                    const rar =
+                        GACHA_RARITIES.find((r) => r.id === eq.item.rar) ||
+                        GACHA_RARITIES[0];
+                    const wear = wearInfo(eq.item.wear);
+                    const q = Math.min(1, (rar.mult / 6) * wear.mult);
+                    const sat = 100 + q * 160;
+                    const con = 100 + q * 25;
+                    const bri = 95 + q * 20;
+                    return (
+                        "hue-rotate(" +
+                        (eq.def.hue || 0) +
+                        "deg) saturate(" +
+                        sat.toFixed(0) +
+                        "%) contrast(" +
+                        con.toFixed(0) +
+                        "%) brightness(" +
+                        bri.toFixed(0) +
+                        "%)"
+                    );
+                }
+                const c = MX_THEME_COLORS[game.theme] || MX_THEME_COLORS.default;
+                if (!c.hue) return "";
+                return "hue-rotate(" + c.hue + "deg) saturate(112%)";
+            }
+            function sumSkin(kind) {
+                let m = 1;
+                const eq = equippedGachaDef();
+                if (eq && (eq.def.eff === kind || eq.def.eff === "all")) {
+                    const v = gachaSkinValue(eq.item);
+                    if (kind === "crit" || kind === "critdmg") m += v;
+                    else m *= 1 + v;
+                }
                 return m;
             }
 
@@ -12558,9 +13204,13 @@
                 CACHE.critDmg += perk(3) * 1.5;
                 CACHE.goldRate += perk(4) * 0.25;
                 /* gear & pets */
-                CACHE.critChance += sumGear("crit") - 1 + (sumPets("crit") - 1);
-                CACHE.critDmg += sumGear("critdmg") - 1;
-                CACHE.goldRate *= sumGear("gold") * sumPets("gold");
+                CACHE.critChance +=
+                    sumGear("crit") -
+                    1 +
+                    (sumPets("crit") - 1) +
+                    (sumSkin("crit") - 1);
+                CACHE.critDmg += sumGear("critdmg") - 1 + (sumSkin("critdmg") - 1);
+                CACHE.goldRate *= sumGear("gold") * sumPets("gold") * sumSkin("gold");
                 CACHE.goldTime *= 1 + ssLvl(3) * 0.2;
                 /* costs */
                 let cm = 1;
@@ -12570,6 +13220,9 @@
                     if (def.eff === "cost")
                         cm *= 1 - def.val * (item.roll || 1);
                 });
+                const skinEq = equippedGachaDef();
+                if (skinEq && skinEq.def.eff === "cost")
+                    cm *= 1 - gachaSkinValue(skinEq.item);
                 CACHE.costMult = Math.max(0.2, cm);
                 CACHE.critChance = Math.min(95, CACHE.critChance);
                 /* v6: keep the un-modified values so facility bonuses (mvApply) can be re-applied every second without compounding. */
@@ -12671,7 +13324,7 @@
                 if (tal("e5")) v *= 1.5;
                 if (tal("e7")) v *= 2;
                 if (tal("e9")) v *= 3;
-                v *= sumPets("bps") * sumGear("bps");
+                v *= sumPets("bps") * sumGear("bps") * sumSkin("bps");
                 v *= CACHE.mv.bps;
                 return v;
             }
@@ -12694,7 +13347,7 @@
                 if (tal("h3")) v *= 1.5;
                 if (tal("h7")) v *= 2;
                 if (tal("h9")) v *= 3;
-                v *= sumPets("click") * sumGear("click");
+                v *= sumPets("click") * sumGear("click") * sumSkin("click");
                 v *= CACHE.mv.click;
                 return v;
             }
@@ -12797,11 +13450,11 @@
                 return isClick ? clickMaxAfford(i) : bldMaxAfford(i);
             }
 
-            /* v6 Rebirth DS: a cumulative curve over *lifetime* burritos. DS already banked by past
-   rebirths is subtracted, so each further DS needs a higher lifetime total. */
-            const DS_EXP = 0.4;
+            /* DS per-run: each rebirth rewards DS based on burritos earned THIS run only. */
+            const DS_EXP = 0.45;
+            const DS_BASE = 8;
             function dsCurve(L) {
-                return L > 0 ? 3 * Math.pow(L / 1e6, DS_EXP) : 0;
+                return L > 0 ? DS_BASE * Math.pow(L / 1e6, DS_EXP) : 0;
             }
             function dsGainMult() {
                 return (
@@ -12813,18 +13466,12 @@
             }
             function pendingDS() {
                 if (game.runLifetime < 1e6) return 0;
-                const raw = Math.max(
-                    0,
-                    dsCurve(game.lifetime) - (game.stats.dsBanked || 0),
-                );
-                return Math.floor(raw * dsGainMult());
+                return Math.floor(dsCurve(game.runLifetime) * dsGainMult());
             }
-            /* Lifetime total at which pending DS goes up by one. */
+            /* Run burritos at which pending DS goes up by one. */
             function nextDSAt() {
-                const rawNeed =
-                    (game.stats.dsBanked || 0) +
-                    (pendingDS() + 1) / dsGainMult();
-                return Math.pow(rawNeed / 3, 1 / DS_EXP) * 1e6;
+                const need = (pendingDS() + 1) / dsGainMult();
+                return Math.pow(need / DS_BASE, 1 / DS_EXP) * 1e6;
             }
             function ssGainMult() {
                 return CACHE.mv.ss;
@@ -12832,8 +13479,8 @@
             function cdGainMult() {
                 return CACHE.mv.cd;
             }
-            const SACRIFICE_BASE = 500;
-            const SACRIFICE_STEP = 200;
+            const SACRIFICE_BASE = 60;
+            const SACRIFICE_STEP = 30;
             function sacrificeCost() {
                 return SACRIFICE_BASE + game.stats.sacrifices * SACRIFICE_STEP;
             }
@@ -12870,12 +13517,12 @@
                 return lo;
             }
             function ascendCost() {
-                return 100 + game.stats.ascensions * 50;
+                return 12 + game.stats.ascensions * 15;
             }
             function totalAscendCost(count, start = game.stats.ascensions) {
                 if (count <= 0) return 0;
                 return (
-                    count * 100 + 50 * ((count * (2 * start + count - 1)) / 2)
+                    count * 12 + 15 * ((count * (2 * start + count - 1)) / 2)
                 );
             }
             function maxAscendCount(ss = game.ss) {
@@ -12899,17 +13546,239 @@
             function bankUpgCost() {
                 return 5e5 * Math.pow(30, game.bankLevel);
             }
+            function debtRate() {
+                return 0.4; /* 40%/hr — a loan shark, not a bank */
+            }
+            function maxDebt() {
+                return Math.max(1e5, getBPS() * 3600 * 24) * 5;
+            }
+            function loanAmount(tier) {
+                const bps = Math.max(getBPS(), 1);
+                return tier === "big"
+                    ? Math.max(1e5, bps * 21600)
+                    : Math.max(2000, bps * 600);
+            }
+            function takeLoan(tier) {
+                const amt = loanAmount(tier);
+                if (game.debt + amt > maxDebt()) {
+                    toast(
+                        "Lender declined",
+                        "You already owe too much to borrow more",
+                        "bad",
+                    );
+                    return;
+                }
+                game.burritos += amt;
+                game.debt += amt;
+                toast(
+                    "Loan taken",
+                    "+" + fmt(amt) + " burritos · now owe " + fmt(game.debt),
+                    "bad",
+                );
+                playSfx(300, 0.12, "sawtooth");
+                markDirty("minigames");
+                markDirty("hud");
+            }
+            function repayDebt() {
+                if (game.debt <= 0) return;
+                const pay = Math.min(game.burritos, game.debt);
+                if (pay <= 0) {
+                    toast("No burritos", "to repay debt", "bad");
+                    return;
+                }
+                game.burritos -= pay;
+                game.debt -= pay;
+                game.stats.debtPaid = (game.stats.debtPaid || 0) + pay;
+                toast(
+                    "Repaid",
+                    fmt(pay) +
+                        " burritos" +
+                        (game.debt > 0
+                            ? " · " + fmt(game.debt) + " still owed"
+                            : " · Debt cleared!"),
+                    game.debt > 0 ? "" : "good",
+                );
+                playSfx(620, 0.1, "triangle");
+                markDirty("minigames");
+                markDirty("hud");
+            }
             function pickaxeCost() {
                 return 2e4 * Math.pow(9, game.pickaxe);
             }
+            /* ---------------------- MAXWELL KEYS ---------------------- */
+            /* All four "case" systems — pet eggs, artifact crates, Maxwell Skins and Theme
+   Skins — run on one shared, deliberately scarce currency instead of burritos. Keys
+   trickle in from rare events (a sliver of a chance per click, catching a Golden Sam
+   by hand, downing a raid boss); burritos can buy one directly only as a last resort,
+   at a price that climbs every time and is never cheap. */
+            const CASE_KEY_COST = 1;
+            const CASE_SPIN_MS = 8000;
+            function grantKey(reason) {
+                game.keys = (game.keys || 0) + 1;
+                game.stats.keysFound = (game.stats.keysFound || 0) + 1;
+                toast("🔑 Maxwell Key found!", reason, "gold");
+                confetti(40);
+                chord([659, 880, 1046], 0.2);
+                markDirty("hud");
+                markDirty("pets");
+                markDirty("gacha");
+                markDirty("cosmetics");
+            }
+            const VAULT_COOLDOWN = 12 * 60 * 1000;
+            const VAULT_CHANCE = 0.22;
+            function vaultReadyIn() {
+                return Math.max(0, VAULT_COOLDOWN - (Date.now() - game.lastVault));
+            }
+            function crackVault() {
+                if (vaultReadyIn() > 0) {
+                    toast(
+                        "Still locked",
+                        fmtTime(vaultReadyIn() / 1000) + " left",
+                        "bad",
+                    );
+                    return;
+                }
+                game.lastVault = Date.now();
+                game.stats.vaultCracks = (game.stats.vaultCracks || 0) + 1;
+                if (Math.random() < VAULT_CHANCE) {
+                    grantKey("Cracked Maxwell's vault");
+                } else {
+                    const consolation = getBPS() * 300 + 5000;
+                    gainBurritos(consolation);
+                    toast(
+                        "The vault held",
+                        "No key this time — +" +
+                            fmt(consolation) +
+                            " burritos for the effort",
+                        "bad",
+                    );
+                }
+                playSfx(220, 0.15, "sawtooth");
+                markDirty("minigames");
+                markDirty("hud");
+            }
             function hatchCost() {
-                return 1000 * Math.pow(3.2, game.stats.hatched);
+                return CASE_KEY_COST;
             }
             function crateCost() {
-                return 5000 * Math.pow(2.4, game.stats.crates);
+                return CASE_KEY_COST;
             }
             function petSlotCost() {
                 return 25 * Math.pow(4, game.petSlotsBought);
+            }
+            function gearSlotCDCost() {
+                return 15 * Math.pow(3.5, game.gearSlotsBonus || 0);
+            }
+            function gearSlotKeyCost() {
+                return CASE_KEY_COST;
+            }
+            function buyGearSlotCD() {
+                const c = gearSlotCDCost();
+                if (game.cd < c) {
+                    toast("Need " + fmt(c), "Cosmic Dust for another slot", "bad");
+                    return;
+                }
+                game.cd -= c;
+                game.gearSlotsBonus = (game.gearSlotsBonus || 0) + 1;
+                toast(
+                    "Artifact slot purchased",
+                    gearSlots() + " slots now",
+                    "good",
+                );
+                recalc();
+                markDirty("all");
+            }
+            function buyGearSlotKey() {
+                const c = gearSlotKeyCost();
+                if ((game.keys || 0) < c) {
+                    toast(
+                        "Need " + c + " 🔑 Key" + (c === 1 ? "" : "s"),
+                        "for another slot",
+                        "bad",
+                    );
+                    return;
+                }
+                game.keys -= c;
+                game.gearSlotsBonus = (game.gearSlotsBonus || 0) + 1;
+                toast(
+                    "Artifact slot purchased",
+                    gearSlots() + " slots now",
+                    "good",
+                );
+                recalc();
+                markDirty("all");
+            }
+            function gachaCaseCost() {
+                return CASE_KEY_COST;
+            }
+            function skinRarityOf(defId) {
+                const def = GACHA_BY_ID[defId];
+                return (
+                    (def && GACHA_RARITIES.find((r) => r.id === def.rar)) ||
+                    GACHA_RARITIES[0]
+                );
+            }
+            function skinMarketIndex(defId) {
+                return GACHA_SKINS.findIndex((s) => s.id === defId);
+            }
+            function skinMarketAnchor(defId) {
+                const rar = skinRarityOf(defId);
+                return Math.max(3000, game.burritos * 0.05) * rar.mult;
+            }
+            function skinMarketPrice(defId, wear) {
+                const i = skinMarketIndex(defId);
+                const mult =
+                    i >= 0 && game.skinMarket[i] ? game.skinMarket[i].mult : 1;
+                const wm = wear == null ? 1 : wearInfo(wear).mult;
+                return skinMarketAnchor(defId) * mult * wm;
+            }
+            function themeCaseCost() {
+                return CASE_KEY_COST;
+            }
+            function themeRarityOf(defId) {
+                const def = THEME_SKIN_BY_ID[defId];
+                return (
+                    (def && GACHA_RARITIES.find((r) => r.id === def.rar)) ||
+                    GACHA_RARITIES[0]
+                );
+            }
+            function themeMarketIndex(defId) {
+                return THEME_SKINS.findIndex((s) => s.id === defId);
+            }
+            function themeMarketAnchor(defId) {
+                const rar = themeRarityOf(defId);
+                return Math.max(4000, game.burritos * 0.06) * rar.mult;
+            }
+            function themeMarketPrice(defId, wear) {
+                const i = themeMarketIndex(defId);
+                const mult =
+                    i >= 0 && game.themeMarket[i] ? game.themeMarket[i].mult : 1;
+                const wm = wear == null ? 1 : wearInfo(wear).mult;
+                return themeMarketAnchor(defId) * mult * wm;
+            }
+            function themeSkinValue(item) {
+                const rar =
+                    GACHA_RARITIES.find((r) => r.id === item.rar) ||
+                    GACHA_RARITIES[0];
+                return rar.mult * wearInfo(item.wear).mult;
+            }
+            function equippedThemeDef() {
+                if (!game.equippedThemeSkin) return null;
+                const item = game.themeSkins.find(
+                    (x) => x.uid === game.equippedThemeSkin,
+                );
+                if (!item) return null;
+                const def = THEME_SKIN_BY_ID[item.id];
+                if (!def) return null;
+                return { item, def };
+            }
+            function themeVividnessFilter() {
+                const eq = equippedThemeDef();
+                if (!eq) return "";
+                const q = Math.min(1, themeSkinValue(eq.item) / 6);
+                const sat = 100 + q * 60;
+                const con = 100 + q * 15;
+                return "saturate(" + sat.toFixed(0) + "%) contrast(" + con.toFixed(0) + "%)";
             }
             function titleFor(n) {
                 let t = TITLES[0][1];
@@ -13199,6 +14068,8 @@
                 game.stats.handmade += pow;
 
                 if (tal("f10") && Math.random() < 0.01) spawnGolden();
+                if (Math.random() < 1 / 100000)
+                    grantKey("A key fell out of the wrapper");
 
                 if (!silent) {
                     playSfx(
@@ -13555,88 +14426,47 @@
                 maxAllFeedback(false, n, "bank rate upgrades");
             }
             function buyMaxPets() {
-                /* bottom of the incubator list first: pet slots (DS), then eggs (burritos, capped at 100 per press) */
-                const slots = geoMax(25, 4, game.petSlotsBought, game.ds);
+                /* Eggs now cost the very-scarce 🔑 Keys and hatch one at a time with an
+     animation, so "max" only ever means "as many slots as you can afford" — plus a
+     single hatch if a key and the incubator are both free. */
+                const cap = petSlotsBoughtCap();
+                const affordable = geoMax(25, 4, game.petSlotsBought, game.ds);
+                const slots = Math.max(
+                    0,
+                    Math.min(affordable, cap - game.petSlotsBought),
+                );
                 if (slots > 0) {
                     game.ds -= Math.floor(
                         geoSum(25, 4, game.petSlotsBought, slots),
                     );
                     game.petSlotsBought += slots;
                 }
-                const eggs = Math.min(
-                    100,
-                    geoMax(1000, 3.2, game.stats.hatched, game.burritos),
-                );
-                let best = -1,
-                    newPets = 0;
-                for (let k = 0; k < eggs; k++) {
-                    game.burritos -= hatchCost();
-                    game.stats.hatched++;
-                    let rar = rollRarity();
-                    if (tal("f7")) {
-                        const r2 = rollRarity();
-                        if (rarIdx(r2) > rarIdx(rar)) rar = r2;
-                    }
-                    const pool = PETS.filter((p) => p.rar === rar),
-                        def =
-                            pool[Math.floor(Math.random() * pool.length)] ||
-                            PETS[0];
-                    const have = game.pets.find((p) => p.id === def.id);
-                    if (have) have.lvl++;
-                    else {
-                        game.pets.push({
-                            id: def.id,
-                            lvl: 1,
-                            active: activePets().length < petSlots(),
-                        });
-                        newPets++;
-                    }
-                    best = Math.max(best, rarIdx(rar));
-                }
-                if (slots || eggs) {
+                if (slots) {
                     toast(
                         "Buy Max All",
-                        (slots
-                            ? "+" +
-                              slots +
-                              " pet slot" +
-                              (slots > 1 ? "s" : "") +
-                              " · "
-                            : "") +
-                            eggs +
-                            " eggs hatched, " +
-                            newPets +
-                            " new" +
-                            (best >= 0 ? " · best: " + RARITY_ORDER[best] : ""),
-                        best >= 3 ? "gold" : "good",
+                        "+" +
+                            slots +
+                            " pet slot" +
+                            (slots > 1 ? "s" : "") +
+                            " (" +
+                            petSlots() +
+                            "/" +
+                            PET_SLOT_CAP +
+                            ")",
+                        "good",
                     );
-                    if (best >= 3) confetti(40);
                     recalc();
                 } else playSfx(140, 0.09, "sawtooth");
+                if (!petSpinning && (game.keys || 0) >= hatchCost())
+                    hatchPet();
             }
             function openMaxCrates() {
-                const n = Math.min(
-                    100,
-                    geoMax(5000, 2.4, game.stats.crates, game.burritos),
-                );
-                let best = -1;
-                for (let k = 0; k < n; k++) {
-                    game.burritos -= crateCost();
-                    game.stats.crates++;
-                    const it = rollArtifact();
-                    addToInventory(it);
-                    best = Math.max(best, rarIdx(ART_BY_ID[it.id].rar));
-                }
-                if (n) {
-                    toast(
-                        "Opened " + n + " crates",
-                        "Best drop: " + RARITY_ORDER[best],
-                        best >= 3 ? "gold" : "good",
-                    );
-                    if (best >= 3) confetti(40);
-                    markDirty("pets");
-                    markDirty("hud");
-                } else playSfx(140, 0.09, "sawtooth");
+                /* Crates now cost the very-scarce 🔑 Keys and open one at a time with an
+     animation, so this just triggers a single open if a key and the crate machine
+     are both free. */
+                if (!crateSpinning && (game.keys || 0) >= crateCost())
+                    openCrate();
+                else playSfx(140, 0.09, "sawtooth");
             }
             function buyMaxAll(kind) {
                 switch (kind) {
@@ -13789,7 +14619,7 @@
                     case 4: {
                         const d = 5 + game.rebirths;
                         game.ds += d;
-                        toast("DS Magnet", "+" + d + " Dev Points", "gold");
+                        toast("DS Magnet", "+" + d + " Dough Shards", "gold");
                         break;
                     }
                     case 5:
@@ -14082,6 +14912,8 @@
                 } else if (goldenKind) {
                     goldenKind.run();
                 }
+                if (!auto && Math.random() < 0.15)
+                    grantKey("Caught a Golden Sam by hand");
                 if (cdLvl(4) > 0 && !auto) game.ds += cdLvl(4);
                 chord([880, 1180, 1480], 0.18);
                 if (game.settings.particles)
@@ -14146,6 +14978,8 @@
                             "gold",
                         );
                     }
+                    if (Math.random() < 0.15)
+                        grantKey("Raid boss dropped it");
                     toast(
                         "RAID BOSS DEFEATED",
                         "+" + fmt(reward) + " burritos",
@@ -14233,10 +15067,6 @@
                 const go = () => {
                     game.ds += pending;
                     game.stats.totalRebirthDs += pending;
-                    game.stats.dsBanked = Math.max(
-                        game.stats.dsBanked || 0,
-                        dsCurve(game.lifetime),
-                    );
                     game.rebirths++;
                     game.talentPoints += 1 + perk(6);
                     const keep = Math.min(
@@ -14501,17 +15331,6 @@
                         markDirty("codex");
                     }
                 }
-                SKINS.forEach((s) => {
-                    if (
-                        s.req >= 0 &&
-                        game.lifetime >= s.req &&
-                        !game.skins.includes(s.id)
-                    ) {
-                        game.skins.push(s.id);
-                        if (s.req > 0) toast("Skin unlocked", s.name);
-                        markDirty("cosmetics");
-                    }
-                });
             }
 
             /* ---------------------- QUESTS ---------------------- */
@@ -14670,6 +15489,32 @@
                         (weatherIs("blizzard") ? 2 : 1);
                     game.bank = Math.min(bankCap(), game.bank + earn);
                     game.stats.interest += earn;
+                }
+
+                /* debt: high-interest loan sharks. Interest compounds relentlessly and
+     collectors auto-garnish half of your passive income every tick until you're square. */
+                if (game.debt > 0) {
+                    game.debt *= 1 + (debtRate() / 3600) * dt;
+                    const garnish = Math.min(
+                        getBPS() * dt * 0.5,
+                        game.debt,
+                        game.burritos,
+                    );
+                    if (garnish > 0) {
+                        game.burritos -= garnish;
+                        game.debt -= garnish;
+                        game.stats.debtPaid = (game.stats.debtPaid || 0) + garnish;
+                    }
+                    if (game.debt > 1e9 && !game.flags.debtWarned) {
+                        game.flags.debtWarned = true;
+                        toast(
+                            "Collections calling",
+                            "Your debt is spiraling — repay before it eats everything",
+                            "bad",
+                        );
+                    }
+                    markDirty("hud");
+                    markDirty("minigames");
                 }
 
                 /* golden sams */
@@ -14996,6 +15841,50 @@
                     }
                 }
                 markDirty("stockprice");
+                skinMarketSecond();
+                themeMarketSecond();
+            }
+            let skinHistTimer = 5;
+            function skinMarketSecond() {
+                const bias = (marketMood - 1) * 0.015;
+                GACHA_SKINS.forEach((s, i) => {
+                    const m = game.skinMarket[i];
+                    if (!m) return;
+                    const drift = (Math.random() - 0.5) * 0.07 + bias;
+                    m.mult = Math.max(0.35, Math.min(4, m.mult * (1 + drift)));
+                });
+                skinHistTimer--;
+                if (skinHistTimer <= 0) {
+                    skinHistTimer = 5;
+                    GACHA_SKINS.forEach((s, i) => {
+                        const m = game.skinMarket[i];
+                        if (!m) return;
+                        m.hist.push(skinMarketPrice(s.id));
+                        if (m.hist.length > 40) m.hist.shift();
+                    });
+                    markDirty("gacha");
+                }
+            }
+            let themeHistTimer = 5;
+            function themeMarketSecond() {
+                const bias = (marketMood - 1) * 0.015;
+                THEME_SKINS.forEach((s, i) => {
+                    const m = game.themeMarket[i];
+                    if (!m) return;
+                    const drift = (Math.random() - 0.5) * 0.07 + bias;
+                    m.mult = Math.max(0.35, Math.min(4, m.mult * (1 + drift)));
+                });
+                themeHistTimer--;
+                if (themeHistTimer <= 0) {
+                    themeHistTimer = 5;
+                    THEME_SKINS.forEach((s, i) => {
+                        const m = game.themeMarket[i];
+                        if (!m) return;
+                        m.hist.push(themeMarketPrice(s.id));
+                        if (m.hist.length > 40) m.hist.shift();
+                    });
+                    markDirty("cosmetics");
+                }
             }
             function stockQty(i) {
                 if (game.stockQty > 0) return game.stockQty;
@@ -15195,13 +16084,27 @@
                 return "common";
             }
             function hatchPet() {
-                const c = hatchCost();
-                if (game.burritos < c) {
-                    toast("Need " + fmt(c), "to hatch an egg", "bad");
+                if (petSpinning) {
+                    toast(
+                        "Egg already hatching",
+                        "Only one at a time",
+                        "bad",
+                    );
                     return;
                 }
-                game.burritos -= c;
-                game.stats.hatched++;
+                const c = hatchCost();
+                if ((game.keys || 0) < c) {
+                    toast(
+                        "Need " + c + " 🔑 Key" + (c === 1 ? "" : "s"),
+                        "to hatch an egg",
+                        "bad",
+                    );
+                    return;
+                }
+                petSpinning = true;
+                const btn = $("btn-hatch");
+                if (btn) btn.disabled = true;
+                game.keys -= c;
                 let rar = rollRarity();
                 if (tal("f7")) {
                     const r2 = rollRarity();
@@ -15211,32 +16114,96 @@
                 const pool = PETS.filter((p) => p.rar === rar);
                 const def =
                     pool[Math.floor(Math.random() * pool.length)] || PETS[0];
-                const have = game.pets.find((p) => p.id === def.id);
-                if (have) {
-                    have.lvl++;
-                    toast(
-                        "Duplicate merged",
-                        def.name + " is now level " + have.lvl,
-                        "good",
-                    );
-                } else {
-                    game.pets.push({
-                        id: def.id,
-                        lvl: 1,
-                        active: activePets().length < petSlots(),
-                    });
-                    toast(
-                        "Hatched: " + def.name,
-                        def.desc + " (" + rar + ")",
-                        rar === "common" ? "" : "gold",
-                    );
-                    if (rar === "legendary" || rar === "mythic") confetti(50);
+                spinPetReel(def, rar);
+                markDirty("hud");
+            }
+            function spinPetReel(def, rar) {
+                const wrap = $("pet-reel-wrap"),
+                    reel = $("pet-reel");
+                if (!wrap || !reel) return;
+                const N = 40,
+                    WIN = 34,
+                    ITEM_W = 92;
+                let html = "";
+                for (let i = 0; i < N; i++) {
+                    let d, r;
+                    if (i === WIN) {
+                        d = def;
+                        r = rar;
+                    } else {
+                        r = rollRarity();
+                        const p = PETS.filter((x) => x.rar === r);
+                        d = p[Math.floor(Math.random() * p.length)] || PETS[0];
+                    }
+                    html +=
+                        '<div class="gacha-reel-item" style="border-color:' +
+                        RARITY_COLOR[r] +
+                        '"><span class="gri-ico">' +
+                        d.icon +
+                        '</span><span class="tiny" style="color:' +
+                        RARITY_COLOR[r] +
+                        '">' +
+                        d.name +
+                        "</span></div>";
                 }
-                chord([523, 659, 784], 0.16);
-                recalc();
-                markDirty("all");
+                reel.style.transition = "none";
+                reel.style.transform = "translateX(0px)";
+                reel.innerHTML = html;
+                void reel.offsetHeight;
+                const wrapW = wrap.clientWidth || 480;
+                const target =
+                    -(WIN * ITEM_W + ITEM_W / 2 - wrapW / 2) +
+                    (Math.random() * 40 - 20);
+                showVignette();
+                requestAnimationFrame(() => {
+                    reel.style.transition =
+                        "transform " +
+                        CASE_SPIN_MS / 1000 +
+                        "s cubic-bezier(.1,.7,.1,1)";
+                    reel.style.transform = "translateX(" + target + "px)";
+                });
+                setTimeout(() => {
+                    hideVignette();
+                    game.stats.hatched++;
+                    const have = game.pets.find((p) => p.id === def.id);
+                    if (have) {
+                        have.lvl++;
+                        toast(
+                            "Duplicate merged",
+                            def.name + " is now level " + have.lvl,
+                            "good",
+                        );
+                    } else {
+                        game.pets.push({
+                            id: def.id,
+                            lvl: 1,
+                            active: activePets().length < petSlots(),
+                        });
+                        toast(
+                            "Hatched: " + def.name,
+                            def.desc + " (" + rar + ")",
+                            rar === "common" ? "" : "gold",
+                        );
+                        if (rar === "legendary" || rar === "mythic")
+                            confetti(50);
+                    }
+                    chord([523, 659, 784], 0.16);
+                    recalc();
+                    petSpinning = false;
+                    const btn = $("btn-hatch");
+                    if (btn) btn.disabled = (game.keys || 0) < hatchCost();
+                    markDirty("all");
+                }, CASE_SPIN_MS + 100);
             }
             function buyPetSlot() {
+                if (game.petSlotsBought >= petSlotsBoughtCap()) {
+                    toast(
+                        "Pet slots maxed",
+                        PET_SLOT_CAP + " is the cap",
+                        "bad",
+                    );
+                    return;
+                }
                 const c = petSlotCost();
                 if (game.ds < c) {
                     toast("Need " + c + " DS", "for another pet slot", "bad");
@@ -15317,30 +16284,99 @@
                 markDirty("pets");
             }
             function openCrate() {
-                const c = crateCost();
-                if (game.burritos < c) {
-                    toast("Need " + fmt(c), "to open a crate", "bad");
+                if (crateSpinning) {
+                    toast(
+                        "Crate already opening",
+                        "Only one at a time",
+                        "bad",
+                    );
                     return;
                 }
-                game.burritos -= c;
-                game.stats.crates++;
+                const c = crateCost();
+                if ((game.keys || 0) < c) {
+                    toast(
+                        "Need " + c + " 🔑 Key" + (c === 1 ? "" : "s"),
+                        "to open a crate",
+                        "bad",
+                    );
+                    return;
+                }
+                crateSpinning = true;
+                const btn = $("btn-crate");
+                if (btn) btn.disabled = true;
+                game.keys -= c;
                 const item = rollArtifact();
                 const def = ART_BY_ID[item.id];
-                addToInventory(item);
-                toast(
-                    "Crate: " + def.name,
-                    def.rar.toUpperCase() +
-                        " · +" +
-                        Math.round(def.val * item.roll * 100) +
-                        "% " +
-                        EFF_LABEL[def.eff],
-                    def.rar === "common" ? "" : "gold",
-                );
-                if (def.rar === "legendary" || def.rar === "mythic")
-                    confetti(50);
-                chord([440, 587, 740], 0.16);
-                markDirty("pets");
+                spinCrateReel(item, def);
                 markDirty("hud");
+            }
+            function spinCrateReel(item, def) {
+                const wrap = $("crate-reel-wrap"),
+                    reel = $("crate-reel");
+                if (!wrap || !reel) return;
+                const N = 40,
+                    WIN = 34,
+                    ITEM_W = 92;
+                let html = "";
+                for (let i = 0; i < N; i++) {
+                    let d, r;
+                    if (i === WIN) {
+                        d = def;
+                        r = def.rar;
+                    } else {
+                        r = rollRarity();
+                        const p = ARTIFACTS.filter((x) => x.rar === r);
+                        d = p[Math.floor(Math.random() * p.length)] || ARTIFACTS[0];
+                    }
+                    html +=
+                        '<div class="gacha-reel-item" style="border-color:' +
+                        RARITY_COLOR[r] +
+                        '"><span class="gri-ico">' +
+                        d.icon +
+                        '</span><span class="tiny" style="color:' +
+                        RARITY_COLOR[r] +
+                        '">' +
+                        d.name +
+                        "</span></div>";
+                }
+                reel.style.transition = "none";
+                reel.style.transform = "translateX(0px)";
+                reel.innerHTML = html;
+                void reel.offsetHeight;
+                const wrapW = wrap.clientWidth || 480;
+                const target =
+                    -(WIN * ITEM_W + ITEM_W / 2 - wrapW / 2) +
+                    (Math.random() * 40 - 20);
+                showVignette();
+                requestAnimationFrame(() => {
+                    reel.style.transition =
+                        "transform " +
+                        CASE_SPIN_MS / 1000 +
+                        "s cubic-bezier(.1,.7,.1,1)";
+                    reel.style.transform = "translateX(" + target + "px)";
+                });
+                setTimeout(() => {
+                    hideVignette();
+                    game.stats.crates++;
+                    addToInventory(item);
+                    toast(
+                        "Crate: " + def.name,
+                        def.rar.toUpperCase() +
+                            " · +" +
+                            Math.round(def.val * item.roll * 100) +
+                            "% " +
+                            EFF_LABEL[def.eff],
+                        def.rar === "common" ? "" : "gold",
+                    );
+                    if (def.rar === "legendary" || def.rar === "mythic")
+                        confetti(50);
+                    chord([440, 587, 740], 0.16);
+                    crateSpinning = false;
+                    const btn = $("btn-crate");
+                    if (btn) btn.disabled = (game.keys || 0) < crateCost();
+                    markDirty("pets");
+                    markDirty("hud");
+                }, CASE_SPIN_MS + 100);
             }
             function equipItem(uid) {
                 const slots = gearSlots();
@@ -15420,6 +16456,486 @@
                 markDirty("pets");
             }
 
+            /* ---------------------- SKIN CASES ---------------------- */
+            function openGachaCase() {
+                if (gachaSpinning) {
+                    toast(
+                        "Case already opening",
+                        "Only one case can spin at a time",
+                        "bad",
+                    );
+                    return;
+                }
+                const c = gachaCaseCost();
+                if ((game.keys || 0) < c) {
+                    toast(
+                        "Need " + c + " 🔑 Key" + (c === 1 ? "" : "s"),
+                        "to open a skin case",
+                        "bad",
+                    );
+                    return;
+                }
+                gachaSpinning = true;
+                const btn = $("btn-gacha-open");
+                if (btn) btn.disabled = true;
+                game.keys -= c;
+                game.stats.gachaCases = (game.stats.gachaCases || 0) + 1;
+                const rar = rollGachaRarity();
+                const pool = GACHA_SKINS.filter((s) => s.rar === rar.id);
+                const def =
+                    pool[Math.floor(Math.random() * pool.length)] ||
+                    GACHA_SKINS[0];
+                const item = {
+                    uid:
+                        "g" +
+                        Date.now().toString(36) +
+                        Math.random().toString(36).slice(2, 8),
+                    id: def.id,
+                    rar: rar.id,
+                    wear: +Math.random().toFixed(4),
+                };
+                spinGachaReel(item);
+                markDirty("hud");
+            }
+            function spinGachaReel(item) {
+                const wrap = $("gacha-reel-wrap"),
+                    reel = $("gacha-reel");
+                if (!wrap || !reel) return;
+                const def = GACHA_BY_ID[item.id];
+                const rar =
+                    GACHA_RARITIES.find((r) => r.id === item.rar) ||
+                    GACHA_RARITIES[0];
+                const N = 40,
+                    WIN = 34,
+                    ITEM_W = 92;
+                let html = "";
+                for (let i = 0; i < N; i++) {
+                    let d, r;
+                    if (i === WIN) {
+                        d = def;
+                        r = rar;
+                    } else {
+                        r = rollGachaRarity();
+                        const p = GACHA_SKINS.filter((s) => s.rar === r.id);
+                        d = p[Math.floor(Math.random() * p.length)] || GACHA_SKINS[0];
+                    }
+                    html +=
+                        '<div class="gacha-reel-item" style="border-color:' +
+                        r.color +
+                        '"><span class="gri-ico">' +
+                        d.icon +
+                        '</span><span class="tiny" style="color:' +
+                        r.color +
+                        '">' +
+                        d.name.replace("Maxwell | ", "") +
+                        "</span></div>";
+                }
+                reel.style.transition = "none";
+                reel.style.transform = "translateX(0px)";
+                reel.innerHTML = html;
+                void reel.offsetHeight;
+                const wrapW = wrap.clientWidth || 480;
+                const target =
+                    -(WIN * ITEM_W + ITEM_W / 2 - wrapW / 2) +
+                    (Math.random() * 40 - 20);
+                showVignette();
+                requestAnimationFrame(() => {
+                    reel.style.transition =
+                        "transform " +
+                        CASE_SPIN_MS / 1000 +
+                        "s cubic-bezier(.1,.7,.1,1)";
+                    reel.style.transform = "translateX(" + target + "px)";
+                });
+                setTimeout(() => {
+                    hideVignette();
+                    game.gachaSkins.push(item);
+                    if (rar.id === "covert" || rar.id === "rare") confetti(60);
+                    chord([392, 523, 659], 0.16);
+                    recalc();
+                    toast(
+                        "Unboxed: " + def.name,
+                        rar.name + " · " + wearInfo(item.wear).name,
+                        rar.id === "covert" || rar.id === "rare" ? "gold" : "",
+                    );
+                    gachaSpinning = false;
+                    const btn = $("btn-gacha-open");
+                    if (btn) btn.disabled = (game.keys || 0) < gachaCaseCost();
+                    markDirty("gacha");
+                }, CASE_SPIN_MS + 100);
+            }
+            function equipGachaSkin(uid) {
+                if (game.equippedGachaSkin === uid) {
+                    game.equippedGachaSkin = null;
+                    setAnim("anim-bounce");
+                } else {
+                    game.equippedGachaSkin = uid;
+                    const item = game.gachaSkins.find((x) => x.uid === uid);
+                    const def = item && GACHA_BY_ID[item.id];
+                    setAnim((def && def.anim) || "anim-bounce");
+                }
+                playSfx(700, 0.1, "triangle");
+                recalc();
+                markDirty("gacha");
+                markDirty("cosmetics");
+                markDirty("hud");
+            }
+            function sellGachaSkin(uid) {
+                const idx = game.gachaSkins.findIndex((x) => x.uid === uid);
+                if (idx < 0) return;
+                const item = game.gachaSkins[idx];
+                const def = GACHA_BY_ID[item.id];
+                if (!def) return;
+                if (game.equippedGachaSkin === uid) game.equippedGachaSkin = null;
+                const gain = skinMarketPrice(item.id, item.wear);
+                game.gachaSkins.splice(idx, 1);
+                gainBurritos(gain);
+                toast("Sold " + def.name, "+" + fmt(gain) + " burritos", "good");
+                recalc();
+                markDirty("gacha");
+                markDirty("hud");
+            }
+            function sellOneSkinMarket(defId) {
+                /* Terminal only shows what you hold, so this sells one unit of a held
+     type at the live market price — worst wear first, never an equipped piece. */
+                const pool = game.gachaSkins
+                    .filter(
+                        (x) => x.id === defId && x.uid !== game.equippedGachaSkin,
+                    )
+                    .sort((a, b) => b.wear - a.wear);
+                if (!pool.length) {
+                    toast("Nothing to sell", "That skin is equipped or gone", "bad");
+                    return;
+                }
+                sellGachaSkin(pool[0].uid);
+            }
+            const TRADE_UP_COUNT = 5;
+            function tradeUpEligible(rarId) {
+                const idx = GACHA_RAR_ORDER.indexOf(rarId);
+                if (idx < 0 || idx >= GACHA_RAR_ORDER.length - 1) return null;
+                return GACHA_RAR_ORDER[idx + 1];
+            }
+            function tradeUpSkins(rarId) {
+                const nextRar = tradeUpEligible(rarId);
+                if (!nextRar) {
+                    toast("No trade-up", "This is already the top rarity", "bad");
+                    return;
+                }
+                const pool = game.gachaSkins
+                    .filter(
+                        (x) => x.rar === rarId && x.uid !== game.equippedGachaSkin,
+                    )
+                    .sort((a, b) => b.wear - a.wear);
+                if (pool.length < TRADE_UP_COUNT) {
+                    const rn =
+                        (GACHA_RARITIES.find((r) => r.id === rarId) || {}).name ||
+                        rarId;
+                    toast(
+                        "Need " + TRADE_UP_COUNT + " skins",
+                        "Not enough unequipped " + rn + " skins",
+                        "bad",
+                    );
+                    return;
+                }
+                const used = pool.slice(0, TRADE_UP_COUNT);
+                const avgWear =
+                    used.reduce((s, x) => s + x.wear, 0) / used.length;
+                used.forEach((u) => {
+                    const i = game.gachaSkins.findIndex((x) => x.uid === u.uid);
+                    if (i >= 0) game.gachaSkins.splice(i, 1);
+                });
+                const destPool = GACHA_SKINS.filter((s) => s.rar === nextRar);
+                const def =
+                    destPool[Math.floor(Math.random() * destPool.length)] ||
+                    GACHA_SKINS[0];
+                const item = {
+                    uid:
+                        "g" +
+                        Date.now().toString(36) +
+                        Math.random().toString(36).slice(2, 8),
+                    id: def.id,
+                    rar: nextRar,
+                    wear: +avgWear.toFixed(4),
+                };
+                game.gachaSkins.push(item);
+                const rar = GACHA_RARITIES.find((r) => r.id === nextRar);
+                toast(
+                    "Trade-up complete",
+                    "Received " + def.name + " (" + rar.name + ")",
+                    rar.id === "covert" || rar.id === "rare" ? "gold" : "good",
+                );
+                if (rar.id === "covert" || rar.id === "rare") confetti(50);
+                chord([523, 659, 880], 0.18);
+                recalc();
+                markDirty("gacha");
+                markDirty("hud");
+            }
+            function sellAllUnequipped() {
+                let total = 0,
+                    count = 0;
+                game.pets.slice().forEach((p) => {
+                    if (petOnMission(p.id)) return;
+                    const d = PET_BY_ID[p.id];
+                    if (!d) return;
+                    total +=
+                        p.lvl *
+                        (RARITY_ORDER.indexOf(d.rar) + 1) *
+                        (getBPS() * 45 + 4000);
+                    count++;
+                    const idx = game.pets.findIndex((x) => x.id === p.id);
+                    if (idx >= 0) game.pets.splice(idx, 1);
+                });
+                game.inventory.slice().forEach((it) => {
+                    if (game.gear.indexOf(it.uid) >= 0) return;
+                    const d = ART_BY_ID[it.id];
+                    if (!d) return;
+                    total +=
+                        (RARITY_ORDER.indexOf(d.rar) + 1) *
+                        (getBPS() * 60 + 5000) *
+                        it.roll;
+                    count++;
+                    const idx = game.inventory.findIndex(
+                        (x) => x.uid === it.uid,
+                    );
+                    if (idx >= 0) game.inventory.splice(idx, 1);
+                });
+                game.gachaSkins.slice().forEach((it) => {
+                    if (it.uid === game.equippedGachaSkin) return;
+                    total += skinMarketPrice(it.id, it.wear);
+                    count++;
+                    const idx = game.gachaSkins.findIndex(
+                        (x) => x.uid === it.uid,
+                    );
+                    if (idx >= 0) game.gachaSkins.splice(idx, 1);
+                });
+                game.themeSkins.slice().forEach((it) => {
+                    if (it.uid === game.equippedThemeSkin) return;
+                    total += themeMarketPrice(it.id, it.wear);
+                    count++;
+                    const idx = game.themeSkins.findIndex(
+                        (x) => x.uid === it.uid,
+                    );
+                    if (idx >= 0) game.themeSkins.splice(idx, 1);
+                });
+                if (!count) {
+                    toast("Nothing to sell", "No unequipped items", "bad");
+                    return;
+                }
+                gainBurritos(total);
+                toast(
+                    "Sold " + count + " items",
+                    "+" + fmt(total) + " burritos",
+                    "good",
+                );
+                recalc();
+                markDirty("pets");
+                markDirty("gacha");
+                markDirty("cosmetics");
+                markDirty("hud");
+            }
+
+            /* ---------------------- THEME CASES ---------------------- */
+            function openThemeCase() {
+                if (themeSpinning) {
+                    toast(
+                        "Case already opening",
+                        "Only one case can spin at a time",
+                        "bad",
+                    );
+                    return;
+                }
+                const c = themeCaseCost();
+                if ((game.keys || 0) < c) {
+                    toast(
+                        "Need " + c + " 🔑 Key" + (c === 1 ? "" : "s"),
+                        "to open a theme case",
+                        "bad",
+                    );
+                    return;
+                }
+                themeSpinning = true;
+                const btn = $("btn-theme-open");
+                if (btn) btn.disabled = true;
+                game.keys -= c;
+                game.stats.themeCases = (game.stats.themeCases || 0) + 1;
+                const rar = rollGachaRarity();
+                const pool = THEME_SKINS.filter((s) => s.rar === rar.id);
+                const def =
+                    pool[Math.floor(Math.random() * pool.length)] ||
+                    THEME_SKINS[0];
+                const item = {
+                    uid:
+                        "t" +
+                        Date.now().toString(36) +
+                        Math.random().toString(36).slice(2, 8),
+                    id: def.id,
+                    rar: rar.id,
+                    wear: +Math.random().toFixed(4),
+                };
+                spinThemeReel(item);
+                markDirty("hud");
+            }
+            function spinThemeReel(item) {
+                const wrap = $("theme-reel-wrap"),
+                    reel = $("theme-reel");
+                if (!wrap || !reel) return;
+                const def = THEME_SKIN_BY_ID[item.id];
+                const rar =
+                    GACHA_RARITIES.find((r) => r.id === item.rar) ||
+                    GACHA_RARITIES[0];
+                const N = 40,
+                    WIN = 34,
+                    ITEM_W = 92;
+                let html = "";
+                for (let i = 0; i < N; i++) {
+                    let d, r;
+                    if (i === WIN) {
+                        d = def;
+                        r = rar;
+                    } else {
+                        r = rollGachaRarity();
+                        const p = THEME_SKINS.filter((s) => s.rar === r.id);
+                        d = p[Math.floor(Math.random() * p.length)] || THEME_SKINS[0];
+                    }
+                    html +=
+                        '<div class="gacha-reel-item" style="border-color:' +
+                        r.color +
+                        '"><span class="gri-ico">' +
+                        d.icon +
+                        '</span><span class="tiny" style="color:' +
+                        r.color +
+                        '">' +
+                        d.name.replace("Theme | ", "") +
+                        "</span></div>";
+                }
+                reel.style.transition = "none";
+                reel.style.transform = "translateX(0px)";
+                reel.innerHTML = html;
+                void reel.offsetHeight;
+                const wrapW = wrap.clientWidth || 480;
+                const target =
+                    -(WIN * ITEM_W + ITEM_W / 2 - wrapW / 2) +
+                    (Math.random() * 40 - 20);
+                showVignette();
+                requestAnimationFrame(() => {
+                    reel.style.transition =
+                        "transform " +
+                        CASE_SPIN_MS / 1000 +
+                        "s cubic-bezier(.1,.7,.1,1)";
+                    reel.style.transform = "translateX(" + target + "px)";
+                });
+                setTimeout(() => {
+                    hideVignette();
+                    game.themeSkins.push(item);
+                    if (rar.id === "covert" || rar.id === "rare") confetti(60);
+                    chord([349, 466, 587], 0.16);
+                    toast(
+                        "Unboxed: " + def.name,
+                        rar.name + " · " + wearInfo(item.wear).name,
+                        rar.id === "covert" || rar.id === "rare" ? "gold" : "",
+                    );
+                    themeSpinning = false;
+                    const btn = $("btn-theme-open");
+                    if (btn) btn.disabled = (game.keys || 0) < themeCaseCost();
+                    markDirty("cosmetics");
+                }, CASE_SPIN_MS + 100);
+            }
+            function equipThemeSkin(uid) {
+                if (game.equippedThemeSkin === uid) {
+                    game.equippedThemeSkin = null;
+                    setTheme("default");
+                    setBgFx("burritos");
+                } else {
+                    game.equippedThemeSkin = uid;
+                    const item = game.themeSkins.find((x) => x.uid === uid);
+                    const def = item && THEME_SKIN_BY_ID[item.id];
+                    if (item) setTheme(item.id);
+                    setBgFx((def && def.fx) || "burritos");
+                }
+                playSfx(700, 0.1, "triangle");
+                markDirty("cosmetics");
+                markDirty("hud");
+            }
+            function sellThemeSkin(uid) {
+                const idx = game.themeSkins.findIndex((x) => x.uid === uid);
+                if (idx < 0) return;
+                const item = game.themeSkins[idx];
+                const def = THEME_SKIN_BY_ID[item.id];
+                if (!def) return;
+                if (game.equippedThemeSkin === uid) game.equippedThemeSkin = null;
+                const gain = themeMarketPrice(item.id, item.wear);
+                game.themeSkins.splice(idx, 1);
+                gainBurritos(gain);
+                toast("Sold " + def.name, "+" + fmt(gain) + " burritos", "good");
+                markDirty("cosmetics");
+                markDirty("hud");
+            }
+            function sellOneThemeMarket(defId) {
+                const pool = game.themeSkins
+                    .filter(
+                        (x) => x.id === defId && x.uid !== game.equippedThemeSkin,
+                    )
+                    .sort((a, b) => b.wear - a.wear);
+                if (!pool.length) {
+                    toast("Nothing to sell", "That theme is equipped or gone", "bad");
+                    return;
+                }
+                sellThemeSkin(pool[0].uid);
+            }
+            function tradeUpThemeSkins(rarId) {
+                const nextRar = tradeUpEligible(rarId);
+                if (!nextRar) {
+                    toast("No trade-up", "This is already the top rarity", "bad");
+                    return;
+                }
+                const pool = game.themeSkins
+                    .filter(
+                        (x) => x.rar === rarId && x.uid !== game.equippedThemeSkin,
+                    )
+                    .sort((a, b) => b.wear - a.wear);
+                if (pool.length < TRADE_UP_COUNT) {
+                    const rn =
+                        (GACHA_RARITIES.find((r) => r.id === rarId) || {}).name ||
+                        rarId;
+                    toast(
+                        "Need " + TRADE_UP_COUNT + " themes",
+                        "Not enough unequipped " + rn + " themes",
+                        "bad",
+                    );
+                    return;
+                }
+                const used = pool.slice(0, TRADE_UP_COUNT);
+                const avgWear =
+                    used.reduce((s, x) => s + x.wear, 0) / used.length;
+                used.forEach((u) => {
+                    const i = game.themeSkins.findIndex((x) => x.uid === u.uid);
+                    if (i >= 0) game.themeSkins.splice(i, 1);
+                });
+                const destPool = THEME_SKINS.filter((s) => s.rar === nextRar);
+                const def =
+                    destPool[Math.floor(Math.random() * destPool.length)] ||
+                    THEME_SKINS[0];
+                const item = {
+                    uid:
+                        "t" +
+                        Date.now().toString(36) +
+                        Math.random().toString(36).slice(2, 8),
+                    id: def.id,
+                    rar: nextRar,
+                    wear: +avgWear.toFixed(4),
+                };
+                game.themeSkins.push(item);
+                const rar = GACHA_RARITIES.find((r) => r.id === nextRar);
+                toast(
+                    "Trade-up complete",
+                    "Received " + def.name + " (" + rar.name + ")",
+                    rar.id === "covert" || rar.id === "rare" ? "gold" : "good",
+                );
+                if (rar.id === "covert" || rar.id === "rare") confetti(50);
+                chord([466, 587, 784], 0.18);
+                markDirty("cosmetics");
+                markDirty("hud");
+            }
+
             /* ---------------------- MINIGAMES ---------------------- */
             const WHEEL_PRIZES = [
                 {
@@ -15464,7 +16980,7 @@
                     },
                 },
                 {
-                    t: "Dev Points",
+                    t: "Dough Shards",
                     w: 10,
                     run() {
                         const d = 1 + Math.floor(game.rebirths / 4);
@@ -15677,7 +17193,16 @@
                     })(st);
                 }
             }
+            function showVignette() {
+                const v = $("case-vignette");
+                if (v) v.classList.add("on");
+            }
+            function hideVignette() {
+                const v = $("case-vignette");
+                if (v) v.classList.remove("on");
+            }
             function toast(title, sub, cls) {
+                if (!game.settings.toasts) return;
                 const stack = document.getElementById("toast-stack");
                 const el = document.createElement("div");
                 el.className = "toast " + (cls || "");
@@ -15897,6 +17422,7 @@
                 "gear",
                 "minigames",
                 "automation",
+                "gacha",
             ];
             const DIRTY = {};
             function markDirty(k) {
@@ -16707,10 +18233,24 @@
                 });
                 $("pet-slots-lbl").textContent =
                     activePets().length + "/" + petSlots() + " active";
-                $("hatch-cost").textContent = fmt(hatchCost());
-                $("crate-cost").textContent = fmt(crateCost());
+                $("hatch-cost").textContent = hatchCost();
+                $("crate-cost").textContent = crateCost();
+                $("btn-hatch").disabled =
+                    petSpinning || (game.keys || 0) < hatchCost();
+                $("btn-crate").disabled =
+                    crateSpinning || (game.keys || 0) < crateCost();
+                $("pets-key-count").textContent = game.keys || 0;
+                $("btn-pet-slot").disabled =
+                    game.petSlotsBought >= petSlotsBoughtCap();
                 $("btn-pet-slot").textContent =
-                    "Buy Pet Slot (" + petSlotCost() + " DS)";
+                    game.petSlotsBought >= petSlotsBoughtCap()
+                        ? "Pet Slots Maxed (" + PET_SLOT_CAP + ")"
+                        : "Buy Pet Slot (" + petSlotCost() + " DS)";
+                $("gear-slot-key-cost").textContent = gearSlotKeyCost();
+                $("gear-slot-cd-cost").textContent = fmt(gearSlotCDCost());
+                $("btn-gear-slot-key").disabled =
+                    (game.keys || 0) < gearSlotKeyCost();
+                $("btn-gear-slot-cd").disabled = game.cd < gearSlotCDCost();
 
                 const inv = $("inventory-list");
                 inv.innerHTML = "";
@@ -16772,6 +18312,192 @@
                 });
                 $("inv-count").textContent = game.inventory.length + " items";
                 buildGear();
+            }
+            function buildGacha() {
+                const costEl = $("gacha-cost");
+                if (costEl) costEl.textContent = gachaCaseCost();
+                const countEl = $("gacha-count");
+                if (countEl)
+                    countEl.textContent =
+                        (game.stats.gachaCases || 0) +
+                        " cases opened · " +
+                        (game.keys || 0) +
+                        " 🔑 held";
+                const openBtn = $("btn-gacha-open");
+                if (openBtn)
+                    openBtn.disabled =
+                        gachaSpinning || (game.keys || 0) < gachaCaseCost();
+
+                const term = $("gacha-terminal");
+                if (term) {
+                    term.innerHTML = "";
+                    const ownedIds = GACHA_SKINS.filter((def) =>
+                        game.gachaSkins.some((x) => x.id === def.id),
+                    );
+                    if (!ownedIds.length)
+                        term.innerHTML =
+                            '<div class="tiny" style="color:#5a8a5a">No holdings. Open a case to list something here.</div>';
+                    ownedIds.forEach((def) => {
+                        const i = skinMarketIndex(def.id);
+                        const rar = skinRarityOf(def.id);
+                        const price = skinMarketPrice(def.id);
+                        const m = game.skinMarket[i] || { hist: [1] };
+                        const h = m.hist;
+                        const prev = h.length > 1 ? h[h.length - 2] : price;
+                        const chg = prev > 0 ? (price / prev - 1) * 100 : 0;
+                        const owned = game.gachaSkins.filter(
+                            (x) => x.id === def.id,
+                        ).length;
+                        const row = el("div", "gt-row");
+                        row.innerHTML =
+                            '<span class="gt-name" style="color:' +
+                            rar.color +
+                            '">' +
+                            def.icon +
+                            " " +
+                            def.name +
+                            "</span>" +
+                            "<span>" +
+                            fmt(price) +
+                            ' <span class="' +
+                            (chg >= 0 ? "gt-up" : "gt-down") +
+                            '">' +
+                            (chg >= 0 ? "▲" : "▼") +
+                            Math.abs(chg).toFixed(1) +
+                            "%</span>" +
+                            ' <span class="tiny">(' +
+                            owned +
+                            " held)</span>" +
+                            "</span>" +
+                            '<button class="gt-buy" data-gsellone="' +
+                            def.id +
+                            '">SELL 1</button>';
+                        term.appendChild(row);
+                    });
+                }
+
+                const tuCountEl = $("tu-count");
+                if (tuCountEl) tuCountEl.textContent = TRADE_UP_COUNT;
+                const tuBox = $("gacha-tradeups");
+                if (tuBox) {
+                    tuBox.innerHTML = "";
+                    GACHA_RARITIES.slice(0, -1).forEach((rar) => {
+                        const next = tradeUpEligible(rar.id);
+                        if (!next) return;
+                        const nextRar = GACHA_RARITIES.find(
+                            (r) => r.id === next,
+                        );
+                        const have = game.gachaSkins.filter(
+                            (x) =>
+                                x.rar === rar.id &&
+                                x.uid !== game.equippedGachaSkin,
+                        ).length;
+                        const row = el("div", "tu-row");
+                        row.innerHTML =
+                            '<span class="tiny">' +
+                            '<span style="color:' +
+                            rar.color +
+                            '">' +
+                            rar.name +
+                            "</span> → " +
+                            '<span style="color:' +
+                            nextRar.color +
+                            '">' +
+                            nextRar.name +
+                            "</span>" +
+                            '<br><span class="muted">' +
+                            have +
+                            "/" +
+                            TRADE_UP_COUNT +
+                            " unequipped</span></span>" +
+                            '<button class="sm-btn' +
+                            (have >= TRADE_UP_COUNT ? " active" : "") +
+                            '" data-tradeup="' +
+                            rar.id +
+                            '"' +
+                            (have < TRADE_UP_COUNT ? " disabled" : "") +
+                            ">Trade Up</button>";
+                        tuBox.appendChild(row);
+                    });
+                }
+
+                const list = $("gacha-list");
+                if (!list) return;
+                list.innerHTML = "";
+                if (!game.gachaSkins.length)
+                    list.appendChild(
+                        el(
+                            "div",
+                            "muted tiny",
+                            "No skins yet. Open a case!",
+                        ),
+                    );
+                const sorted = game.gachaSkins
+                    .filter((it) => GACHA_BY_ID[it.id])
+                    .slice()
+                    .sort(
+                        (a, b) =>
+                            GACHA_RAR_ORDER.indexOf(b.rar) -
+                            GACHA_RAR_ORDER.indexOf(a.rar),
+                    );
+                sorted.forEach((it) => {
+                    const def = GACHA_BY_ID[it.id];
+                    if (!def) return;
+                    const rar =
+                        GACHA_RARITIES.find((r) => r.id === it.rar) ||
+                        GACHA_RARITIES[0];
+                    const wear = wearInfo(it.wear);
+                    const eq = game.equippedGachaSkin === it.uid;
+                    const pct = Math.round(gachaSkinValue(it) * 100);
+                    const card = el("div", "item-card");
+                    card.style.borderColor = rar.color;
+                    card.innerHTML =
+                        "<div><b>" +
+                        def.icon +
+                        " " +
+                        def.name +
+                        '</b> <span class="rn tiny" style="color:' +
+                        rar.color +
+                        '">' +
+                        rar.name +
+                        "</span><br>" +
+                        '<span class="tiny muted">' +
+                        wear.name +
+                        " (" +
+                        it.wear.toFixed(4) +
+                        ") · +" +
+                        pct +
+                        "% " +
+                        EFF_LABEL[def.eff] +
+                        "</span></div>" +
+                        '<div class="row" style="gap:.35em">' +
+                        '<button class="sm-btn' +
+                        (eq ? " active" : "") +
+                        '" data-gequip="' +
+                        it.uid +
+                        '">' +
+                        (eq ? "Equipped" : "Equip") +
+                        "</button>" +
+                        '<button class="sm-btn danger" data-gsell="' +
+                        it.uid +
+                        '">Sell</button>' +
+                        "</div>";
+                    card.dataset.tip = tipFor(
+                        "gsk" + it.uid,
+                        def.name,
+                        "+" +
+                            pct +
+                            "% " +
+                            EFF_LABEL[def.eff] +
+                            "<br>Wear: " +
+                            wear.name +
+                            " (" +
+                            it.wear.toFixed(4) +
+                            ")",
+                        rar.id,
+                    );
+                    list.appendChild(card);
+                });
             }
             function buildGear() {
                 const box = $("gear-slots");
@@ -16940,7 +18666,7 @@
                     ["Achievements", achCount() + " / " + ACHIEVEMENTS.length],
                     ["Global multiplier", "x" + fmt(globalBonus())],
                     ["Rebirths", fmt(game.rebirths)],
-                    ["Dev Points", fmt(game.ds)],
+                    ["Dough Shards", fmt(game.ds)],
                     ["Total DS earned", fmt(game.stats.totalRebirthDs)],
                     [
                         "Sam Shards",
@@ -17102,7 +18828,7 @@
                         "x" + fmt(buffMult("bps")),
                     ],
                     ["Achievements", "x" + achMult().toFixed(2)],
-                    ["Dev Points", "x" + fmt(1 + game.ds * 0.1 * dsSynergy())],
+                    ["Dough Shards", "x" + fmt(1 + game.ds * 0.1 * dsSynergy())],
                     ["Sam Shards", "x" + fmt(shardMult())],
                     ["Cosmic Dust", "x" + fmt(dustMult())],
                     [
@@ -17121,58 +18847,177 @@
             }
 
             function buildCosmetics() {
-                const tg = $("theme-group");
-                tg.innerHTML = "";
-                [
-                    ["default", "Dark Cyan"],
-                    ["cyber", "Cyberpunk"],
-                    ["hacker", "Hacker Green"],
-                    ["solar", "Solar Flare"],
-                    ["burrito", "Burrito Warm"],
-                    ["mint", "Mint Crema"],
-                    ["blood", "Blood Salsa"],
-                    ["vapor", "Vaporwave"],
-                    ["mono", "Monochrome"],
-                    ["gold", "Gold Foil"],
-                    ["ice", "Ice Queso"],
-                ].forEach((t) => {
-                    const b = el(
-                        "button",
-                        "sm-btn" + (game.theme === t[0] ? " active" : ""),
-                        t[1],
-                    );
-                    b.dataset.theme = t[0];
-                    tg.appendChild(b);
-                });
-                document
-                    .querySelectorAll("#anim-group .sm-btn")
-                    .forEach((b) =>
-                        b.classList.toggle(
-                            "active",
-                            b.dataset.anim === game.anim,
-                        ),
-                    );
-                document
-                    .querySelectorAll("#fx-group .sm-btn")
-                    .forEach((b) =>
-                        b.classList.toggle(
-                            "active",
-                            b.dataset.fx === game.bgfx,
-                        ),
-                    );
+                document.body.style.filter = themeVividnessFilter();
+                buildThemeCases();
+            }
+            function buildThemeCases() {
+                const costEl = $("theme-cost");
+                if (costEl) costEl.textContent = themeCaseCost();
+                const countEl = $("theme-count");
+                if (countEl)
+                    countEl.textContent =
+                        (game.stats.themeCases || 0) +
+                        " cases opened · " +
+                        (game.keys || 0) +
+                        " 🔑 held";
+                const openBtn = $("btn-theme-open");
+                if (openBtn)
+                    openBtn.disabled =
+                        themeSpinning || (game.keys || 0) < themeCaseCost();
 
-                const sg = $("skin-group");
-                sg.innerHTML = "";
-                SKINS.forEach((s) => {
-                    const un = game.skins.includes(s.id);
-                    const b = el(
-                        "button",
-                        "sm-btn" + (game.skin === s.id ? " active" : ""),
-                        un ? s.name : "🔒 " + (s.secret ? "???" : fmt(s.req)),
+                const term = $("theme-terminal");
+                if (term) {
+                    term.innerHTML = "";
+                    const ownedIds = THEME_SKINS.filter((def) =>
+                        game.themeSkins.some((x) => x.id === def.id),
                     );
-                    if (un) b.dataset.skin = s.id;
-                    else b.disabled = true;
-                    sg.appendChild(b);
+                    if (!ownedIds.length)
+                        term.innerHTML =
+                            '<div class="tiny" style="color:#5a8a5a">No holdings. Open a case to list something here.</div>';
+                    ownedIds.forEach((def) => {
+                        const i = themeMarketIndex(def.id);
+                        const rar = themeRarityOf(def.id);
+                        const price = themeMarketPrice(def.id);
+                        const m = game.themeMarket[i] || { hist: [1] };
+                        const h = m.hist;
+                        const prev = h.length > 1 ? h[h.length - 2] : price;
+                        const chg = prev > 0 ? (price / prev - 1) * 100 : 0;
+                        const owned = game.themeSkins.filter(
+                            (x) => x.id === def.id,
+                        ).length;
+                        const row = el("div", "gt-row");
+                        row.innerHTML =
+                            '<span class="gt-name" style="color:' +
+                            rar.color +
+                            '">' +
+                            def.icon +
+                            " " +
+                            def.name +
+                            "</span>" +
+                            "<span>" +
+                            fmt(price) +
+                            ' <span class="' +
+                            (chg >= 0 ? "gt-up" : "gt-down") +
+                            '">' +
+                            (chg >= 0 ? "▲" : "▼") +
+                            Math.abs(chg).toFixed(1) +
+                            "%</span>" +
+                            ' <span class="tiny">(' +
+                            owned +
+                            " held)</span>" +
+                            "</span>" +
+                            '<button class="gt-buy" data-tsellone="' +
+                            def.id +
+                            '">SELL 1</button>';
+                        term.appendChild(row);
+                    });
+                }
+
+                const themeTuCountEl = $("theme-tu-count");
+                if (themeTuCountEl) themeTuCountEl.textContent = TRADE_UP_COUNT;
+                const tuBox = $("theme-tradeups");
+                if (tuBox) {
+                    tuBox.innerHTML = "";
+                    GACHA_RARITIES.slice(0, -1).forEach((rar) => {
+                        const next = tradeUpEligible(rar.id);
+                        if (!next) return;
+                        const nextRar = GACHA_RARITIES.find(
+                            (r) => r.id === next,
+                        );
+                        const have = game.themeSkins.filter(
+                            (x) =>
+                                x.rar === rar.id &&
+                                x.uid !== game.equippedThemeSkin,
+                        ).length;
+                        const row = el("div", "tu-row");
+                        row.innerHTML =
+                            '<span class="tiny">' +
+                            '<span style="color:' +
+                            rar.color +
+                            '">' +
+                            rar.name +
+                            "</span> → " +
+                            '<span style="color:' +
+                            nextRar.color +
+                            '">' +
+                            nextRar.name +
+                            "</span>" +
+                            '<br><span class="muted">' +
+                            have +
+                            "/" +
+                            TRADE_UP_COUNT +
+                            " unequipped</span></span>" +
+                            '<button class="sm-btn' +
+                            (have >= TRADE_UP_COUNT ? " active" : "") +
+                            '" data-thtradeup="' +
+                            rar.id +
+                            '"' +
+                            (have < TRADE_UP_COUNT ? " disabled" : "") +
+                            ">Trade Up</button>";
+                        tuBox.appendChild(row);
+                    });
+                }
+
+                const list = $("theme-list");
+                if (!list) return;
+                list.innerHTML = "";
+                if (!game.themeSkins.length)
+                    list.appendChild(
+                        el(
+                            "div",
+                            "muted tiny",
+                            "No theme skins yet. Open a case!",
+                        ),
+                    );
+                const sorted = game.themeSkins
+                    .filter((it) => THEME_SKIN_BY_ID[it.id])
+                    .slice()
+                    .sort(
+                        (a, b) =>
+                            GACHA_RAR_ORDER.indexOf(b.rar) -
+                            GACHA_RAR_ORDER.indexOf(a.rar),
+                    );
+                sorted.forEach((it) => {
+                    const def = THEME_SKIN_BY_ID[it.id];
+                    if (!def) return;
+                    const rar =
+                        GACHA_RARITIES.find((r) => r.id === it.rar) ||
+                        GACHA_RARITIES[0];
+                    const wear = wearInfo(it.wear);
+                    const eq = game.equippedThemeSkin === it.uid;
+                    const pct = Math.round(themeSkinValue(it) * 100);
+                    const card = el("div", "item-card");
+                    card.style.borderColor = rar.color;
+                    card.innerHTML =
+                        "<div><b>" +
+                        def.icon +
+                        " " +
+                        def.name +
+                        '</b> <span class="rn tiny" style="color:' +
+                        rar.color +
+                        '">' +
+                        rar.name +
+                        "</span><br>" +
+                        '<span class="tiny muted">' +
+                        wear.name +
+                        " (" +
+                        it.wear.toFixed(4) +
+                        ") · " +
+                        pct +
+                        "% vividness</span></div>" +
+                        '<div class="row" style="gap:.35em">' +
+                        '<button class="sm-btn' +
+                        (eq ? " active" : "") +
+                        '" data-tequip="' +
+                        it.uid +
+                        '">' +
+                        (eq ? "Equipped" : "Equip") +
+                        "</button>" +
+                        '<button class="sm-btn danger" data-tsell="' +
+                        it.uid +
+                        '">Sell</button>' +
+                        "</div>";
+                    list.appendChild(card);
                 });
             }
 
@@ -17267,6 +19112,21 @@
                     "Interest earned: " + fmt(game.stats.interest);
                 $("btn-bank-upg").textContent =
                     "Upgrade Rate (" + fmt(bankUpgCost()) + ")";
+                $("debt-bal").textContent = fmt(game.debt);
+                $("debt-rate").textContent = (debtRate() * 100).toFixed(0);
+                $("btn-loan-small").textContent =
+                    "Borrow " + fmt(loanAmount("small"));
+                $("btn-loan-big").textContent =
+                    "Borrow " + fmt(loanAmount("big"));
+                $("btn-repay").disabled = game.debt <= 0 || game.burritos <= 0;
+                $("btn-loan-small").disabled =
+                    game.debt + loanAmount("small") > maxDebt();
+                $("btn-loan-big").disabled =
+                    game.debt + loanAmount("big") > maxDebt();
+                const vcd = vaultReadyIn();
+                $("vault-status").textContent =
+                    vcd > 0 ? "Locked — " + fmtTime(vcd / 1000) : "Ready";
+                $("btn-vault").disabled = vcd > 0;
                 $("btn-pickaxe").textContent =
                     "Upgrade Pickaxe (" + fmt(pickaxeCost()) + ")";
                 $("mine-stats").textContent =
@@ -17682,6 +19542,7 @@
                     game.stats.ascensions + " ascensions";
                 $("res-mult").textContent = "x" + fmt(globalBonus());
                 $("res-mc").textContent = fmt(res("mc"));
+                $("res-keys").textContent = game.keys || 0;
                 $("res-mkt").textContent =
                     "Portfolio x" + CACHE.marketMult.toFixed(2);
                 $("res-ach").textContent =
@@ -17703,7 +19564,7 @@
                     ")";
 
                 $("pending-ds-text").textContent = fmt(pendingDS());
-                const need = nextDSAt() - game.lifetime;
+                const need = nextDSAt() - game.runLifetime;
                 $("rebirth-next").textContent =
                     game.runLifetime < 1e6
                         ? "Need " +
@@ -17711,7 +19572,7 @@
                           " more this run"
                         : "Next DS at " +
                           fmt(nextDSAt()) +
-                          " lifetime (" +
+                          " this run (" +
                           fmt(Math.max(0, need)) +
                           " to go)";
                 $("sac-cost").textContent = fmt(sacrificeCost());
@@ -17741,7 +19602,8 @@
             }
 
             let lastTier = -1,
-                lastSkin = "";
+                lastSkin = "",
+                lastMxFilterKey = "";
             function updatePortrait() {
                 const L = game.lifetime;
                 const tier =
@@ -17767,17 +19629,31 @@
                     $("mx-halo").style.display = tier >= 5 ? "" : "none";
                     $("mx-aura").style.display = tier >= 6 ? "" : "none";
                 }
-                if (game.skin !== lastSkin) {
-                    lastSkin = game.skin;
-                    const s = SKINS.find((x) => x.id === game.skin) || SKINS[0];
+                const skinKey = game.mxOverride || game.theme;
+                if (skinKey !== lastSkin) {
+                    lastSkin = skinKey;
+                    const c =
+                        MX_THEME_COLORS[skinKey] || MX_THEME_COLORS.default;
                     document.documentElement.style.setProperty(
                         "--mx-skin",
-                        s.skin,
+                        c.skin,
                     );
                     document.documentElement.style.setProperty(
                         "--mx-hair",
-                        s.hair,
+                        c.hair,
                     );
+                }
+                const filterKey =
+                    (game.mxOverride || game.theme) +
+                    "|" +
+                    (game.equippedGachaSkin || "");
+                if (filterKey !== lastMxFilterKey) {
+                    lastMxFilterKey = filterKey;
+                    const f = mxSkinFilter();
+                    const photo = $("mx-photo"),
+                        base = $("mx-face-base");
+                    if (photo) photo.style.filter = f;
+                    if (base) base.style.filter = f;
                 }
                 const t = titleFor(L);
                 const el2 = $("mx-title");
@@ -17851,6 +19727,10 @@
                     DIRTY.pets = false;
                     buildPets();
                 }
+                if (DIRTY.gacha && activeTab === "tab-gacha") {
+                    DIRTY.gacha = false;
+                    buildGacha();
+                }
                 if (DIRTY.ach && activeTab === "tab-achievements") {
                     DIRTY.ach = false;
                     buildAchievements();
@@ -17886,6 +19766,7 @@
                         "tab-talents": buildTalents,
                         "tab-stocks": buildStocks,
                         "tab-pets": buildPets,
+                        "tab-gacha": buildGacha,
                         "tab-achievements": buildAchievements,
                         "tab-codex": buildCodex,
                         "tab-stats": buildStats,
@@ -17921,12 +19802,16 @@
             }
             function setAnim(a) {
                 game.anim = a;
-                $("maxwell-target").className =
-                    "maxwell-target" + (a === "none" ? "" : " " + a);
+                const t = $("maxwell-target");
+                Array.from(t.classList).forEach((c) => {
+                    if (c !== "maxwell-target" && c !== "has-photo")
+                        t.classList.remove(c);
+                });
+                if (a !== "none") t.classList.add(a);
                 markDirty("cosmetics");
             }
-            function setSkin(s) {
-                game.skin = s;
+            function setMxOverride(o) {
+                game.mxOverride = o;
                 lastSkin = "";
                 updatePortrait();
                 markDirty("cosmetics");
@@ -17996,13 +19881,70 @@
                         s.hist = [STOCK_DEFS[i].price];
                 });
                 if (!Array.isArray(fresh.gear)) fresh.gear = [null, null];
-                while (fresh.gear.length < 2 + (fresh.ssShop[4] || 0))
+                while (
+                    fresh.gear.length <
+                    2 + (fresh.ssShop[4] || 0) + (fresh.gearSlotsBonus || 0)
+                )
                     fresh.gear.push(null);
                 /* Remove stale gear references caused by older saves/inventory caps. */
                 const validGear = new Set(fresh.inventory.map((x) => x.uid));
                 fresh.gear = fresh.gear.map((uid) =>
                     uid && validGear.has(uid) ? uid : null,
                 );
+                if (!Array.isArray(fresh.gachaSkins)) fresh.gachaSkins = [];
+                if (
+                    fresh.equippedGachaSkin &&
+                    !fresh.gachaSkins.some(
+                        (x) => x.uid === fresh.equippedGachaSkin,
+                    )
+                )
+                    fresh.equippedGachaSkin = null;
+                if (
+                    !Array.isArray(fresh.skinMarket) ||
+                    fresh.skinMarket.length !== GACHA_SKINS.length
+                ) {
+                    fresh.skinMarket = GACHA_SKINS.map((s, i) => {
+                        const old = (obj.skinMarket || [])[i];
+                        return old
+                            ? {
+                                  mult: old.mult || 1,
+                                  hist:
+                                      Array.isArray(old.hist) && old.hist.length
+                                          ? old.hist
+                                          : [1],
+                              }
+                            : { mult: 1, hist: [1] };
+                    });
+                }
+                if (!Array.isArray(fresh.themeSkins)) fresh.themeSkins = [];
+                if (
+                    fresh.equippedThemeSkin &&
+                    !fresh.themeSkins.some(
+                        (x) => x.uid === fresh.equippedThemeSkin,
+                    )
+                )
+                    fresh.equippedThemeSkin = null;
+                if (
+                    !Array.isArray(fresh.themeMarket) ||
+                    fresh.themeMarket.length !== THEME_SKINS.length
+                ) {
+                    fresh.themeMarket = THEME_SKINS.map((s, i) => {
+                        const old = (obj.themeMarket || [])[i];
+                        return old
+                            ? {
+                                  mult: old.mult || 1,
+                                  hist:
+                                      Array.isArray(old.hist) && old.hist.length
+                                          ? old.hist
+                                          : [1],
+                              }
+                            : { mult: 1, hist: [1] };
+                    });
+                }
+                if (typeof fresh.debt !== "number" || fresh.debt < 0)
+                    fresh.debt = 0;
+                if (fresh.flags.konami && !fresh.mxOverride)
+                    fresh.mxOverride = "konami";
                 /* v6: facility state = defaults overlaid with whatever was saved (keeps new fields on old saves) */
                 if (!fresh.mv || typeof fresh.mv !== "object")
                     fresh.mv = { unlocked: {}, lv: {}, s: {} };
@@ -18049,7 +19991,7 @@
                 game.stats.dsBanked = dsCurve(
                     Math.max(0, game.lifetime - game.runLifetime),
                 );
-                game.ver = SAVE_VER;
+                game.ver = 6;
                 if (silent) return;
                 setTimeout(
                     () =>
@@ -18070,6 +20012,34 @@
                             [{ t: "Let's wrap", cls: "good", fn: () => {} }],
                         ),
                     900,
+                );
+            }
+
+            function migrateToV7(silent) {
+                /* Themes now drive Maxwell's colors directly and feed the new Background
+     Theme cases, so a theme chosen under the old cosmetic rules is reset to Default. */
+                const hadTheme = game.theme && game.theme !== "default";
+                game.theme = "default";
+                setTheme("default");
+                lastSkin = "";
+                game.ver = 7;
+                if (silent) return;
+                setTimeout(
+                    () =>
+                        modal(
+                            "Save upgraded to v7",
+                            "The Trade Update has landed, Max.<br><br>" +
+                                "• <b>🔑 Maxwell Keys</b> are a new, deliberately rare currency — Pet Eggs, Artifact Crates, Maxwell Skin cases and Theme cases all spend Keys now, not burritos. Earn them by hand-catching Golden Sams, downing raid bosses, the tiniest chance on every click, or cracking <b>Maxwell's Vault</b> in Minigames. They cannot be bought.<br>" +
+                                "• <b>Maxwell Skins</b> now visually change Maxwell himself — his photo, and his click animation — not just his stats. Better rarity and wear look sharper.<br>" +
+                                "• <b>Theme Skins</b> now drive the UI theme, Maxwell's background FX, and how vivid the colors look — the free pickers in Themes &amp; FX are gone, it's all gambled for now.<br>" +
+                                "• Both <b>Terminals</b> only list what you actually hold — they're a live portfolio, not a shop.<br>" +
+                                "• <b>Debt</b> is live: borrow burritos from Maxwell's Loan Shark, but the interest is brutal and collectors help themselves to your income.<br><br>" +
+                                (hadTheme
+                                    ? '<span class="tiny">Your theme selection was reset to Default under the new system — open a Theme Case to gamble for a new one.</span>'
+                                    : ""),
+                            [{ t: "Let's wrap", cls: "good", fn: () => {} }],
+                        ),
+                    950,
                 );
             }
 
@@ -18157,6 +20127,7 @@
                 s.lastSave = o.lastSaveTime || Date.now();
                 game = s;
                 migrateToV6(true);
+                migrateToV7(true);
                 localStorage.setItem(SAVE_KEY, JSON.stringify(game));
                 setTimeout(
                     () =>
@@ -18177,7 +20148,8 @@
                 if (raw) {
                     try {
                         applySave(JSON.parse(raw));
-                        if ((game.ver || 0) < SAVE_VER) migrateToV6(false);
+                        if ((game.ver || 0) < 6) migrateToV6(false);
+                        if ((game.ver || 0) < 7) migrateToV7(false);
                         return true;
                     } catch (e) {
                         toast("Save corrupted", "Starting fresh", "bad");
@@ -18189,6 +20161,7 @@
                     try {
                         applySave(JSON.parse(v5));
                         migrateToV6(false);
+                        migrateToV7(false);
                         localStorage.setItem(SAVE_KEY, JSON.stringify(game));
                         return true;
                     } catch (e) {
@@ -18316,7 +20289,8 @@
                         decodeURIComponent(escape(atob(str.trim()))),
                     );
                     applySave(json);
-                    if ((game.ver || 0) < SAVE_VER) migrateToV6(true);
+                    if ((game.ver || 0) < 6) migrateToV6(true);
+                    if ((game.ver || 0) < 7) migrateToV7(true);
                     localStorage.setItem(SAVE_KEY, JSON.stringify(game));
                     toast("Save imported", "Reloading…", "good");
                     setTimeout(() => location.reload(), 600);
@@ -18460,7 +20434,7 @@
                     const t = e.target.closest(
                         "[data-tab],[data-bld],[data-clk],[data-upg],[data-perk],[data-ssbuy],[data-cdbuy]," +
                             "[data-perkmax],[data-ssbuymax],[data-cdbuymax],[data-upgall]," +
-                            "[data-talent],[data-ab],[data-sbuy],[data-ssell],[data-pet],[data-item],[data-sellpet],[data-sellitem],[data-slot],[data-quest],[data-ms]," +
+                            "[data-talent],[data-ab],[data-sbuy],[data-ssell],[data-pet],[data-item],[data-sellpet],[data-sellitem],[data-gequip],[data-gsell],[data-gsellone],[data-tradeup],[data-tequip],[data-tsell],[data-tsellone],[data-thtradeup],[data-slot],[data-quest],[data-ms]," +
                             "[data-buy],[data-qty],[data-theme],[data-anim],[data-skin],[data-fx],[data-af],[data-cup]," +
                             "[data-maxall],[data-mvmaxall],[data-mvupmax],[data-mvup],[data-mvact],[data-mvnav],[data-module],[data-star]",
                     );
@@ -18564,6 +20538,14 @@
                     else if (d.item) equipItem(d.item);
                     else if (d.sellpet) sellPet(d.sellpet);
                     else if (d.sellitem) sellItem(d.sellitem);
+                    else if (d.gequip) equipGachaSkin(d.gequip);
+                    else if (d.gsell) sellGachaSkin(d.gsell);
+                    else if (d.gsellone) sellOneSkinMarket(d.gsellone);
+                    else if (d.tradeup) tradeUpSkins(d.tradeup);
+                    else if (d.tequip) equipThemeSkin(d.tequip);
+                    else if (d.tsell) sellThemeSkin(d.tsell);
+                    else if (d.tsellone) sellOneThemeMarket(d.tsellone);
+                    else if (d.thtradeup) tradeUpThemeSkins(d.thtradeup);
                     else if (d.slot !== undefined) unequipSlot(+d.slot);
                     else if (d.quest) claimQuest(d.quest);
                     else if (d.ms) claimMilestone(d.ms);
@@ -18585,7 +20567,6 @@
                             );
                     } else if (d.theme) setTheme(d.theme);
                     else if (d.anim) setAnim(d.anim);
-                    else if (d.skin) setSkin(d.skin);
                     else if (d.fx) setBgFx(d.fx);
                     else if (d.af) {
                         document
@@ -18612,15 +20593,24 @@
                 bind("btn-deposit-all", () => deposit(1));
                 bind("btn-withdraw", withdraw);
                 bind("btn-bank-upg", upgradeBank);
+                bind("btn-loan-small", () => takeLoan("small"));
+                bind("btn-loan-big", () => takeLoan("big"));
+                bind("btn-repay", repayDebt);
                 bind("btn-mine", mineOre);
                 bind("btn-pickaxe", upgradePickaxe);
                 bind("btn-spin", () => spinWheel(false));
                 bind("btn-spin-paid", () => spinWheel(true));
                 bind("btn-smash", startSmash);
                 bind("btn-hatch", hatchPet);
+                bind("btn-vault", crackVault);
                 bind("btn-pet-slot", buyPetSlot);
                 bind("btn-crate", openCrate);
                 bind("btn-salvage", salvageCommons);
+                bind("btn-gear-slot-key", buyGearSlotKey);
+                bind("btn-gear-slot-cd", buyGearSlotCD);
+                bind("btn-gacha-open", openGachaCase);
+                bind("btn-theme-open", openThemeCase);
+                bind("btn-sell-all", sellAllUnequipped);
                 bind("btn-save", () => saveGame(false));
                 bind("btn-export", exportSave);
                 bind("btn-export-file", exportFile);
@@ -18684,6 +20674,9 @@
                     $("news-ticker").classList.toggle("off", !S.ticker),
                 );
                 setChk("chk-tooltips", "tooltips");
+                setChk("chk-toasts", "toasts", () => {
+                    if (!S.toasts) $("toast-stack").innerHTML = "";
+                });
                 setChk("chk-confirm", "confirm");
 
                 /* automation tab */
@@ -18806,13 +20799,11 @@
                             konamiPos = 0;
                             if (!game.flags.konami) {
                                 game.flags.konami = true;
-                                if (!game.skins.includes("konami"))
-                                    game.skins.push("konami");
-                                setSkin("konami");
+                                setMxOverride("konami");
                                 game.ds += 30;
                                 toast(
                                     "KONAMI",
-                                    "+30 DS and the Contra Morgan skin",
+                                    "+30 Dough Shards and the Contra Morgan look",
                                     "gold",
                                 );
                                 confetti(80);
@@ -18907,6 +20898,7 @@
 
                 setTheme(game.theme);
                 setAnim(game.anim);
+                document.body.style.filter = themeVividnessFilter();
                 lastSkin = "";
                 lastTier = -1;
                 $("news-ticker").classList.toggle("off", !game.settings.ticker);
@@ -18946,7 +20938,7 @@
                                 "Maxwell Samuel Morgan",
                                 "He is hungry. You have hands.<br><br>" +
                                     "Click <b>Maxwell Samuel Morgan</b> to make burritos. Spend burritos on buildings, buildings on upgrades, " +
-                                    "and eventually throw the whole kitchen away in a <b>Rebirth</b> for permanent Dev Points.<br><br>" +
+                                    "and eventually throw the whole kitchen away in a <b>Rebirth</b> for permanent Dough Shards.<br><br>" +
                                     '<span class="tiny">Press <b>Space</b> to click without a mouse. Press <b>1–0</b> for abilities. ' +
                                     "Golden Sams appear at random — always click them.</span>",
                                 [
