@@ -805,6 +805,7 @@
                 padding: 10px;
             }
             input[type="text"],
+            input[type="password"],
             input[type="number"],
             select {
                 background: var(--panel-bg);
@@ -816,6 +817,7 @@
                 outline: none;
             }
             input[type="text"]:focus,
+            input[type="password"]:focus,
             select:focus {
                 border-color: var(--accent);
             }
@@ -3035,9 +3037,6 @@
                                 <button class="sm-btn wide" id="btn-spin">
                                     Spin Wheel
                                 </button>
-                                <button class="sm-btn wide" id="btn-spin-paid">
-                                    Paid Spin
-                                </button>
                             </div>
                             <div class="box" style="text-align: center">
                                 <h4>Compound Bank of Sam</h4>
@@ -3149,9 +3148,10 @@
                                 </button>
                             </div>
                             <p class="tiny muted">
-                                The only way to earn a 🔑 Maxwell Key on
-                                demand. Crack it open, then read the vault:
-                                nine piles from a shuffled 52-card deck. Guess
+                                The best way to earn 🔑 Maxwell Keys on
+                                demand — crack it and walk away with 10.
+                                Crack it open, then read the vault: nine
+                                piles from a shuffled 52-card deck. Guess
                                 higher or lower on a pile to grow it — miss
                                 and that pile is done. Clear the whole deck
                                 before all nine piles bust and the vault
@@ -3783,6 +3783,9 @@
                             </button>
                             <button class="sm-btn danger" id="btn-reset">
                                 Hard Reset
+                            </button>
+                            <button class="sm-btn" id="btn-dev-panel">
+                                🛠️ Dev Panel
                             </button>
                         </div>
                         <input
@@ -13761,10 +13764,15 @@
    at a price that climbs every time and is never cheap. */
             const CASE_KEY_COST = 1;
             const CASE_SPIN_MS = 8000;
-            function grantKey(reason) {
-                game.keys = (game.keys || 0) + 1;
-                game.stats.keysFound = (game.stats.keysFound || 0) + 1;
-                toast("🔑 Maxwell Key found!", reason, "gold");
+            function grantKey(reason, count) {
+                count = count || 1;
+                game.keys = (game.keys || 0) + count;
+                game.stats.keysFound = (game.stats.keysFound || 0) + count;
+                toast(
+                    "🔑 Maxwell Key" + (count > 1 ? "s" : "") + " found!",
+                    (count > 1 ? count + "x — " : "") + reason,
+                    "gold",
+                );
                 confetti(40);
                 chord([659, 880, 1046], 0.2);
                 markDirty("hud");
@@ -13775,6 +13783,11 @@
             /* ---------------------- MAXWELL'S VAULT (hi-lo pyramid) ---------------------- */
             const VAULT_COOLDOWN = 15 * 60 * 1000;
             const VAULT_PILES = 9;
+            const VAULT_KEY_REWARD = 10;
+            /* Ties now favor the player (a push counts as a correct guess), plus a
+   flat chance to forgive an otherwise-wrong guess outright, tilting the odds
+   of cracking the vault in the player's favor. */
+            const VAULT_PLAYER_FAVOR = 0.2;
             const VAULT_RANKS = [
                 "A",
                 "2",
@@ -13870,8 +13883,10 @@
                 vg.sel = -1;
                 const cur = pile.card;
                 const next = vg.deck.pop();
-                const correct =
-                    dir === "higher" ? next.v > cur.v : next.v < cur.v;
+                let correct =
+                    dir === "higher" ? next.v >= cur.v : next.v <= cur.v;
+                if (!correct && Math.random() < VAULT_PLAYER_FAVOR)
+                    correct = true;
                 pile.card = next;
                 pile.flash = correct ? "good" : "bad";
                 if (!correct) pile.out = true;
@@ -13904,13 +13919,18 @@
                 const drawn = 43 - vg.deck.length;
                 if (won) {
                     game.stats.vaultWins = (game.stats.vaultWins || 0) + 1;
-                    grantKey("Cracked Maxwell's Vault wide open");
+                    grantKey(
+                        "Cracked Maxwell's Vault wide open",
+                        VAULT_KEY_REWARD,
+                    );
                     const bonus = getBPS() * 400 + 8000;
                     gainBurritos(bonus);
                     vg.msg =
                         "🔓 VAULT CRACKED! +" +
                         fmt(bonus) +
-                        " burritos, plus the key.";
+                        " burritos, plus " +
+                        VAULT_KEY_REWARD +
+                        " keys.";
                     confetti(70);
                     chord([523, 659, 784, 1046], 0.25);
                 } else {
@@ -14011,8 +14031,8 @@
                     "🔒 How to crack Maxwell's Vault",
                     "1. Open the vault to deal nine piles from a shuffled 52-card deck.<br><br>" +
                         "2. Pick a pile, then guess whether the next card is higher or lower than the card showing.<br><br>" +
-                        "3. Guess right and that card replaces the pile's card. Guess wrong — or draw a matching rank — and that pile is out for good.<br><br>" +
-                        "Aces are low, Kings are high. Clear the whole deck before all nine piles bust to crack the vault for a 🔑 Maxwell Key. Busting out first still pays a burrito consolation.",
+                        "3. Guess right and that card replaces the pile's card. A matching rank counts as a win too, and a wrong guess sometimes gets forgiven — Maxwell likes a winner. Guess wrong for good and that pile is out.<br><br>" +
+                        "Aces are low, Kings are high. Clear the whole deck before all nine piles bust to crack the vault for 🔑 10 Maxwell Keys. Busting out first still pays a burrito consolation.",
                     [{ t: "Got it", fn: () => {} }],
                 );
             }
@@ -14427,7 +14447,7 @@
                 game.stats.handmade += pow;
 
                 if (tal("f10") && Math.random() < 0.01) spawnGolden();
-                if (Math.random() < 1 / 100000)
+                if (Math.random() < 1 / 20000)
                     grantKey("A key fell out of the wrapper");
 
                 if (!silent) {
@@ -15271,7 +15291,7 @@
                 } else if (goldenKind) {
                     goldenKind.run();
                 }
-                if (!auto && Math.random() < 0.15)
+                if (!auto && Math.random() < 0.35)
                     grantKey("Caught a Golden Sam by hand");
                 if (cdLvl(4) > 0 && !auto) game.ds += cdLvl(4);
                 chord([880, 1180, 1480], 0.18);
@@ -15337,7 +15357,7 @@
                             "gold",
                         );
                     }
-                    if (Math.random() < 0.15)
+                    if (Math.random() < 0.35)
                         grantKey("Raid boss dropped it");
                     toast(
                         "RAID BOSS DEFEATED",
@@ -17371,9 +17391,9 @@
                     },
                 },
             ];
-            function spinWheel(paid) {
+            function spinWheel() {
                 const cd = 300000;
-                if (!paid && Date.now() - game.lastWheel < cd) {
+                if (Date.now() - game.lastWheel < cd) {
                     toast(
                         "Wheel on cooldown",
                         fmtTime((cd - (Date.now() - game.lastWheel)) / 1000) +
@@ -17382,14 +17402,7 @@
                     );
                     return;
                 }
-                const cost = getBPS() * 900 + 1e5;
-                if (paid) {
-                    if (game.burritos < cost) {
-                        toast("Need " + fmt(cost), "for a paid spin", "bad");
-                        return;
-                    }
-                    game.burritos -= cost;
-                } else game.lastWheel = Date.now();
+                game.lastWheel = Date.now();
                 game.stats.spins++;
                 const face = document.getElementById("wheel-face");
                 let spins = 0;
@@ -17615,6 +17628,72 @@
             function closeModal() {
                 document.getElementById("modal-back").classList.remove("on");
                 setTimeout(showNextModal, 180);
+            }
+
+            /* ---------------------- DEV PANEL ---------------------- */
+            const DEV_PASSWORD = "developer";
+            const DEV_GIVE_ROWS = [
+                ["brt", 1e6, "Burritos"],
+                ["ds", 100, "Dough Shards"],
+                ["ss", 50, "Sam Shards"],
+                ["cd", 10, "Cosmic Dust"],
+                ["keys", 50, "Maxwell Keys"],
+                ["mc", 10000, "Market Capital"],
+            ];
+            function devGiveCurrency(key, amount, label) {
+                if (key === "brt") gainBurritos(amount);
+                else if (key === "ds" || key === "ss" || key === "cd")
+                    game[key] += amount;
+                else if (key === "keys")
+                    game.keys = (game.keys || 0) + amount;
+                else game.res[key] = (game.res[key] || 0) + amount;
+                toast("🛠️ Dev Panel", "+" + fmt(amount) + " " + label, "gold");
+                markDirty("all");
+            }
+            function showDevCurrencyPanel() {
+                modal(
+                    "🛠️ Developer Panel",
+                    '<p class="tiny muted">Give yourself currency instantly.</p>' +
+                        '<div class="btn-group" style="flex-wrap:wrap;margin-top:8px" id="dev-give-row"></div>',
+                    [{ t: "Close", fn: () => {} }],
+                );
+                const row = document.getElementById("dev-give-row");
+                if (!row) return;
+                DEV_GIVE_ROWS.forEach(([key, amt, label]) => {
+                    const btn = document.createElement("button");
+                    btn.className = "sm-btn";
+                    btn.textContent = "+" + fmt(amt) + " " + label;
+                    btn.addEventListener("click", () =>
+                        devGiveCurrency(key, amt, label),
+                    );
+                    row.appendChild(btn);
+                });
+            }
+            function openDevPanel() {
+                modal(
+                    "🛠️ Developer Panel",
+                    '<p class="tiny muted">Enter the developer password to continue.</p>' +
+                        '<input type="password" id="dev-pw-input" style="width:100%;margin-top:6px" placeholder="Password" />',
+                    [
+                        { t: "Cancel", fn: () => {} },
+                        {
+                            t: "Unlock",
+                            cls: "good",
+                            fn: () => {
+                                const el = document.getElementById(
+                                    "dev-pw-input",
+                                );
+                                const pw = el ? el.value : "";
+                                if (pw === DEV_PASSWORD) showDevCurrencyPanel();
+                                else toast("Incorrect password", "", "bad");
+                            },
+                        },
+                    ],
+                );
+                setTimeout(() => {
+                    const el = document.getElementById("dev-pw-input");
+                    if (el) el.focus();
+                }, 50);
             }
 
             /* background canvas */
@@ -19522,8 +19601,6 @@
                         ? "Free spin in " + fmtTime(wcd / 1000)
                         : "Spin Wheel (free)";
                 $("btn-spin").disabled = wcd > 0;
-                $("btn-spin-paid").textContent =
-                    "Paid Spin (" + fmt(getBPS() * 900 + 1e5) + ")";
                 const scd = 180000 - (Date.now() - game.lastSmash);
                 const active = smashUntil > Date.now();
                 $("smash-timer").textContent = active
@@ -20977,11 +21054,11 @@
                 bind("btn-repay", repayDebt);
                 bind("btn-mine", mineOre);
                 bind("btn-pickaxe", upgradePickaxe);
-                bind("btn-spin", () => spinWheel(false));
-                bind("btn-spin-paid", () => spinWheel(true));
+                bind("btn-spin", () => spinWheel());
                 bind("btn-smash", startSmash);
                 bind("btn-hatch", hatchPet);
                 bind("btn-vault", openVault);
+                bind("btn-dev-panel", openDevPanel);
                 bind("btn-vault-higher", () => guessVault("higher"));
                 bind("btn-vault-lower", () => guessVault("lower"));
                 bind("btn-vault-forfeit", forfeitVault);
