@@ -3,6 +3,42 @@
 Changelog for `MAX MORGAN CLICKER.html` only, built from this repo's git
 history. Newest first.
 
+## 2026-09-25 — Quests, Codex, and the Morganverse trim
+
+- **Quests rebalanced and expanded.** Daily Contracts grew from 8 to 13
+  templates (added spinning the Wheel, cracking the Vault, buying shares,
+  and depositing at the Bank of Sam) and now roll 4 a day instead of 3;
+  a few underpaying rewards were bumped up. Career Milestones grew from
+  15 to 25, adding later-game goals (Vault cracks, Key hoarding, Wheel
+  spins, Rebirth 5, a 500-share portfolio, a full pet roster, Layer 150,
+  Guac Smash, a 150 combo, and clearing every achievement).
+- **The Morgan Codex grew by 50 entries** (20 → 70), all newly linked to
+  the Quests tab instead of lifetime burritos: one per Career Milestone
+  (25) and 25 more for cumulative Daily Contracts claimed, from your
+  first contract up to a 500-contract "Five Hundred Club."
+- **Removed the Cosmos and Mythos facility tabs** (Star Nodes,
+  Black-Hole Oven, Chrono-Kitchen, Rift Gate, Paradox Engine, Oracle,
+  Climate Control, Council, Alchemy Lab, Expeditions, Pantheon, Gene
+  Lab, Museum, Arena, Recipe Compiler, and Card Sets) — only Industry
+  and Finance remain. Fixed a couple of now-dangling references (a
+  mining-drop hook and a stats-tab line) that depended on the removed
+  Museum facility.
+- **Added some humor to the Statistics tab** — most stat labels now
+  carry a dry aside ("Total clicks (RIP mouse)", "Pickaxe tier (still
+  technically a spoon)," etc.) instead of a plain label.
+
+## 2026-09-25 — Wheel/Vault rebalance and a Dev Panel
+
+- Removed the Paid Spin option from the Wheel of Maxwell; only the free
+  5-minute spin remains.
+- Increased the odds of finding a Maxwell Key from clicks, Golden Sams,
+  and raid bosses.
+- Maxwell's Vault now favors the player (ties count as a win, plus a
+  chance to forgive a wrong guess) and pays out 10 Keys per crack
+  instead of 1.
+- Added a password-gated "Dev Panel" in Settings (password:
+  `developer`) with one-click buttons to grant each currency.
+
 ## 2026-09-25
 
 - **Maxwell's Vault is now an actual game.** Replaced the old "click a
