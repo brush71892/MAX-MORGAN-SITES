@@ -1186,6 +1186,105 @@
                 letter-spacing: 1px;
             }
 
+            .vault-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                max-width: 420px;
+                margin: 0 auto;
+            }
+            .vault-card {
+                position: relative;
+                aspect-ratio: 5 / 7;
+                border-radius: 8px;
+                background: #f3ede1;
+                border: 2px solid #d8cdb4;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: Georgia, "Times New Roman", serif;
+                transition:
+                    transform 0.12s,
+                    box-shadow 0.12s,
+                    filter 0.12s;
+                user-select: none;
+            }
+            .vault-card:hover:not(.busted):not(.disabled) {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            }
+            .vault-card.selected {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px var(--accent-glow);
+            }
+            .vault-card.disabled {
+                cursor: default;
+            }
+            .vault-card.busted {
+                background: #2a2a2a;
+                border-color: #3a3a3a;
+                cursor: default;
+            }
+            .vault-card.busted .vault-card-rank,
+            .vault-card.busted .vault-card-suit {
+                opacity: 0.25;
+            }
+            .vault-card.flash-good {
+                animation: vaultGood 0.5s ease;
+            }
+            .vault-card.flash-bad {
+                animation: vaultBad 0.5s ease;
+            }
+            @keyframes vaultGood {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+                }
+                100% {
+                    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
+                }
+            }
+            @keyframes vaultBad {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+                }
+                100% {
+                    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
+                }
+            }
+            .vault-card-rank {
+                position: absolute;
+                top: 4px;
+                left: 6px;
+                font-size: 1rem;
+                font-weight: 700;
+                line-height: 1;
+            }
+            .vault-card-rank.bottom {
+                top: auto;
+                left: auto;
+                bottom: 4px;
+                right: 6px;
+                transform: rotate(180deg);
+            }
+            .vault-card-suit {
+                font-size: 1.7rem;
+            }
+            .vault-card-red {
+                color: #c0392b;
+            }
+            .vault-card-black {
+                color: #1a1a1a;
+            }
+            .vault-card-out {
+                font-family: "Segoe UI", sans-serif;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+                color: #7a7a7a;
+            }
+
             .pet-card,
             .item-card {
                 background: var(--panel-3);
@@ -3038,25 +3137,72 @@
                             class="box"
                             style="text-align: center; margin-top: 10px"
                         >
-                            <h4>🔒 Maxwell's Vault</h4>
+                            <div class="row" style="justify-content: center; gap: 8px">
+                                <h4 style="margin: 0">🔒 Maxwell's Vault</h4>
+                                <button
+                                    class="sm-btn"
+                                    id="btn-vault-howto"
+                                    style="padding: 2px 9px; font-size: 0.8em"
+                                    title="How to play"
+                                >
+                                    ❓
+                                </button>
+                            </div>
                             <p class="tiny muted">
                                 The only way to earn a 🔑 Maxwell Key on
-                                demand. A long-cooldown gamble — most
-                                attempts come up empty, but a fair
-                                consolation of burritos softens the miss.
+                                demand. Crack it open, then read the vault:
+                                nine piles from a shuffled 52-card deck. Guess
+                                higher or lower on a pile to grow it — miss
+                                and that pile is done. Clear the whole deck
+                                before all nine piles bust and the vault
+                                cracks.
                             </p>
-                            <div class="tiny muted">
-                                Odds: <b>12%</b> per attempt · Cooldown:
-                                <b>25 min</b>
-                            </div>
                             <div class="tiny" id="vault-status">Ready</div>
                             <button
                                 class="sm-btn"
                                 id="btn-vault"
                                 style="margin-top: 6px"
                             >
-                                Crack the Vault
+                                Open the Vault
                             </button>
+
+                            <div id="vault-game" style="display: none; margin-top: 10px">
+                                <div class="tiny muted" style="margin-bottom: 8px">
+                                    Cards remaining:
+                                    <b id="vault-remaining">0</b> · Piles
+                                    left: <b id="vault-piles-left">0</b>
+                                </div>
+                                <div class="vault-grid" id="vault-piles"></div>
+                                <div
+                                    class="btn-group"
+                                    style="justify-content: center; margin-top: 10px"
+                                >
+                                    <button
+                                        class="sm-btn good"
+                                        id="btn-vault-higher"
+                                        disabled
+                                    >
+                                        ▲ Higher
+                                    </button>
+                                    <button
+                                        class="sm-btn danger"
+                                        id="btn-vault-lower"
+                                        disabled
+                                    >
+                                        ▼ Lower
+                                    </button>
+                                </div>
+                                <div class="tiny" id="vault-msg" style="margin-top: 8px">
+                                    Pick a pile to begin.
+                                </div>
+                                <button
+                                    class="sm-btn"
+                                    id="btn-vault-forfeit"
+                                    style="margin-top: 8px"
+                                >
+                                    Walk Away
+                                </button>
+                            </div>
                         </div>
 
                         <div class="box" style="margin-top: 10px">
@@ -12923,12 +13069,14 @@
                         themeCases: 0,
                         keysFound: 0,
                         vaultCracks: 0,
+                        vaultWins: 0,
                     },
                     lastSave: Date.now(),
                     started: Date.now(),
                     lastWheel: 0,
                     lastSmash: 0,
                     lastVault: 0,
+                    vaultGame: null,
                     lastClickTime: Date.now(),
                     totalBuildings() {
                         let n = 0;
@@ -13624,38 +13772,249 @@
                 markDirty("gacha");
                 markDirty("cosmetics");
             }
-            const VAULT_COOLDOWN = 12 * 60 * 1000;
-            const VAULT_CHANCE = 0.22;
+            /* ---------------------- MAXWELL'S VAULT (hi-lo pyramid) ---------------------- */
+            const VAULT_COOLDOWN = 15 * 60 * 1000;
+            const VAULT_PILES = 9;
+            const VAULT_RANKS = [
+                "A",
+                "2",
+                "3",
+                "4",
+                "5",
+                "6",
+                "7",
+                "8",
+                "9",
+                "10",
+                "J",
+                "Q",
+                "K",
+            ];
+            const VAULT_SUITS = [
+                { s: "♠", red: false },
+                { s: "♣", red: false },
+                { s: "♥", red: true },
+                { s: "♦", red: true },
+            ];
+            let vaultUIDirty = true;
+            function markVaultUI() {
+                vaultUIDirty = true;
+            }
             function vaultReadyIn() {
+                if (game.vaultGame) return 0;
                 return Math.max(0, VAULT_COOLDOWN - (Date.now() - game.lastVault));
             }
-            function crackVault() {
-                if (vaultReadyIn() > 0) {
-                    toast(
-                        "Still locked",
-                        fmtTime(vaultReadyIn() / 1000) + " left",
-                        "bad",
-                    );
+            function freshVaultDeck() {
+                const deck = [];
+                for (let v = 1; v <= 13; v++)
+                    for (const suit of VAULT_SUITS)
+                        deck.push({
+                            v,
+                            r: VAULT_RANKS[v - 1],
+                            s: suit.s,
+                            red: suit.red,
+                        });
+                for (let i = deck.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    const t = deck[i];
+                    deck[i] = deck[j];
+                    deck[j] = t;
+                }
+                return deck;
+            }
+            function vaultPilesLeft(vg) {
+                return vg.piles.reduce((n, p) => n + (p.out ? 0 : 1), 0);
+            }
+            function openVault() {
+                if (game.vaultGame) return;
+                const cd = vaultReadyIn();
+                if (cd > 0) {
+                    toast("Still locked", fmtTime(cd / 1000) + " left", "bad");
                     return;
                 }
                 game.lastVault = Date.now();
                 game.stats.vaultCracks = (game.stats.vaultCracks || 0) + 1;
-                if (Math.random() < VAULT_CHANCE) {
-                    grantKey("Cracked Maxwell's vault");
-                } else {
-                    const consolation = getBPS() * 300 + 5000;
-                    gainBurritos(consolation);
-                    toast(
-                        "The vault held",
-                        "No key this time — +" +
-                            fmt(consolation) +
-                            " burritos for the effort",
-                        "bad",
-                    );
-                }
-                playSfx(220, 0.15, "sawtooth");
+                const deck = freshVaultDeck();
+                const piles = [];
+                for (let i = 0; i < VAULT_PILES; i++)
+                    piles.push({ card: deck.pop(), out: false, flash: null });
+                game.vaultGame = {
+                    deck,
+                    piles,
+                    sel: -1,
+                    locked: false,
+                    done: false,
+                    won: false,
+                    msg: "",
+                };
+                playSfx(300, 0.12, "triangle");
+                markVaultUI();
                 markDirty("minigames");
+            }
+            function selectVaultPile(i) {
+                const vg = game.vaultGame;
+                if (!vg || vg.done || vg.locked) return;
+                const p = vg.piles[i];
+                if (!p || p.out) return;
+                vg.sel = vg.sel === i ? -1 : i;
+                playSfx(440, 0.05, "square");
+                markVaultUI();
+                markDirty("minigames");
+            }
+            function guessVault(dir) {
+                const vg = game.vaultGame;
+                if (!vg || vg.done || vg.locked || vg.sel < 0) return;
+                const pile = vg.piles[vg.sel];
+                if (!pile || pile.out || !vg.deck.length) return;
+                vg.locked = true;
+                vg.sel = -1;
+                const cur = pile.card;
+                const next = vg.deck.pop();
+                const correct =
+                    dir === "higher" ? next.v > cur.v : next.v < cur.v;
+                pile.card = next;
+                pile.flash = correct ? "good" : "bad";
+                if (!correct) pile.out = true;
+                playSfx(
+                    correct ? 660 : 160,
+                    correct ? 0.1 : 0.18,
+                    correct ? "triangle" : "sawtooth",
+                );
+                markVaultUI();
+                markDirty("minigames");
+                setTimeout(() => {
+                    pile.flash = null;
+                    vg.locked = false;
+                    checkVaultEnd();
+                    markVaultUI();
+                    markDirty("minigames");
+                }, 450);
+            }
+            function checkVaultEnd() {
+                const vg = game.vaultGame;
+                if (!vg || vg.done) return;
+                if (vg.deck.length === 0) finishVault(true);
+                else if (vaultPilesLeft(vg) === 0) finishVault(false);
+            }
+            function finishVault(won) {
+                const vg = game.vaultGame;
+                if (!vg || vg.done) return;
+                vg.done = true;
+                vg.won = won;
+                const drawn = 43 - vg.deck.length;
+                if (won) {
+                    game.stats.vaultWins = (game.stats.vaultWins || 0) + 1;
+                    grantKey("Cracked Maxwell's Vault wide open");
+                    const bonus = getBPS() * 400 + 8000;
+                    gainBurritos(bonus);
+                    vg.msg =
+                        "🔓 VAULT CRACKED! +" +
+                        fmt(bonus) +
+                        " burritos, plus the key.";
+                    confetti(70);
+                    chord([523, 659, 784, 1046], 0.25);
+                } else {
+                    const consolation =
+                        getBPS() * 300 * (drawn / 43) + 3000;
+                    gainBurritos(consolation);
+                    vg.msg =
+                        "All nine piles busted. +" +
+                        fmt(consolation) +
+                        " burritos for the effort.";
+                    toast("The vault holds", vg.msg, "bad");
+                    playSfx(180, 0.25, "sawtooth");
+                }
                 markDirty("hud");
+                markVaultUI();
+                markDirty("minigames");
+                setTimeout(() => {
+                    if (game.vaultGame === vg) {
+                        game.vaultGame = null;
+                        markVaultUI();
+                        markDirty("minigames");
+                    }
+                }, 2600);
+            }
+            function forfeitVault() {
+                if (!game.vaultGame || game.vaultGame.done) return;
+                game.vaultGame = null;
+                toast("Walked away", "The vault relocks", "bad");
+                markVaultUI();
+                markDirty("minigames");
+            }
+            function vaultCardMarkup(card) {
+                const cls = card.red ? "vault-card-red" : "vault-card-black";
+                const face = card.r + card.s;
+                return (
+                    '<div class="vault-card-rank ' +
+                    cls +
+                    '">' +
+                    face +
+                    '</div><div class="vault-card-suit ' +
+                    cls +
+                    '">' +
+                    card.s +
+                    '</div><div class="vault-card-rank bottom ' +
+                    cls +
+                    '">' +
+                    face +
+                    "</div>"
+                );
+            }
+            function renderVaultPiles() {
+                const vg = game.vaultGame;
+                const grid = $("vault-piles");
+                if (!grid) return;
+                if (!vg) {
+                    grid.innerHTML = "";
+                    return;
+                }
+                grid.innerHTML = vg.piles
+                    .map((p, i) => {
+                        const classes = ["vault-card"];
+                        if (p.out) classes.push("busted", "disabled");
+                        if (i === vg.sel) classes.push("selected");
+                        if (vg.done || vg.locked) classes.push("disabled");
+                        if (p.flash === "good") classes.push("flash-good");
+                        if (p.flash === "bad") classes.push("flash-bad");
+                        const attr = p.out
+                            ? ""
+                            : ' data-vpile="' + i + '"';
+                        return (
+                            '<div class="' +
+                            classes.join(" ") +
+                            '"' +
+                            attr +
+                            ">" +
+                            vaultCardMarkup(p.card) +
+                            (p.out
+                                ? '<div class="vault-card-out" style="position:absolute;bottom:4px;left:0;right:0;text-align:center">OUT</div>'
+                                : "") +
+                            "</div>"
+                        );
+                    })
+                    .join("");
+                $("vault-remaining").textContent = fmt(vg.deck.length);
+                $("vault-piles-left").textContent = fmt(vaultPilesLeft(vg));
+                $("btn-vault-higher").disabled =
+                    vg.done || vg.locked || vg.sel < 0;
+                $("btn-vault-lower").disabled =
+                    vg.done || vg.locked || vg.sel < 0;
+                $("vault-msg").textContent = vg.done
+                    ? vg.msg
+                    : vg.sel >= 0
+                      ? "Higher or lower than " + vg.piles[vg.sel].card.r + "?"
+                      : "Pick a pile.";
+            }
+            function showVaultHowTo() {
+                modal(
+                    "🔒 How to crack Maxwell's Vault",
+                    "1. Open the vault to deal nine piles from a shuffled 52-card deck.<br><br>" +
+                        "2. Pick a pile, then guess whether the next card is higher or lower than the card showing.<br><br>" +
+                        "3. Guess right and that card replaces the pile's card. Guess wrong — or draw a matching rank — and that pile is out for good.<br><br>" +
+                        "Aces are low, Kings are high. Clear the whole deck before all nine piles bust to crack the vault for a 🔑 Maxwell Key. Busting out first still pays a burrito consolation.",
+                    [{ t: "Got it", fn: () => {} }],
+                );
             }
             function hatchCost() {
                 return CASE_KEY_COST;
@@ -18739,6 +19098,8 @@
                     ["Crates opened", fmt(game.stats.crates)],
                     ["Wheel spins", fmt(game.stats.spins)],
                     ["Roulette rounds", fmt(game.stats.roulette)],
+                    ["Vaults opened", fmt(game.stats.vaultCracks)],
+                    ["Vaults cracked", fmt(game.stats.vaultWins || 0)],
                     ["Offline collections", fmt(game.stats.offlineCollects)],
                     ["Longest offline", fmtTime(game.stats.bestOffline)],
                     ["Play time", fmtTime(game.playTime)],
@@ -19123,10 +19484,27 @@
                     game.debt + loanAmount("small") > maxDebt();
                 $("btn-loan-big").disabled =
                     game.debt + loanAmount("big") > maxDebt();
-                const vcd = vaultReadyIn();
-                $("vault-status").textContent =
-                    vcd > 0 ? "Locked — " + fmtTime(vcd / 1000) : "Ready";
-                $("btn-vault").disabled = vcd > 0;
+                const vg = game.vaultGame;
+                if (vg) {
+                    $("btn-vault").style.display = "none";
+                    $("vault-game").style.display = "block";
+                    $("vault-status").textContent = vg.done
+                        ? vg.won
+                            ? "Cracked!"
+                            : "Busted"
+                        : "In progress";
+                } else {
+                    const vcd = vaultReadyIn();
+                    $("btn-vault").style.display = "";
+                    $("vault-game").style.display = "none";
+                    $("vault-status").textContent =
+                        vcd > 0 ? "Locked — " + fmtTime(vcd / 1000) : "Ready";
+                    $("btn-vault").disabled = vcd > 0;
+                }
+                if (vaultUIDirty) {
+                    vaultUIDirty = false;
+                    renderVaultPiles();
+                }
                 $("btn-pickaxe").textContent =
                     "Upgrade Pickaxe (" + fmt(pickaxeCost()) + ")";
                 $("mine-stats").textContent =
@@ -20435,7 +20813,7 @@
                         "[data-tab],[data-bld],[data-clk],[data-upg],[data-perk],[data-ssbuy],[data-cdbuy]," +
                             "[data-perkmax],[data-ssbuymax],[data-cdbuymax],[data-upgall]," +
                             "[data-talent],[data-ab],[data-sbuy],[data-ssell],[data-pet],[data-item],[data-sellpet],[data-sellitem],[data-gequip],[data-gsell],[data-gsellone],[data-tradeup],[data-tequip],[data-tsell],[data-tsellone],[data-thtradeup],[data-slot],[data-quest],[data-ms]," +
-                            "[data-buy],[data-qty],[data-theme],[data-anim],[data-skin],[data-fx],[data-af],[data-cup]," +
+                            "[data-buy],[data-qty],[data-theme],[data-anim],[data-skin],[data-fx],[data-af],[data-cup],[data-vpile]," +
                             "[data-maxall],[data-mvmaxall],[data-mvupmax],[data-mvup],[data-mvact],[data-mvnav],[data-module],[data-star]",
                     );
                     if (!t) return;
@@ -20550,6 +20928,7 @@
                     else if (d.quest) claimQuest(d.quest);
                     else if (d.ms) claimMilestone(d.ms);
                     else if (d.cup !== undefined) playRoulette(+d.cup);
+                    else if (d.vpile !== undefined) selectVaultPile(+d.vpile);
                     else if (d.buy !== undefined) {
                         game.buyAmount = +d.buy;
                         document
@@ -20602,7 +20981,11 @@
                 bind("btn-spin-paid", () => spinWheel(true));
                 bind("btn-smash", startSmash);
                 bind("btn-hatch", hatchPet);
-                bind("btn-vault", crackVault);
+                bind("btn-vault", openVault);
+                bind("btn-vault-higher", () => guessVault("higher"));
+                bind("btn-vault-lower", () => guessVault("lower"));
+                bind("btn-vault-forfeit", forfeitVault);
+                bind("btn-vault-howto", showVaultHowTo);
                 bind("btn-pet-slot", buyPetSlot);
                 bind("btn-crate", openCrate);
                 bind("btn-salvage", salvageCommons);
@@ -20878,6 +21261,10 @@
             /* ---------------------- BOOT ---------------------- */
             function init() {
                 const loaded = loadGame();
+                if (game.vaultGame && !game.vaultGame.done) {
+                    game.vaultGame.locked = false;
+                    game.vaultGame.piles.forEach((p) => (p.flash = null));
+                }
                 recalc();
                 const opened = mvCheckUnlocks(true);
                 if (opened && loaded)
