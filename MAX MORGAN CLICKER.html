@@ -2466,12 +2466,6 @@
                         <button class="tab-btn" data-tab="tab-finance">
                             💹 Finance<span class="dot"></span>
                         </button>
-                        <button class="tab-btn" data-tab="tab-cosmos">
-                            🌌 Cosmos<span class="dot"></span>
-                        </button>
-                        <button class="tab-btn" data-tab="tab-mythos">
-                            🏛️ Mythos<span class="dot"></span>
-                        </button>
                         <button class="tab-btn" data-tab="tab-quests">
                             Quests<span class="dot"></span>
                         </button>
@@ -3495,23 +3489,6 @@
                         <div class="mv-nav" id="mvnav-finance"></div>
                         <div class="mv-panel" id="mvpanel-finance"></div>
                     </div>
-                    <div
-                        id="tab-cosmos"
-                        class="tab-content mv-tab"
-                        data-group="cosmos"
-                    >
-                        <div class="mv-nav" id="mvnav-cosmos"></div>
-                        <div class="mv-panel" id="mvpanel-cosmos"></div>
-                    </div>
-                    <div
-                        id="tab-mythos"
-                        class="tab-content mv-tab"
-                        data-group="mythos"
-                    >
-                        <div class="mv-nav" id="mvnav-mythos"></div>
-                        <div class="mv-panel" id="mvpanel-mythos"></div>
-                    </div>
-
                     <!-- QUESTS -->
                     <div id="tab-quests" class="tab-content">
                         <div class="row">
@@ -5819,6 +5796,308 @@
                     t: "The Last Burrito",
                     b: "There is one left. It has your name on it. Maxwell has been saving it. He nods. It is enough.",
                 },
+                /* Contract-linked entries — unlocked by Career Milestones in the Quests tab. */
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m1"],
+                    hint: "Unlocks by completing the “Own 10 Tortilla Presses” contract.",
+                    t: "The Press Gang",
+                    b: "Ten presses, one rhythm. The kitchen staff say they can hear it from the parking lot. The parking lot says it can hear it from the highway.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m2"],
+                    hint: "Unlocks by completing the “Own 25 Auto-Clickers” contract.",
+                    t: "Automated Devotion",
+                    b: "Twenty-five little machines click so you don't have to. None of them ask for a raise. All of them dream of burritos, probably.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m3"],
+                    hint: "Unlocks by completing the “Bake 1 million burritos” contract.",
+                    t: "Seven Figures of Salsa",
+                    b: "One million burritos. The accountant quit. The replacement accountant also quit. The books are now kept by a golden retriever.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m4"],
+                    hint: "Unlocks by completing the “Rebirth for the first time” contract.",
+                    t: "Born Again, Still Hungry",
+                    b: "You start over. Maxwell does not remember you. Maxwell also does not remember not remembering you. It works out fine.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m5"],
+                    hint: "Unlocks by completing the “Reach mining Layer 50” contract.",
+                    t: "Fifty Layers Down",
+                    b: "The rock down here is warm and faintly seasoned. Geologists have stopped asking why and started bringing chips.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m6"],
+                    hint: "Unlocks by completing the “Hatch 3 pets” contract.",
+                    t: "A Modest Menagerie",
+                    b: "Three creatures now live in the burrito economy full-time. None of them have a job title. All of them outrank you.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m7"],
+                    hint: "Unlocks by completing the “Own 100 shares across the market” contract.",
+                    t: "Burrito Wall Street",
+                    b: "A hundred shares, zero regrets, several 3 a.m. checks of the ticker. The bull is also, somehow, wrapped in foil.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m8"],
+                    hint: "Unlocks by completing the “Catch 50 Golden Sams” contract.",
+                    t: "Gold Rush",
+                    b: "Fifty golden Maxwells, caught by hand. Your reflexes are now insured. The premium is paid in burritos.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m9"],
+                    hint: "Unlocks by completing the “Unlock 40 achievements” contract.",
+                    t: "Overachiever",
+                    b: "Forty achievements. A modest wall would not fit them. A modest ego does not fit them either.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m10"],
+                    hint: "Unlocks by completing the “Defeat 10 raid bosses” contract.",
+                    t: "Boss's Boss",
+                    b: "Ten raid bosses down, mostly via condiment. HR has asked that future defeats be logged as “incidents,” not “victories.”",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m11"],
+                    hint: "Unlocks by completing the “Forge 5 Sam Shards” contract.",
+                    t: "Shard Work",
+                    b: "Five shards, forged from sacrifice. Somewhere, a smaller Maxwell nods in solidarity with the bigger one.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m12"],
+                    hint: "Unlocks by completing the “Reach a 75 combo” contract.",
+                    t: "Unbroken (First Draft)",
+                    b: "Seventy-five clicks, no misses, one very tired finger. The finger has requested hazard pay.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m13"],
+                    hint: "Unlocks by completing the “Bake 1 trillion burritos” contract.",
+                    t: "Thirteen Zeroes",
+                    b: "A trillion burritos. Economists have run out of adjectives and started using hand gestures instead.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m14"],
+                    hint: "Unlocks by completing the “Equip a legendary artifact” contract.",
+                    t: "Dressed to Impress",
+                    b: "A legendary relic, equipped and gleaming. Maxwell has never looked more like a man who owns a food truck empire.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m15"],
+                    hint: "Unlocks by completing the “Ascend to Cosmic Dust” contract.",
+                    t: "Beyond the Tortilla",
+                    b: "Ascension complete. Maxwell exists slightly outside the kitchen now. The kitchen has not noticed the difference.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m16"],
+                    hint: "Unlocks by completing the “Crack Maxwell's Vault 5 times” contract.",
+                    t: "Safecracker's Union, Local 9",
+                    b: "Five vaults cracked clean. The lock manufacturer has stopped taking your calls and started taking notes.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m17"],
+                    hint: "Unlocks by completing the “Find 50 Maxwell Keys in total” contract.",
+                    t: "Keyring Overflow",
+                    b: "Fifty keys, none of which open a real door. All of them open something better.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m18"],
+                    hint: "Unlocks by completing the “Spin the Wheel of Maxwell 100 times” contract.",
+                    t: "Dizzy Spell",
+                    b: "One hundred spins. The wheel is fine. You, however, need to sit down for a moment.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m19"],
+                    hint: "Unlocks by completing the “Reach Rebirth 5” contract.",
+                    t: "Fifth Life",
+                    b: "Five rebirths in. Maxwell has started keeping a diary. Every page says the same thing: burritos.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m20"],
+                    hint: "Unlocks by completing the “Own 500 shares across the market” contract.",
+                    t: "Controlling Interest",
+                    b: "Five hundred shares. You technically could vote yourself into the boardroom. You are already in the boardroom.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m21"],
+                    hint: "Unlocks by completing the “Collect 10 pets” contract.",
+                    t: "Full House",
+                    b: "Ten creatures, one increasingly cramped burrito truck. The zoning board has given up entirely.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m22"],
+                    hint: "Unlocks by completing the “Reach mining Layer 150” contract.",
+                    t: "One Fifty and Falling",
+                    b: "Layer 150. The rock down here files its own taxes. It refuses to say why.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m23"],
+                    hint: "Unlocks by completing the “Trigger Guac Smash 20 times” contract.",
+                    t: "Avocado Abuse",
+                    b: "Twenty smashes. The mortar has filed a grievance. The guacamole, notably, has not complained once.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m24"],
+                    hint: "Unlocks by completing the “Reach a 150 combo” contract.",
+                    t: "Unbroken (Final Draft)",
+                    b: "One hundred fifty clicks, unbroken. The finger from before has unionized. Negotiations are ongoing.",
+                },
+                {
+                    unlock: (g) => !!g.quests.claimed["ms_m25"],
+                    hint: "Unlocks by completing the “Unlock every achievement” contract.",
+                    t: "The Completionist's Shrine",
+                    b: "Every achievement, claimed. There is nothing left to prove. Maxwell suggests you prove it again anyway.",
+                },
+                /* Contract-linked entries — unlocked by total Daily Contracts claimed. */
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 1,
+                    hint: "Unlocks by claiming your first Daily Contract.",
+                    t: "First Contract",
+                    b: "You sign on the dotted line. The dotted line is a burrito wrapper. It is, legally speaking, binding.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 2,
+                    hint: "Unlocks by claiming 2 Daily Contracts.",
+                    t: "Repeat Client",
+                    b: "Twice now. Maxwell's Contract Office keeps a file on you. The file is one page, and the page just says “good.”",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 3,
+                    hint: "Unlocks by claiming 3 Daily Contracts.",
+                    t: "Reliable Contractor",
+                    b: "Three contracts closed. Word is getting around the burrito trade. The word is, again, “good.”",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 5,
+                    hint: "Unlocks by claiming 5 Daily Contracts.",
+                    t: "Five Deals Deep",
+                    b: "Five down. The Contract Office upgrades your file to two pages. The second page is blank, out of respect.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 7,
+                    hint: "Unlocks by claiming 7 Daily Contracts.",
+                    t: "Lucky Seven",
+                    b: "Seven contracts. A superstitious burrito vendor two counties over reports an improvement in luck for no clear reason.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 10,
+                    hint: "Unlocks by claiming 10 Daily Contracts.",
+                    t: "Ten and Counting",
+                    b: "Double digits. The Contract Office sends a card. The card is a coupon. The coupon is for a burrito you already own.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 15,
+                    hint: "Unlocks by claiming 15 Daily Contracts.",
+                    t: "Contractor's Union Card",
+                    b: "Fifteen contracts earns you a laminated card. It grants no benefits. You carry it with immense pride regardless.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 20,
+                    hint: "Unlocks by claiming 20 Daily Contracts.",
+                    t: "Twenty Deals",
+                    b: "Twenty contracts closed without a single missed deadline. Deadlines, in this economy, are more of a vibe.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 25,
+                    hint: "Unlocks by claiming 25 Daily Contracts.",
+                    t: "Quarter Century of Contracts",
+                    b: "Twenty-five deals. Not a century, but a quarter of one, which is still a suspiciously specific unit of burritos.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 30,
+                    hint: "Unlocks by claiming 30 Daily Contracts.",
+                    t: "Thirty Days of Wrapping",
+                    b: "A month's worth of contracts, give or take. The Office suspects you might actually enjoy this. The Office is correct.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 40,
+                    hint: "Unlocks by claiming 40 Daily Contracts.",
+                    t: "Forty Winks Later",
+                    b: "Forty contracts, zero naps taken in between despite the name. Someone in accounting finds this concerning.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 50,
+                    hint: "Unlocks by claiming 50 Daily Contracts.",
+                    t: "Half a Hundred",
+                    b: "Fifty contracts. The Office has started referring to you by employee number instead of name. The number is a burrito emoji.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 65,
+                    hint: "Unlocks by claiming 65 Daily Contracts.",
+                    t: "Sixty-Five and Climbing",
+                    b: "Sixty-five deals. Retirement age for a human. Just getting started for a man measured in tortillas.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 80,
+                    hint: "Unlocks by claiming 80 Daily Contracts.",
+                    t: "Eighty Proof Dedication",
+                    b: "Eighty contracts closed. The Contract Office proposes a statue. The statue is, obviously, made of foil.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 100,
+                    hint: "Unlocks by claiming 100 Daily Contracts.",
+                    t: "Century Club",
+                    b: "One hundred contracts. You are inducted into the Century Club. Membership includes a burrito. It is, as always, wrapped.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 125,
+                    hint: "Unlocks by claiming 125 Daily Contracts.",
+                    t: "One Twenty-Five",
+                    b: "A hundred and twenty-five deals down. The Office quietly retires your file and starts a filing cabinet instead.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 150,
+                    hint: "Unlocks by claiming 150 Daily Contracts.",
+                    t: "One Fifty Contracts",
+                    b: "One hundred fifty. Somewhere, a competing burrito vendor has started a support group specifically about you.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 180,
+                    hint: "Unlocks by claiming 180 Daily Contracts.",
+                    t: "Half a Year of Deals",
+                    b: "Roughly six months of daily contracts, assuming perfect attendance. Your attendance is, in fact, perfect.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 220,
+                    hint: "Unlocks by claiming 220 Daily Contracts.",
+                    t: "Two Twenty",
+                    b: "Two hundred twenty contracts. The Contract Office has started using your name as a verb, informally, in meetings.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 260,
+                    hint: "Unlocks by claiming 260 Daily Contracts.",
+                    t: "Two Sixty and Steady",
+                    b: "Two hundred sixty deals. Steady as a Tortilla Press, twice as reliable, considerably less flat.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 300,
+                    hint: "Unlocks by claiming 300 Daily Contracts.",
+                    t: "The Three Hundred Club",
+                    b: "Three hundred contracts. This is, an accountant confirms, an unreasonable number of burritos to have officially wrapped.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 350,
+                    hint: "Unlocks by claiming 350 Daily Contracts.",
+                    t: "Three Fifty, Unbothered",
+                    b: "Three hundred fifty deals closed. Bothered by none of it. The burritos, similarly, remain unbothered.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 400,
+                    hint: "Unlocks by claiming 400 Daily Contracts.",
+                    t: "Four Hundred Strong",
+                    b: "Four hundred contracts. The Contract Office asks, gently, if you have considered a vacation. You have not.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 450,
+                    hint: "Unlocks by claiming 450 Daily Contracts.",
+                    t: "Four Fifty, No Signs of Stopping",
+                    b: "Four hundred fifty deals. The wrapper industry sends a thank-you note. It is, itself, wrapped.",
+                },
+                {
+                    unlock: (g) => (g.stats.questsClaimed || 0) >= 500,
+                    hint: "Unlocks by claiming 500 Daily Contracts.",
+                    t: "The Five Hundred Club",
+                    b: "Five hundred contracts, closed by hand and by habit. Maxwell has run out of ways to say thank you, so he just nods. It is enough.",
+                },
             ];
 
             const NEWS = [
@@ -6515,7 +6794,7 @@
             /* ---------- Facility registry ---------- */
             const MV = {},
                 MV_LIST = [];
-            const MV_GROUPS = ["industry", "finance", "cosmos", "mythos"];
+            const MV_GROUPS = ["industry", "finance"];
             function F(def) {
                 def.ups = def.ups || [];
                 def.res = def.res || [];
@@ -9619,134 +9898,6 @@
                     },
                 },
             ];
-            F({
-                id: "stars",
-                n: 3,
-                g: "cosmos",
-                tag: "Star Nodes",
-                name: "Burrito Constellations",
-                icon: "✨",
-                blurb: "A stargazing shrine. Spend Cosmic Dust to light a star, then link outward — each star can only be lit once a neighbouring star shines.",
-                gate: {
-                    t: "Ascend once",
-                    c: (g) => g.stats.ascensions >= 1,
-                    p: (g) => g.stats.ascensions,
-                },
-                res: ["cd"],
-                ups: STARS.map((st, k) => ({
-                    n: st.n,
-                    i: st.i,
-                    d: st.d,
-                    c: [["cd", +Math.pow(1.35, k).toFixed(2), 1.8]],
-                    max: 5,
-                    req: () =>
-                        !st.links.length ||
-                        st.links.some((j) => lv("stars", j) > 0),
-                    rt: "Light a linked star first",
-                })),
-                upTitle: "Star Nodes",
-                maxLabel: "Buy Max Nodes",
-                auto: {
-                    name: "Astrolabe Autolinker",
-                    shop: "cd",
-                    cost: 4,
-                    desc: "Lights and levels star nodes bottom-to-top every tick.",
-                },
-                view: () => {
-                    let lines = "";
-                    STARS.forEach((st, k) =>
-                        st.links.forEach((j) => {
-                            lines +=
-                                '<line data-link="' +
-                                k +
-                                "_" +
-                                j +
-                                '" x1="' +
-                                st.x +
-                                '" y1="' +
-                                st.y +
-                                '" x2="' +
-                                STARS[j].x +
-                                '" y2="' +
-                                STARS[j].y +
-                                '" stroke="#475569" stroke-width="0.6" vector-effect="non-scaling-stroke"/>';
-                        }),
-                    );
-                    return (
-                        '<div class="star-map"><svg viewBox="0 0 100 100" preserveAspectRatio="none">' +
-                        lines +
-                        "</svg>" +
-                        STARS.map(
-                            (st, k) =>
-                                '<button class="star-node" data-star="' +
-                                k +
-                                '" style="left:' +
-                                st.x +
-                                "%;top:" +
-                                st.y +
-                                '%" aria-label="' +
-                                st.n +
-                                '">' +
-                                "<span>" +
-                                st.i +
-                                '</span><span class="sl" data-live="sl' +
-                                k +
-                                '"></span></button>',
-                        ).join("") +
-                        "</div>" +
-                        '<p class="tiny muted" style="text-align:center;margin:0 0 6px">Click a glowing star to light or level it. Hover for its bonus.</p>'
-                    );
-                },
-                live: () => {
-                    const o = {};
-                    STARS.forEach((st, k) => {
-                        o["sl" + k] = lv("stars", k)
-                            ? String(lv("stars", k))
-                            : "";
-                    });
-                    return o;
-                },
-                refresh(p) {
-                    p.querySelectorAll("[data-star]").forEach((b) => {
-                        const k = +b.dataset.star,
-                            l = lv("stars", k),
-                            vis = upVisible("stars", k);
-                        const cost =
-                            l >= 5 ? null : upCosts("stars", k, 1)[0][1];
-                        const cls =
-                            "star-node" +
-                            (l > 0 ? " lit" : "") +
-                            (vis && cost != null && game.cd >= cost
-                                ? " avail"
-                                : "") +
-                            (!vis ? " dim" : "");
-                        if (b.className !== cls) b.className = cls;
-                        b.dataset.tip = tipFor(
-                            "star" + k,
-                            STARS[k].n,
-                            STARS[k].d +
-                                "<br>Level <b>" +
-                                l +
-                                "/5</b>" +
-                                (cost != null
-                                    ? "<br>Next: <b>" + fmt(cost) + " CD</b>"
-                                    : "<br>Fully lit"),
-                            vis ? "" : "Light a linked star first",
-                        );
-                    });
-                    p.querySelectorAll("[data-link]").forEach((ln) => {
-                        const [a, b] = ln.dataset.link.split("_").map(Number);
-                        const on = lv("stars", a) > 0 && lv("stars", b) > 0;
-                        ln.setAttribute("stroke", on ? "#fde047" : "#475569");
-                    });
-                },
-                fx(s, M) {
-                    STARS.forEach((st, k) => {
-                        const l = lv("stars", k);
-                        if (l) st.eff(M, l);
-                    });
-                },
-            });
 
             /* #6 The Black-Hole Oven */
             function entPer(i) {
@@ -9760,202 +9911,6 @@
                     .map((b) => b.id)
                     .slice(-3);
             }
-            F({
-                id: "blackhole",
-                n: 6,
-                g: "cosmos",
-                tag: "Entropy Shards",
-                name: "The Black-Hole Oven",
-                icon: "🕳️",
-                blurb: "A captive singularity at the heart of the kitchen. Feed it spare buildings and junk artifacts; it radiates Entropy Shards that power exponential multipliers.",
-                gate: {
-                    t: "Bake 1 quadrillion lifetime burritos",
-                    c: (g) => g.lifetime >= 1e15,
-                    p: (g) => g.lifetime / 1e15,
-                },
-                res: ["entropy"],
-                state: () => ({ keep: 50, fed: 0 }),
-                ups: [
-                    {
-                        n: "Accretion Disk",
-                        i: "💿",
-                        d: "+25% Entropy from everything you feed",
-                        c: [["entropy", 5, 1.5]],
-                        e: (l) => "+" + 25 * l + "%",
-                    },
-                    {
-                        n: "Event Horizon Glaze",
-                        i: "🍩",
-                        d: "x1.15 passive production per level",
-                        c: [["entropy", 10, 1.6]],
-                        e: (l) => "x" + fmt(Math.pow(1.15, l)),
-                    },
-                    {
-                        n: "Hawking Radiation",
-                        i: "☢️",
-                        d: "x1.15 click power per level",
-                        c: [["entropy", 15, 1.65]],
-                        e: (l) => "x" + fmt(Math.pow(1.15, l)),
-                    },
-                    {
-                        n: "Singularity Crust",
-                        i: "🥧",
-                        d: "x1.08 DS from Rebirth per level",
-                        c: [["entropy", 40, 1.8]],
-                        e: (l) => "x" + Math.pow(1.08, l).toFixed(2),
-                    },
-                    {
-                        n: "Spaghettified Supply Chain",
-                        i: "🍝",
-                        d: "-2% building costs",
-                        c: [["entropy", 100, 2]],
-                        max: 10,
-                        e: (l) => "-" + 2 * l + "%",
-                    },
-                ],
-                upTitle: "Singularity Multipliers",
-                auto: {
-                    name: "Oven Custodian",
-                    shop: "cd",
-                    cost: 3,
-                    desc: "Bulk-buys singularity multipliers bottom-to-top (it never feeds buildings on its own).",
-                },
-                acts: {
-                    feed(s, a, off) {
-                        const i = +a,
-                            n = Math.min(10, game.buildings[i] || 0);
-                        if (n <= 0) return;
-                        game.buildings[i] -= n;
-                        const e = n * entPer(i);
-                        addRes("entropy", e);
-                        s.fed += n;
-                        recalc();
-                        mvToast(
-                            off,
-                            "Fed " + n + " " + BUILDINGS[i].name,
-                            "+" + fmt(e) + " Entropy",
-                            "good",
-                        );
-                    },
-                    feedMax(s) {
-                        /* Sacrifice Max: cheapest tier first, keeping your reserve share and never touching your top 3 tiers. */
-                        const protect = topTiers();
-                        let e = 0,
-                            n = 0,
-                            arts = 0;
-                        for (let i = 0; i < BUILDINGS.length; i++) {
-                            if (protect.includes(i)) continue;
-                            const owned = game.buildings[i] || 0,
-                                take = Math.floor(owned * (1 - s.keep / 100));
-                            if (take <= 0) continue;
-                            game.buildings[i] = owned - take;
-                            e += take * entPer(i);
-                            n += take;
-                        }
-                        const spare = spareArtifacts(1).sort(
-                            (x, y) =>
-                                rarIdx(ART_BY_ID[x.id].rar) -
-                                rarIdx(ART_BY_ID[y.id].rar),
-                        );
-                        if (spare.length) {
-                            const ids = new Set(spare.map((x) => x.uid));
-                            spare.forEach((it) => {
-                                e +=
-                                    ART_ENTROPY[ART_BY_ID[it.id].rar] *
-                                    (1 + 0.25 * lv("blackhole", 0));
-                            });
-                            game.inventory = game.inventory.filter(
-                                (it) => !ids.has(it.uid),
-                            );
-                            arts = spare.length;
-                            markDirty("pets");
-                        }
-                        if (e <= 0) {
-                            toast(
-                                "Nothing to feed",
-                                "Lower the reserve or buy more low-tier buildings",
-                                "bad",
-                            );
-                            return;
-                        }
-                        addRes("entropy", e);
-                        s.fed += n;
-                        recalc();
-                        toast(
-                            "The singularity feeds",
-                            n +
-                                " buildings + " +
-                                arts +
-                                " artifacts → +" +
-                                fmt(e) +
-                                " Entropy",
-                            "gold",
-                        );
-                    },
-                    keep(s, a) {
-                        s.keep = Math.max(0, Math.min(95, s.keep + (+a || 0)));
-                    },
-                },
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Buildings fed", "fed") +
-                    '<div class="mv-actions">' +
-                    actBtn(
-                        "blackhole",
-                        "feedMax",
-                        "🕳️ Sacrifice Max (cheapest → highest)",
-                        null,
-                        null,
-                        "good",
-                    ) +
-                    '<span class="tiny muted" style="align-self:center">keep</span>' +
-                    actBtn("blackhole", "keep", "−10%", null, -10) +
-                    '<b data-live="keep" style="align-self:center"></b>' +
-                    actBtn("blackhole", "keep", "+10%", null, 10) +
-                    "</div>" +
-                    '<p class="tiny muted" style="margin:0">Sacrifice Max feeds each tier from the cheapest up, keeps your reserve share, never touches your 3 highest owned tiers, and also consumes spare common/rare artifacts.</p></div>' +
-                    '<div class="sec-head"><h4>Feed a Tier</h4></div><div class="mv-grid">' +
-                    BUILDINGS.map(
-                        (b) =>
-                            '<div class="mv-box"><b>' +
-                            b.icon +
-                            " " +
-                            b.name +
-                            '</b><div class="tiny muted" data-live="bo' +
-                            b.id +
-                            '"></div>' +
-                            '<div class="mv-actions">' +
-                            actBtn(
-                                "blackhole",
-                                "feed",
-                                "Feed 10",
-                                "bf" + b.id,
-                                b.id,
-                            ) +
-                            "</div></div>",
-                    ).join("") +
-                    "</div>",
-                live: (s) => {
-                    const o = { fed: fmt(s.fed), keep: s.keep + "%" };
-                    BUILDINGS.forEach((b) => {
-                        const n = game.buildings[b.id] || 0;
-                        o["bo" + b.id] =
-                            "Own " +
-                            fmt(n) +
-                            " · " +
-                            fmt(entPer(b.id)) +
-                            " 💠 each";
-                        o["bf" + b.id] = { d: n <= 0 };
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    M.bps *= Math.pow(1.15, lv("blackhole", 1));
-                    M.click *= Math.pow(1.15, lv("blackhole", 2));
-                    M.ds *= Math.pow(1.08, lv("blackhole", 3));
-                    M.cost *= 1 - 0.02 * lv("blackhole", 4);
-                },
-            });
 
             /* #10 Chrono-Kitchen */
             const CHRONO_FIELDS = [
@@ -10014,146 +9969,6 @@
             function chronoDur() {
                 return 180 + 60 * lv("chrono", 0);
             }
-            F({
-                id: "chrono",
-                n: 10,
-                g: "cosmos",
-                tag: "Time Dilation",
-                name: "Chrono-Kitchen",
-                icon: "⏳",
-                blurb: "A time-dilation chamber. Spend Cosmic Dust to fast-forward one subsystem at a time — dividends, digs, expeditions and more.",
-                gate: {
-                    t: "Ascend twice",
-                    c: (g) => g.stats.ascensions >= 2,
-                    p: (g) => g.stats.ascensions / 2,
-                },
-                res: ["cd"],
-                state: () => ({ fields: {}, want: {}, uses: 0 }),
-                ups: [
-                    {
-                        n: "Dilation Lens",
-                        i: "🔍",
-                        d: "+60s field duration",
-                        c: [["cd", 1, 2]],
-                        max: 10,
-                        e: () => fmtTime(chronoDur()),
-                    },
-                    {
-                        n: "Temporal Gearbox",
-                        i: "⚙️",
-                        d: "+1x field speed (base 5x)",
-                        c: [["cd", 2, 2.5]],
-                        max: 5,
-                        e: (l) => 5 + l + "x",
-                    },
-                    {
-                        n: "Chrono Battery",
-                        i: "🔋",
-                        d: "-0.25 CD per activation",
-                        c: [["cd", 3, 3]],
-                        max: 3,
-                        e: () => chronoCost() + " CD",
-                    },
-                ],
-                auto: {
-                    name: "Auto-Dilation",
-                    shop: "cd",
-                    cost: 5,
-                    desc: "Re-activates any field you have left switched on as soon as it expires (spends CD automatically).",
-                },
-                tick(s, dt) {
-                    for (const k in s.fields)
-                        if (s.fields[k] > 0)
-                            s.fields[k] = Math.max(0, s.fields[k] - dt);
-                },
-                acts: {
-                    on(s, a, off) {
-                        const c = chronoCost();
-                        if (game.cd < c) {
-                            mvToast(
-                                off,
-                                "Need " + c + " Cosmic Dust",
-                                "to dilate time",
-                                "bad",
-                            );
-                            return;
-                        }
-                        game.cd -= c;
-                        s.fields[a] = (s.fields[a] || 0) + chronoDur();
-                        s.want[a] = true;
-                        s.uses++;
-                        if (!off) chord([300, 450, 600], 0.2);
-                    },
-                    off(s, a) {
-                        s.want[a] = false;
-                        s.fields[a] = 0;
-                    },
-                },
-                autoRun(s) {
-                    CHRONO_FIELDS.forEach((f) => {
-                        if (
-                            s.want[f.id] &&
-                            !(s.fields[f.id] > 0) &&
-                            game.cd >= chronoCost()
-                        )
-                            this.acts.on(s, f.id, true);
-                    });
-                },
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Activation cost", "cost") +
-                    kv("Field duration · speed", "dur") +
-                    "</div>" +
-                    '<div class="mv-grid" style="margin-top:8px">' +
-                    CHRONO_FIELDS.map(
-                        (f) =>
-                            '<div class="mv-box"><b>' +
-                            f.i +
-                            " " +
-                            f.n +
-                            '</b><div class="tiny muted">' +
-                            f.d +
-                            "</div>" +
-                            '<div class="tiny" data-live="ft' +
-                            f.id +
-                            '"></div><div class="mv-actions">' +
-                            actBtn(
-                                "chrono",
-                                "on",
-                                "Dilate",
-                                "fb" + f.id,
-                                f.id,
-                            ) +
-                            actBtn("chrono", "off", "Release", null, f.id) +
-                            "</div></div>",
-                    ).join("") +
-                    "</div>",
-                live: (s) => {
-                    const o = {
-                        cost: chronoCost() + " CD",
-                        dur:
-                            fmtTime(chronoDur()) +
-                            " · " +
-                            (5 + lv("chrono", 1)) +
-                            "x",
-                    };
-                    CHRONO_FIELDS.forEach((f) => {
-                        const t = s.fields[f.id] || 0;
-                        o["ft" + f.id] =
-                            t > 0
-                                ? "⏩ " +
-                                  (5 + lv("chrono", 1)) +
-                                  "x for " +
-                                  fmtTime(t) +
-                                  (s.want[f.id] ? " · auto" : "")
-                                : s.want[f.id]
-                                  ? "expired · auto will renew"
-                                  : "normal speed";
-                        o["fb" + f.id] = { d: game.cd < chronoCost() };
-                    });
-                    return o;
-                },
-            });
 
             /* #12 Multiverse Rift Gate */
             const RIFT_OFFERS = [
@@ -10202,243 +10017,6 @@
                 o.left -= n;
                 return n;
             }
-            F({
-                id: "rift",
-                n: 12,
-                g: "cosmos",
-                tag: "Dimensional Trade",
-                name: "Multiverse Rift Gate",
-                icon: "🌀",
-                blurb: "Tear open unstable rifts into alternate universes and trade local goods for Dark-Matter Burritos and String-Theory Wraps. A big stock portfolio stabilises the frequency.",
-                gate: {
-                    t: "Own a Dimensional Rift and hold a 1B portfolio",
-                    c: (g) =>
-                        (g.buildings[13] || 0) >= 1 && portfolioValue() >= 1e9,
-                    p: (g) =>
-                        Math.min(g.buildings[13] || 0, portfolioValue() / 1e9),
-                },
-                res: ["dmb", "stw"],
-                state: () => ({
-                    open: 0,
-                    offers: [],
-                    cool: 0,
-                    opened: 0,
-                    fails: 0,
-                }),
-                ups: [
-                    {
-                        n: "Rift Anchors",
-                        i: "⚓",
-                        d: "+5% rift stability",
-                        c: [["mc", 200, 1.7]],
-                        max: 10,
-                        e: () => riftStability().toFixed(0) + "%",
-                    },
-                    {
-                        n: "Frequency Tuner",
-                        i: "🎛️",
-                        d: "+15% exchange rates on new offers",
-                        c: [["dmb", 10, 1.8]],
-                        e: (l) => "+" + 15 * l + "%",
-                    },
-                    {
-                        n: "Portal Widening",
-                        i: "↔️",
-                        d: "+2 lots per offer",
-                        c: [["stw", 10, 1.8]],
-                        max: 5,
-                        e: (l) => 10 + 2 * l + " lots",
-                    },
-                ],
-                auto: {
-                    name: "Rift Stabilizer AI",
-                    shop: "mc",
-                    cost: 1000,
-                    desc: "Opens a rift whenever stability is 70%+, then trades every offer to the max (bottom-to-top).",
-                },
-                tick(s, dt) {
-                    s.cool = Math.max(0, s.cool - dt);
-                    if (s.open > 0) {
-                        s.open -= dt;
-                        if (s.open <= 0) {
-                            s.open = 0;
-                            s.offers = [];
-                            mvStruct();
-                        }
-                    }
-                },
-                acts: {
-                    openRift(s, a, off) {
-                        if (s.cool > 0 || s.open > 0) return;
-                        const c = riftOpenCost();
-                        if (game.burritos < c) {
-                            mvToast(
-                                off,
-                                "Need " + fmt(c),
-                                "to power the rift",
-                                "bad",
-                            );
-                            return;
-                        }
-                        game.burritos -= c;
-                        s.cool = 120;
-                        if (Math.random() * 100 < riftStability()) {
-                            s.open = 90;
-                            s.opened++;
-                            const pool = RIFT_OFFERS.slice(),
-                                picks = [];
-                            for (let k = 0; k < 3 && pool.length; k++)
-                                picks.push(
-                                    pool.splice(
-                                        Math.floor(Math.random() * pool.length),
-                                        1,
-                                    )[0],
-                                );
-                            s.offers = picks.map((p) => ({
-                                give: p.give,
-                                get: p.get,
-                                lot: p.lot(),
-                                rate:
-                                    p.rate *
-                                    (0.7 + Math.random() * 0.6) *
-                                    (1 + 0.15 * lv("rift", 1)),
-                                left: 10 + 2 * lv("rift", 2),
-                            }));
-                            mvToast(
-                                off,
-                                "Rift open!",
-                                "90 seconds to trade across the multiverse",
-                                "gold",
-                            );
-                        } else {
-                            s.fails++;
-                            mvToast(
-                                off,
-                                "Rift collapsed",
-                                "Stability too low — the energy was lost",
-                                "bad",
-                            );
-                        }
-                        mvStruct();
-                    },
-                    trade(s, a) {
-                        riftTrade(s, +a, 1);
-                    },
-                    tradeMax(s, a) {
-                        riftTrade(s, +a, "max");
-                    },
-                    tradeAll(s) {
-                        for (let i = s.offers.length - 1; i >= 0; i--)
-                            riftTrade(s, i, "max");
-                    },
-                },
-                autoRun(s) {
-                    if (
-                        !s.open &&
-                        s.cool <= 0 &&
-                        riftStability() >= 70 &&
-                        game.burritos *
-                            (1 - (game.settings.autoReserve || 0)) >=
-                            riftOpenCost()
-                    )
-                        this.acts.openRift(s, null, true);
-                    if (s.open) this.acts.tradeAll(s);
-                },
-                ready: (s) => s.open > 0 || s.cool <= 0,
-                view: (s) =>
-                    '<div class="mv-box">' +
-                    kv("Stability (from portfolio)", "stab") +
-                    bar("sb") +
-                    kv("Opening cost", "oc") +
-                    kv("Rift status", "st") +
-                    kv("Dimensional bonus", "bonus") +
-                    '<div class="mv-actions">' +
-                    actBtn("rift", "openRift", "Open Rift", "ob") +
-                    (s.offers.length
-                        ? actBtn(
-                              "rift",
-                              "tradeAll",
-                              "⬆ Trade Max All",
-                              null,
-                              null,
-                              "good",
-                          )
-                        : "") +
-                    "</div></div>" +
-                    (s.offers.length
-                        ? '<div class="mv-grid" style="margin-top:8px">' +
-                          s.offers
-                              .map(
-                                  (o, i) =>
-                                      '<div class="mv-box"><b>' +
-                                      curIcon(o.give) +
-                                      " → " +
-                                      curIcon(o.get) +
-                                      "</b>" +
-                                      '<div class="tiny">' +
-                                      fmt(o.lot) +
-                                      " " +
-                                      curName(o.give) +
-                                      " → " +
-                                      o.rate.toFixed(2) +
-                                      " " +
-                                      curName(o.get) +
-                                      "</div>" +
-                                      '<div class="tiny muted" data-live="ol' +
-                                      i +
-                                      '"></div><div class="mv-actions">' +
-                                      actBtn(
-                                          "rift",
-                                          "trade",
-                                          "Trade 1",
-                                          null,
-                                          i,
-                                      ) +
-                                      actBtn(
-                                          "rift",
-                                          "tradeMax",
-                                          "Trade Max",
-                                          null,
-                                          i,
-                                      ) +
-                                      "</div></div>",
-                              )
-                              .join("") +
-                          "</div>"
-                        : ""),
-                live: (s) => {
-                    const o = {
-                        stab: riftStability().toFixed(0) + "%",
-                        sb: pctW(riftStability() / 100),
-                        oc: fmt(riftOpenCost()),
-                        st:
-                            s.open > 0
-                                ? "OPEN · " + Math.ceil(s.open) + "s"
-                                : s.cool > 0
-                                  ? "recharging " + Math.ceil(s.cool) + "s"
-                                  : "ready",
-                        bonus:
-                            "x" +
-                            (1 + Math.log10(res("dmb") + 1) * 0.15).toFixed(2) +
-                            " global · x" +
-                            (1 + Math.log10(res("stw") + 1) * 0.2).toFixed(2) +
-                            " clicks",
-                        ob: {
-                            h: s.open > 0 ? "Rift is open" : "Open Rift",
-                            d: s.open > 0 || s.cool > 0,
-                        },
-                    };
-                    s.offers.forEach((of, i) => {
-                        o["ol" + i] = of.left + " lots left";
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    M.global *= 1 + Math.log10(res("dmb") + 1) * 0.15;
-                    M.click *= 1 + Math.log10(res("stw") + 1) * 0.2;
-                    M.ds *= 1 + Math.log10(res("stw") + 1) * 0.05;
-                },
-            });
 
             /* #26 Paradox Engine — Tier 4 prestige (original) */
             function paradoxCost(n) {
@@ -10447,174 +10025,6 @@
             function paradoxGain() {
                 return 1 + lv("paradox", 5);
             }
-            F({
-                id: "paradox",
-                n: 26,
-                g: "cosmos",
-                tag: "Tier 4 Prestige",
-                name: "Paradox Engine",
-                icon: "♾️",
-                blurb: "Tier 4 of the prestige hierarchy. Collapse Cosmic Dust into a closed timeline loop to mint Paradox Tokens, which multiply everything that came before.",
-                gate: {
-                    t: "Ascend 5 times",
-                    c: (g) => g.stats.ascensions >= 5,
-                    p: (g) => g.stats.ascensions / 5,
-                },
-                res: ["pt", "cd"],
-                state: () => ({ collapses: 0, earned: 0 }),
-                ups: [
-                    {
-                        n: "Causal Loop",
-                        i: "🔄",
-                        d: "x1.5 passive production per level",
-                        c: [["pt", 1, 1.6]],
-                        e: (l) => "x" + fmt(Math.pow(1.5, l)),
-                    },
-                    {
-                        n: "Grandfather Clause",
-                        i: "👴",
-                        d: "+10% Sam Shard gains",
-                        c: [["pt", 1, 1.7]],
-                        e: (l) => "+" + 10 * l + "%",
-                    },
-                    {
-                        n: "Bootstrap Burrito",
-                        i: "🥾",
-                        d: "+10% Cosmic Dust gains",
-                        c: [["pt", 2, 1.8]],
-                        e: (l) => "+" + 10 * l + "%",
-                    },
-                    {
-                        n: "Eternal Recurrence",
-                        i: "♻️",
-                        d: "+25% DS from Rebirth",
-                        c: [["pt", 2, 1.8]],
-                        e: (l) => "+" + 25 * l + "%",
-                    },
-                    {
-                        n: "Timeline Merger",
-                        i: "🧬",
-                        d: "Keep +5% of buildings through Rebirth",
-                        c: [["pt", 3, 2.2]],
-                        max: 5,
-                        e: (l) => "+" + 5 * l + "%",
-                    },
-                    {
-                        n: "Paradox Dividend",
-                        i: "🎟️",
-                        d: "+1 Paradox Token per collapse",
-                        c: [["pt", 5, 2.5]],
-                        e: () => paradoxGain() + " PT/collapse",
-                    },
-                ],
-                upTitle: "Paradox Perks",
-                auto: {
-                    name: "Paradox Autocollapser",
-                    shop: "cd",
-                    cost: 12,
-                    desc: "Collapses every affordable timeline each tick (requires the market gate).",
-                },
-                acts: {
-                    collapse(s, a, off) {
-                        if (!gateMet(PRESTIGE_GATES.paradox)) {
-                            mvToast(
-                                off,
-                                "Market gate",
-                                gateText(PRESTIGE_GATES.paradox),
-                                "bad",
-                            );
-                            return 0;
-                        }
-                        let n = 0;
-                        const want = a === "max" ? 100 : 1;
-                        while (n < want && game.cd >= paradoxCost()) {
-                            game.cd -= paradoxCost();
-                            s.collapses++;
-                            n++;
-                        }
-                        if (!n) {
-                            mvToast(
-                                off,
-                                "Need " + paradoxCost() + " Cosmic Dust",
-                                "to collapse a timeline",
-                                "bad",
-                            );
-                            return 0;
-                        }
-                        const g = n * paradoxGain();
-                        addRes("pt", g);
-                        s.earned += g;
-                        if (!off) {
-                            toast(
-                                "TIMELINE COLLAPSED",
-                                "+" +
-                                    g +
-                                    " Paradox Token" +
-                                    (g === 1 ? "" : "s"),
-                                "gold",
-                            );
-                            chord([262, 392, 523, 784, 1046], 0.3);
-                            confetti(70);
-                        }
-                        return n;
-                    },
-                },
-                autoRun(s) {
-                    this.acts.collapse(s, "max", true);
-                },
-                ready: () =>
-                    game.cd >= paradoxCost() && gateMet(PRESTIGE_GATES.paradox),
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Collapse cost", "cost") +
-                    kv("Market gate", "gate") +
-                    kv("Timelines collapsed", "n") +
-                    kv(
-                        "Paradox bonus (+25% global per token ever earned)",
-                        "bonus",
-                    ) +
-                    '<div class="mv-actions">' +
-                    actBtn(
-                        "paradox",
-                        "collapse",
-                        "Collapse Timeline",
-                        "b1",
-                        1,
-                    ) +
-                    actBtn("paradox", "collapse", "Max Collapse", "b2", "max") +
-                    "</div></div>",
-                live: (s) => ({
-                    cost: fmt(paradoxCost()) + " CD (+5 per collapse)",
-                    gate: {
-                        h: gateMet(PRESTIGE_GATES.paradox)
-                            ? '<span class="up">✓ ' +
-                              gateText(PRESTIGE_GATES.paradox) +
-                              "</span>"
-                            : '<span class="down">' +
-                              gateText(PRESTIGE_GATES.paradox) +
-                              "</span>",
-                    },
-                    n: fmt(s.collapses),
-                    bonus: "x" + fmt(1 + 0.25 * s.earned),
-                    b1: {
-                        d:
-                            game.cd < paradoxCost() ||
-                            !gateMet(PRESTIGE_GATES.paradox),
-                    },
-                    b2: {
-                        d:
-                            game.cd < paradoxCost() ||
-                            !gateMet(PRESTIGE_GATES.paradox),
-                    },
-                }),
-                fx(s, M) {
-                    M.global *= 1 + 0.25 * s.earned;
-                    M.bps *= Math.pow(1.5, lv("paradox", 0));
-                    M.ss *= 1 + 0.1 * lv("paradox", 1);
-                    M.cd *= 1 + 0.1 * lv("paradox", 2);
-                    M.ds *= 1 + 0.25 * lv("paradox", 3);
-                },
-            });
 
             /* #28 Burrito Oracle Observatory (original) */
             let marketForceBull = false;
@@ -10665,154 +10075,6 @@
                     (1 + Math.log10(game.stats.goldens + 1))
                 );
             }
-            F({
-                id: "oracle",
-                n: 28,
-                g: "cosmos",
-                tag: "Insight & Prophecy",
-                name: "Burrito Oracle Observatory",
-                icon: "🔭",
-                blurb: "Telescopes pointed at the future. Insight trickles in as you watch Golden Sams; spend it on prophecies that bend markets, mines and luck.",
-                gate: {
-                    t: "Catch 25 Golden Sams and Rebirth 5 times",
-                    c: (g) => g.stats.goldens >= 25 && g.rebirths >= 5,
-                    p: (g) => Math.min(g.stats.goldens / 25, g.rebirths / 5),
-                },
-                res: ["insight"],
-                state: () => ({ cool: {}, deep: 0, cast: 0 }),
-                ups: [
-                    {
-                        n: "Telescope Aperture",
-                        i: "🔭",
-                        d: "+30% Insight",
-                        c: [["brt", 1e9, 1.7]],
-                        e: (l) => "+" + 30 * l + "%",
-                    },
-                    {
-                        n: "Seer Robes",
-                        i: "🥻",
-                        d: "-8% prophecy costs",
-                        c: [["insight", 15, 1.8]],
-                        max: 10,
-                        e: (l) => "-" + 8 * l + "%",
-                    },
-                    {
-                        n: "Crystal Ball",
-                        i: "🔮",
-                        d: "+2% global multiplier",
-                        c: [["ss", 2, 2]],
-                        e: (l) => "+" + 2 * l + "%",
-                    },
-                    {
-                        n: "Prophetic Clarity",
-                        i: "📿",
-                        d: "+5% DS from Rebirth",
-                        c: [["insight", 25, 1.9]],
-                        e: (l) => "+" + 5 * l + "%",
-                    },
-                ],
-                auto: {
-                    name: "Auto-Seer",
-                    shop: "ss",
-                    cost: 6,
-                    desc: "Casts Golden Omen whenever it is ready and affordable, and bulk-buys observatory upgrades.",
-                },
-                tick(s, dt) {
-                    for (const k in s.cool)
-                        s.cool[k] = Math.max(0, s.cool[k] - dt);
-                    addRes("insight", insightRate() * dt);
-                },
-                acts: {
-                    cast(s, a, off) {
-                        const p = PROPHECIES.find((x) => x.id === a);
-                        if (!p || (s.cool[p.id] || 0) > 0) return;
-                        const c = prophecyCost(p);
-                        if (res("insight") < c) {
-                            mvToast(
-                                off,
-                                "Need " + fmt(c) + " Insight",
-                                p.n,
-                                "bad",
-                            );
-                            return;
-                        }
-                        game.res.insight -= c;
-                        s.cool[p.id] = p.cd;
-                        s.cast++;
-                        if (p.id === "omen") spawnGolden();
-                        else if (p.id === "deep") s.deep = 10;
-                        else if (p.id === "market") {
-                            marketForceBull = true;
-                            marketEventT = Math.min(marketEventT, 10);
-                        } else if (p.id === "plenty")
-                            addBuff(
-                                "plenty",
-                                "Prophecy of Plenty",
-                                "🔮",
-                                "bps",
-                                2,
-                                60,
-                            );
-                        else if (p.id === "stars") game.cd += 0.25;
-                        mvToast(off, "Prophecy: " + p.n, p.d, "gold");
-                    },
-                },
-                autoRun(s) {
-                    this.acts.cast(s, "omen", true);
-                },
-                ready: (s) =>
-                    !(s.cool.omen > 0) &&
-                    res("insight") >= prophecyCost(PROPHECIES[0]),
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Insight rate", "rate") +
-                    kv("Vision of the Deep charges", "deep") +
-                    "</div>" +
-                    '<div class="mv-grid" style="margin-top:8px">' +
-                    PROPHECIES.map(
-                        (p) =>
-                            '<div class="mv-box"><b>' +
-                            p.n +
-                            '</b><div class="tiny muted">' +
-                            p.d +
-                            "</div>" +
-                            '<div class="tiny" data-live="pc' +
-                            p.id +
-                            '"></div><div class="mv-actions">' +
-                            actBtn(
-                                "oracle",
-                                "cast",
-                                "Cast",
-                                "pb" + p.id,
-                                p.id,
-                            ) +
-                            "</div></div>",
-                    ).join("") +
-                    "</div>",
-                live: (s) => {
-                    const o = {
-                        rate: fmt(insightRate() * 60) + " / min",
-                        deep: String(s.deep),
-                    };
-                    PROPHECIES.forEach((p) => {
-                        const c = s.cool[p.id] || 0;
-                        o["pc" + p.id] =
-                            fmt(prophecyCost(p)) +
-                            " 👁️ · " +
-                            p.cd +
-                            "s cooldown";
-                        o["pb" + p.id] = {
-                            h: c > 0 ? Math.ceil(c) + "s" : "Cast",
-                            d: c > 0 || res("insight") < prophecyCost(p),
-                        };
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    M.global *= 1 + 0.02 * lv("oracle", 2);
-                    M.ds *= 1 + 0.05 * lv("oracle", 3);
-                },
-            });
 
             /* #29 Morgan Climate Control Tower (original) */
             const WEATHER = [
@@ -10886,144 +10148,6 @@
             function weatherCost() {
                 return Math.max(1, 5 - lv("climate", 2));
             }
-            F({
-                id: "climate",
-                n: 29,
-                g: "cosmos",
-                tag: "Weather Control",
-                name: "Morgan Climate Control Tower",
-                icon: "🌦️",
-                blurb: "Seed the clouds over the Morganverse. Pick one weather pattern at a time; each bends a different part of the economy.",
-                gate: {
-                    t: "Rebirth 3 times",
-                    c: (g) => g.rebirths >= 3,
-                    p: (g) => g.rebirths / 3,
-                },
-                res: ["cc"],
-                state: () => ({ w: null, changes: 0 }),
-                ups: [
-                    {
-                        n: "Weather Towers",
-                        i: "🗼",
-                        d: "+50% Climate Credit generation",
-                        c: [["brt", 1e8, 1.6]],
-                        e: (l) => fmt(0.02 * (1 + 0.5 * l) * 60) + " CC/min",
-                    },
-                    {
-                        n: "Cloud Seeders",
-                        i: "☁️",
-                        d: "+10% weather intensity",
-                        c: [["cc", 10, 1.6]],
-                        e: () => "x" + weatherK().toFixed(1),
-                    },
-                    {
-                        n: "Jet-Stream Router",
-                        i: "🌬️",
-                        d: "-1 CC per weather change",
-                        c: [["cc", 25, 1.9]],
-                        max: 4,
-                        e: () => weatherCost() + " CC",
-                    },
-                    {
-                        n: "Climate Accord",
-                        i: "🕊️",
-                        d: "+5% global while any weather is active",
-                        c: [["mc", 80, 1.8]],
-                        e: (l) => "+" + 5 * l + "%",
-                    },
-                ],
-                auto: {
-                    name: "Weather AI",
-                    shop: "ss",
-                    cost: 4,
-                    desc: "Bulk-buys climate upgrades bottom-to-top every tick.",
-                },
-                tick(s, dt) {
-                    addRes("cc", 0.02 * (1 + 0.5 * lv("climate", 0)) * dt);
-                },
-                acts: {
-                    set(s, a, off) {
-                        if (s.w === a) return;
-                        if (a === "aurora" && game.stats.ascensions < 1) {
-                            mvToast(
-                                off,
-                                "Aurora needs an Ascension",
-                                "",
-                                "bad",
-                            );
-                            return;
-                        }
-                        if (res("cc") < weatherCost()) {
-                            mvToast(
-                                off,
-                                "Need " + weatherCost() + " Climate Credits",
-                                "",
-                                "bad",
-                            );
-                            return;
-                        }
-                        game.res.cc -= weatherCost();
-                        s.w = a;
-                        s.changes++;
-                        const w = WEATHER.find((x) => x.id === a);
-                        mvToast(off, "Weather: " + w.n, w.d, "good");
-                    },
-                },
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Current weather", "cur") +
-                    kv("Change cost", "cost") +
-                    "</div>" +
-                    '<div class="mv-grid" style="margin-top:8px">' +
-                    WEATHER.map(
-                        (w) =>
-                            '<div class="mv-box"><b>' +
-                            w.i +
-                            " " +
-                            w.n +
-                            '</b><div class="tiny muted">' +
-                            w.d +
-                            "</div>" +
-                            '<div class="mv-actions">' +
-                            actBtn(
-                                "climate",
-                                "set",
-                                "Summon",
-                                "wb" + w.id,
-                                w.id,
-                            ) +
-                            "</div></div>",
-                    ).join("") +
-                    "</div>",
-                live: (s) => {
-                    const w = WEATHER.find((x) => x.id === s.w);
-                    const o = {
-                        cur: w
-                            ? w.i +
-                              " " +
-                              w.n +
-                              " (x" +
-                              weatherK().toFixed(1) +
-                              " intensity)"
-                            : "Clear skies",
-                        cost: weatherCost() + " 🌡️",
-                    };
-                    WEATHER.forEach((x) => {
-                        o["wb" + x.id] = {
-                            h: s.w === x.id ? "Active" : "Summon",
-                            d: s.w === x.id || res("cc") < weatherCost(),
-                        };
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    const w = WEATHER.find((x) => x.id === s.w);
-                    if (w) {
-                        w.fx(M, weatherK());
-                        M.global *= 1 + 0.05 * lv("climate", 3);
-                    }
-                },
-            });
 
             /* ======================== MYTHOS ======================== */
             /* #2 The High Council of Maxwells */
@@ -11050,158 +10174,6 @@
                     (d.spec === seat ? 2 : d.spec === "any" ? 1.5 : 1)
                 );
             }
-            F({
-                id: "council",
-                n: 2,
-                g: "mythos",
-                tag: "Governors",
-                name: "The High Council of Maxwells",
-                icon: "🏛️",
-                blurb: "Elect specialised Max Governors and seat them over the Market, Clicks, Production and Mining sectors. A governor seated in their own specialty rules twice as well.",
-                gate: {
-                    t: "Forge your first Sam Shard",
-                    c: (g) => g.stats.sacrifices >= 1,
-                    p: (g) => g.stats.sacrifices,
-                },
-                res: ["ss", "mc"],
-                state: () => ({
-                    elected: GOVERNORS.map(() => false),
-                    seat: GOVERNORS.map(() => null),
-                }),
-                ups: [].concat.apply(
-                    [],
-                    GOVERNORS.map((d, g) => [
-                        {
-                            n: d.n + " — Level",
-                            i: d.i,
-                            d: "+15% governor power",
-                            c: [["ss", 1, 1.35]],
-                            req: (s) => s.elected[g],
-                            rt: "Elect first",
-                            e: (l) => "x" + (1 + 0.15 * l).toFixed(2),
-                        },
-                        {
-                            n: d.n + " — Mandate",
-                            i: "📜",
-                            d: "+10% governor power (funded by dividends)",
-                            c: [["mc", 40, 1.45]],
-                            req: (s) => s.elected[g],
-                            rt: "Elect first",
-                            e: (l) => "x" + (1 + 0.1 * l).toFixed(2),
-                        },
-                    ]),
-                ),
-                upTitle: "Governor Levels & Mandates",
-                auto: {
-                    name: "Council Clerk",
-                    shop: "ss",
-                    cost: 3,
-                    desc: "Bulk-levels every elected governor bottom-to-top.",
-                },
-                acts: {
-                    elect(s, a) {
-                        const g = +a,
-                            d = GOVERNORS[g];
-                        if (s.elected[g]) return;
-                        if (game.ss < d.elect) {
-                            toast(
-                                "Need " + d.elect + " Sam Shards",
-                                "to elect " + d.n,
-                                "bad",
-                            );
-                            return;
-                        }
-                        game.ss -= d.elect;
-                        s.elected[g] = true;
-                        toast(
-                            "Elected: " + d.n,
-                            "Seat them over a sector",
-                            "good",
-                        );
-                        chord([523, 659, 784], 0.16);
-                        mvStruct();
-                    },
-                    assign(s, a) {
-                        const g = +a;
-                        if (!s.elected[g]) return;
-                        const order = [null].concat(SECTORS.map((x) => x.id));
-                        const next =
-                            order[
-                                (order.indexOf(s.seat[g]) + 1) % order.length
-                            ];
-                        if (next)
-                            s.seat.forEach((x, j) => {
-                                if (j !== g && x === next) s.seat[j] = null;
-                            });
-                        s.seat[g] = next;
-                    },
-                },
-                view: () =>
-                    '<div class="mv-grid">' +
-                    GOVERNORS.map(
-                        (d, g) =>
-                            '<div class="mv-box"><b>' +
-                            d.i +
-                            " " +
-                            d.n +
-                            '</b><div class="tiny muted">Specialty: ' +
-                            (d.spec === "any"
-                                ? "any sector (x1.5)"
-                                : SECTORS.find((x) => x.id === d.spec).n +
-                                  " (x2)") +
-                            "</div>" +
-                            '<div class="tiny" data-live="gs' +
-                            g +
-                            '"></div><div class="mv-actions">' +
-                            actBtn("council", "elect", "Elect", "ge" + g, g) +
-                            actBtn("council", "assign", "Assign", "ga" + g, g) +
-                            "</div></div>",
-                    ).join("") +
-                    "</div>",
-                live: (s) => {
-                    const o = {};
-                    GOVERNORS.forEach((d, g) => {
-                        const sec = SECTORS.find((x) => x.id === s.seat[g]);
-                        o["gs" + g] = s.elected[g]
-                            ? sec
-                                ? "Governing <b>" +
-                                  sec.n +
-                                  "</b> · power " +
-                                  govPower(s, g).toFixed(2)
-                                : "Unseated"
-                            : "Election cost: " + d.elect + " SS";
-                        o["ge" + g] = {
-                            h: s.elected[g]
-                                ? "Elected ✓"
-                                : "Elect (" + d.elect + " SS)",
-                            d: s.elected[g] || game.ss < d.elect,
-                        };
-                        o["ga" + g] = {
-                            h: sec
-                                ? "Seat: " + sec.n + " ↻"
-                                : "Assign sector ↻",
-                            d: !s.elected[g],
-                        };
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    GOVERNORS.forEach((d, g) => {
-                        const p = govPower(s, g);
-                        if (!p) return;
-                        const seat = s.seat[g];
-                        if (seat === "market") {
-                            M.div *= 1 + 0.1 * p;
-                            M.mc *= 1 + 0.1 * p;
-                        } else if (seat === "clicks") M.click *= 1 + 0.1 * p;
-                        else if (seat === "bps") M.bps *= 1 + 0.1 * p;
-                        else if (seat === "mining") {
-                            M.mining *= 1 + 0.2 * p;
-                            M.ingredient *= 1 + 0.1 * p;
-                        }
-                    });
-                },
-            });
 
             /* #4 Salsa Alchemy Laboratory */
             function ingMult() {
@@ -11237,135 +10209,6 @@
                     ["peppers", p, 1.12],
                     ["cilantro", c, 1.12],
                 ],
-            });
-            F({
-                id: "alchemy",
-                n: 4,
-                g: "mythos",
-                tag: "Salsa Elixirs",
-                name: "Salsa Alchemy Laboratory",
-                icon: "⚗️",
-                blurb: "Brew persistent Salsa Elixirs from Pinto Beans, Ghost Peppers and Cilantro harvested by your buildings and the dig site. Every elixir brewed is permanent.",
-                gate: {
-                    t: "Reach mining Layer 20",
-                    c: (g) => g.depth >= 20,
-                    p: (g) => g.depth / 20,
-                },
-                res: ["beans", "peppers", "cilantro"],
-                ups: [
-                    {
-                        n: "Harvest Nets",
-                        i: "🥅",
-                        d: "+25% ingredient yield from buildings and digs",
-                        c: [["brt", 1e7, 1.6]],
-                        e: (l) => "+" + 25 * l + "%",
-                    },
-                    Object.assign(
-                        ELIXIR(
-                            "Elixir of Vigor",
-                            "💪",
-                            "+3% passive production each",
-                            10,
-                            2,
-                            2,
-                        ),
-                        { e: (l) => "+" + 3 * l + "%" },
-                    ),
-                    Object.assign(
-                        ELIXIR(
-                            "Pepper Tonic",
-                            "🌶️",
-                            "+3% click power each",
-                            4,
-                            10,
-                            2,
-                        ),
-                        { e: (l) => "+" + 3 * l + "%" },
-                    ),
-                    Object.assign(
-                        ELIXIR(
-                            "Cilantro Clarity",
-                            "🌿",
-                            "+0.5% crit chance each (max 30)",
-                            3,
-                            3,
-                            12,
-                        ),
-                        { max: 30, e: (l) => "+" + (0.5 * l).toFixed(1) + "%" },
-                    ),
-                    Object.assign(
-                        ELIXIR(
-                            "Brew of Fortune",
-                            "🍀",
-                            "+4% Golden Sam rate each",
-                            15,
-                            8,
-                            8,
-                        ),
-                        { e: (l) => "+" + 4 * l + "%" },
-                    ),
-                    Object.assign(
-                        ELIXIR(
-                            "Salsa Philosopher's Stone",
-                            "💎",
-                            "+2% DS from Rebirth each",
-                            40,
-                            30,
-                            30,
-                        ),
-                        { e: (l) => "+" + 2 * l + "%" },
-                    ),
-                    Object.assign(
-                        ELIXIR(
-                            "Elixir of Maxwell",
-                            "✒️",
-                            "+2% global each",
-                            100,
-                            80,
-                            80,
-                        ),
-                        { e: (l) => "+" + 2 * l + "%" },
-                    ),
-                ],
-                upTitle: "Elixir Recipes (costs rise 12% per brew)",
-                maxLabel: "Brew Max (bottom-to-top)",
-                auto: {
-                    name: "Alchemical Automaton",
-                    shop: "ss",
-                    cost: 5,
-                    desc: "Instantly brews every affordable elixir bottom-to-top, four times per second.",
-                },
-                tick(s, dt, off) {
-                    const r = ingRates(),
-                        k = off ? 0.5 : 1;
-                    addRes("beans", r.beans * dt * k);
-                    addRes("peppers", r.peppers * dt * k);
-                    addRes("cilantro", r.cilantro * dt * k);
-                },
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("🫘 Beans (Bean Vats, Tortilla Presses)", "rb") +
-                    kv("🌶️ Peppers (Salsa Fountains, Sam Mines)", "rp") +
-                    kv("🌿 Cilantro (Orbital Collectors, Assistants)", "rc") +
-                    kv("Elixirs brewed", "n") +
-                    '<p class="tiny muted" style="margin:4px 0 0">Every mining dig also turns up ingredients — rarer ores give more peppers and cilantro.</p></div>',
-                live: () => {
-                    const r = ingRates();
-                    return {
-                        rb: fmt(r.beans * 60) + "/min",
-                        rp: fmt(r.peppers * 60) + "/min",
-                        rc: fmt(r.cilantro * 60) + "/min",
-                        n: fmt(brewedTotal()),
-                    };
-                },
-                fx(s, M) {
-                    M.bps *= 1 + 0.03 * lv("alchemy", 1);
-                    M.click *= 1 + 0.03 * lv("alchemy", 2);
-                    M.crit += 0.5 * lv("alchemy", 3);
-                    M.gold *= 1 + 0.04 * lv("alchemy", 4);
-                    M.ds *= 1 + 0.02 * lv("alchemy", 5);
-                    M.global *= 1 + 0.02 * lv("alchemy", 6);
-                },
             });
 
             /* #7 Morgan Away Expeditions */
@@ -11521,254 +10364,6 @@
                     "gold",
                 );
             }
-            F({
-                id: "expeditions",
-                n: 7,
-                g: "mythos",
-                tag: "Pet Missions",
-                name: "Morgan Away Expeditions",
-                icon: "🧭",
-                blurb: "Send your companions on timed expeditions through space-time. They bring back artifacts, relics for the museum, ingredients, market shares and even Cosmic Dust. Pets away give no bonus until they return.",
-                gate: {
-                    t: "Hatch your first pet",
-                    c: (g) => g.pets.length >= 1,
-                    p: (g) => g.pets.length,
-                },
-                state: () => ({ missions: [], last: {}, done: 0, uid: 0 }),
-                ups: [
-                    {
-                        n: "Expedition Rations",
-                        i: "🥪",
-                        d: "+20% expedition rewards",
-                        c: [["brt", 1e6, 1.6]],
-                        e: (l) => "+" + 20 * l + "%",
-                    },
-                    {
-                        n: "Warp Harnesses",
-                        i: "🦺",
-                        d: "-8% expedition duration",
-                        c: [["ds", 10, 1.8]],
-                        max: 10,
-                        e: (l) => "-" + 8 * l + "%",
-                    },
-                    {
-                        n: "Cartographer",
-                        i: "🗺️",
-                        d: "+10% relic finds",
-                        c: [["mc", 60, 1.7]],
-                        e: (l) => "+" + 10 * l + "%",
-                    },
-                    {
-                        n: "Extra Kennel",
-                        i: "🏠",
-                        d: "+1 expedition slot",
-                        c: [["ss", 2, 2.5]],
-                        max: 4,
-                        e: () => expSlots() + " slots",
-                    },
-                ],
-                auto: {
-                    name: "Auto-Dispatch Kennel",
-                    shop: "ds",
-                    cost: 60,
-                    desc: "Collects finished expeditions and instantly re-sends each pet to the same destination.",
-                },
-                tick(s, dt, off) {
-                    const sp = chronoSpeed("expeditions");
-                    s.missions.forEach((m) => {
-                        if (m.t <= 0) return;
-                        m.t -= dt * sp;
-                        if (m.t <= 0) {
-                            m.t = 0;
-                            mvToast(
-                                off,
-                                "Expedition complete",
-                                DESTS[m.d].n + " — collect your rewards",
-                                "good",
-                            );
-                            if (!off) mvStruct();
-                        }
-                    });
-                },
-                acts: {
-                    send(s, a) {
-                        const pets = idlePets();
-                        if (!pets.length) {
-                            toast(
-                                "No idle pets",
-                                "Hatch more or wait for returns",
-                                "bad",
-                            );
-                            return;
-                        }
-                        if (s.missions.length >= expSlots()) {
-                            toast(
-                                "All kennels busy",
-                                "Buy an Extra Kennel",
-                                "bad",
-                            );
-                            return;
-                        }
-                        if (!sendPet(s, pets[0].id, +a)) {
-                            toast(
-                                "Destination locked",
-                                "Needs more Ascensions",
-                                "bad",
-                            );
-                            return;
-                        }
-                        mvStruct();
-                    },
-                    collect(s, a, off) {
-                        const idx = s.missions.findIndex(
-                            (m) => m.uid === +a && m.t <= 0,
-                        );
-                        if (idx < 0) return;
-                        const m = s.missions.splice(idx, 1)[0];
-                        collectMission(s, m, off);
-                        recalc();
-                        mvStruct();
-                    },
-                    collectAll(s) {
-                        s.missions
-                            .filter((m) => m.t <= 0)
-                            .map((m) => m.uid)
-                            .forEach((u) => this.collect(s, u));
-                    },
-                },
-                autoRun(s) {
-                    const done = s.missions.filter((m) => m.t <= 0);
-                    if (!done.length) return;
-                    done.forEach((m) => {
-                        s.missions.splice(s.missions.indexOf(m), 1);
-                        collectMission(s, m, true);
-                        sendPet(s, m.pid, m.d);
-                    });
-                    recalc();
-                    mvStruct();
-                },
-                ready: (s) => s.missions.some((m) => m.t <= 0),
-                view: (s) =>
-                    '<div class="mv-box">' +
-                    kv("Kennels in use", "slots") +
-                    kv("Idle pets (best is sent first)", "idle") +
-                    kv("Expeditions completed", "done") +
-                    (s.missions.some((m) => m.t <= 0)
-                        ? '<div class="mv-actions">' +
-                          actBtn(
-                              "expeditions",
-                              "collectAll",
-                              "Collect All",
-                              null,
-                              null,
-                              "good",
-                          ) +
-                          "</div>"
-                        : "") +
-                    "</div>" +
-                    (s.missions.length
-                        ? '<div class="sec-head"><h4>On Expedition</h4></div><div class="mv-grid">' +
-                          s.missions
-                              .map((m) => {
-                                  const p = PET_BY_ID[m.pid] || {
-                                      icon: "🐾",
-                                      name: "Pet",
-                                  };
-                                  return (
-                                      '<div class="mv-box"><b>' +
-                                      p.icon +
-                                      " " +
-                                      p.name +
-                                      '</b><div class="tiny muted">' +
-                                      DESTS[m.d].i +
-                                      " " +
-                                      DESTS[m.d].n +
-                                      "</div>" +
-                                      '<div class="tiny" data-live="mt' +
-                                      m.uid +
-                                      '"></div>' +
-                                      bar("mb" + m.uid) +
-                                      (m.t <= 0
-                                          ? '<div class="mv-actions">' +
-                                            actBtn(
-                                                "expeditions",
-                                                "collect",
-                                                "Collect",
-                                                null,
-                                                m.uid,
-                                                "good",
-                                            ) +
-                                            "</div>"
-                                          : "") +
-                                      "</div>"
-                                  );
-                              })
-                              .join("") +
-                          "</div>"
-                        : "") +
-                    '<div class="sec-head"><h4>Destinations</h4></div><div class="mv-grid">' +
-                    DESTS.map(
-                        (d, i) =>
-                            '<div class="mv-box"><b>' +
-                            d.i +
-                            " " +
-                            d.n +
-                            "</b>" +
-                            '<div class="tiny muted">' +
-                            fmtTime(d.dur) +
-                            " base · burritos" +
-                            (d.art ? ", artifacts" : "") +
-                            ", relics" +
-                            (d.ing ? ", ingredients" : "") +
-                            (d.shares ? ", shares" : "") +
-                            (d.mc ? ", MC" : "") +
-                            (d.ds ? ", DS" : "") +
-                            (d.cd ? ", Cosmic Dust" : "") +
-                            (d.req
-                                ? " · needs " +
-                                  d.req +
-                                  " Ascension" +
-                                  (d.req > 1 ? "s" : "")
-                                : "") +
-                            '</div><div class="mv-actions">' +
-                            actBtn(
-                                "expeditions",
-                                "send",
-                                "Dispatch best idle pet",
-                                "db" + i,
-                                i,
-                            ) +
-                            "</div></div>",
-                    ).join("") +
-                    "</div>",
-                live: (s) => {
-                    const o = {
-                        slots: s.missions.length + " / " + expSlots(),
-                        idle: String(idlePets().length),
-                        done: fmt(s.done),
-                    };
-                    s.missions.forEach((m) => {
-                        o["mt" + m.uid] =
-                            m.t > 0
-                                ? fmtTime(m.t / chronoSpeed("expeditions")) +
-                                  " remaining"
-                                : "✅ Returned";
-                        o["mb" + m.uid] = pctW(1 - m.t / m.dur);
-                    });
-                    DESTS.forEach((d, i) => {
-                        o["db" + i] = {
-                            d:
-                                s.missions.length >= expSlots() ||
-                                !idlePets().length ||
-                                (d.req && game.stats.ascensions < d.req),
-                        };
-                    });
-                    return o;
-                },
-                onUp() {
-                    mvStruct();
-                },
-            });
 
             /* #9 The Morgan Pantheon */
             const ALTARS = [
@@ -11841,152 +10436,6 @@
                     (s.sock[a] ? artFactor(s.sock[a]) : 0.25)
                 );
             }
-            F({
-                id: "pantheon",
-                n: 9,
-                g: "mythos",
-                tag: "Relic Altars",
-                name: "The Morgan Pantheon",
-                icon: "🛕",
-                blurb: "Six ancient altars. Level them with Sam Shards and socket an artifact into each: rarer relics multiply the altar's power (an empty socket works at 25%).",
-                gate: {
-                    t: "Forge 3 Sam Shards",
-                    c: (g) => g.stats.sacrifices >= 3,
-                    p: (g) => g.stats.sacrifices / 3,
-                },
-                res: ["ss"],
-                state: () => ({ sock: ALTARS.map(() => null) }),
-                ups: ALTARS.map((a, k) => ({
-                    n: a.n,
-                    i: a.i,
-                    d: a.d,
-                    c: [["ss", [1, 1, 2, 2, 3, 5][k], 1.5]],
-                })),
-                upTitle: "Altar Levels",
-                maxLabel: "Max-Upgrade Altars (bottom-to-top)",
-                auto: {
-                    name: "Temple Acolytes",
-                    shop: "ss",
-                    cost: 6,
-                    desc: "Bulk-levels every altar bottom-to-top.",
-                },
-                acts: {
-                    socket(s, a) {
-                        const k = +a;
-                        const best = game.inventory
-                            .filter(
-                                (it) =>
-                                    ART_BY_ID[it.id] &&
-                                    !game.gear.includes(it.uid),
-                            )
-                            .sort((x, y) => artFactor(y) - artFactor(x))[0];
-                        if (!best) {
-                            toast(
-                                "No spare artifacts",
-                                "Unequip one or open crates",
-                                "bad",
-                            );
-                            return;
-                        }
-                        if (
-                            s.sock[k] &&
-                            artFactor(s.sock[k]) >= artFactor(best)
-                        ) {
-                            toast("Already holding a better relic", "", "bad");
-                            return;
-                        }
-                        if (s.sock[k]) game.inventory.push(s.sock[k]);
-                        game.inventory = game.inventory.filter(
-                            (it) => it.uid !== best.uid,
-                        );
-                        s.sock[k] = best;
-                        toast(
-                            "Socketed " + ART_BY_ID[best.id].name,
-                            ALTARS[k].n +
-                                " power x" +
-                                artFactor(best).toFixed(2),
-                            "gold",
-                        );
-                        markDirty("pets");
-                        mvStruct();
-                    },
-                    unsocket(s, a) {
-                        const k = +a;
-                        if (!s.sock[k]) return;
-                        game.inventory.push(s.sock[k]);
-                        s.sock[k] = null;
-                        markDirty("pets");
-                        mvStruct();
-                    },
-                },
-                view: (s) =>
-                    '<div class="mv-grid">' +
-                    ALTARS.map((a, k) => {
-                        const it = s.sock[k],
-                            d = it && ART_BY_ID[it.id];
-                        return (
-                            '<div class="mv-box r-' +
-                            (d ? d.rar : "common") +
-                            '"><b>' +
-                            a.i +
-                            " " +
-                            a.n +
-                            '</b><div class="tiny muted">' +
-                            a.d +
-                            "</div>" +
-                            '<div class="tiny">Socket: ' +
-                            (d
-                                ? '<span class="rn">' +
-                                  d.icon +
-                                  " " +
-                                  d.name +
-                                  "</span> (x" +
-                                  artFactor(it).toFixed(2) +
-                                  ")"
-                                : "<i>empty (x0.25)</i>") +
-                            "</div>" +
-                            '<div class="tiny" data-live="ap' +
-                            k +
-                            '"></div><div class="mv-actions">' +
-                            actBtn(
-                                "pantheon",
-                                "socket",
-                                "Socket best spare",
-                                null,
-                                k,
-                            ) +
-                            (d
-                                ? actBtn(
-                                      "pantheon",
-                                      "unsocket",
-                                      "Unsocket",
-                                      null,
-                                      k,
-                                  )
-                                : "") +
-                            "</div></div>"
-                        );
-                    }).join("") +
-                    "</div>",
-                live: (s) => {
-                    const o = {};
-                    ALTARS.forEach((a, k) => {
-                        o["ap" + k] =
-                            "Level " +
-                            lv("pantheon", k) +
-                            " · power <b>" +
-                            altarPower(s, k).toFixed(2) +
-                            "</b>";
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    ALTARS.forEach((a, k) => {
-                        const e = altarPower(s, k);
-                        if (e) a.fx(M, e);
-                    });
-                },
-            });
 
             /* #14 Morgan Gene Lab */
             function dnaRate() {
@@ -12002,141 +10451,6 @@
                     { n, i, d, c: costs.map(([k, b]) => [k, b, r]) },
                     extra || {},
                 );
-            F({
-                id: "genelab",
-                n: 14,
-                g: "mythos",
-                tag: "Burrito Strains",
-                name: "Morgan Gene Lab",
-                icon: "🧬",
-                blurb: "Splice pet DNA with alchemy ingredients to grow genetically modified Burrito Strains. Each strain in the tree requires the one above it.",
-                gate: {
-                    t: "Own 5 different pets and brew 10 elixirs",
-                    c: (g) => g.pets.length >= 5 && brewedTotal() >= 10,
-                    p: (g) => Math.min(g.pets.length / 5, brewedTotal() / 10),
-                },
-                res: ["dna", "beans", "peppers", "cilantro"],
-                ups: [
-                    {
-                        n: "Gene Sequencer",
-                        i: "🧫",
-                        d: "+25% DNA extraction",
-                        c: [["brt", 1e9, 1.6]],
-                        e: (l) => "+" + 25 * l + "%",
-                    },
-                    STRAIN(
-                        "Bio-Luminescent Habanero",
-                        "🌶️",
-                        "+6% passive production",
-                        [
-                            ["dna", 5],
-                            ["peppers", 50],
-                        ],
-                        1.5,
-                        { e: (l) => "+" + 6 * l + "%" },
-                    ),
-                    STRAIN(
-                        "Hyper-Caloric Wrap",
-                        "🌯",
-                        "+6% click power",
-                        [
-                            ["dna", 10],
-                            ["beans", 100],
-                        ],
-                        1.5,
-                        { e: (l) => "+" + 6 * l + "%" },
-                    ),
-                    STRAIN(
-                        "Photosynthetic Tortilla",
-                        "🫓",
-                        "+10% offline efficiency",
-                        [
-                            ["dna", 20],
-                            ["cilantro", 80],
-                        ],
-                        1.55,
-                        { e: (l) => "+" + 10 * l + "%" },
-                    ),
-                    STRAIN(
-                        "Self-Folding Burrito",
-                        "📦",
-                        "-2% building costs",
-                        [
-                            ["dna", 35],
-                            ["beans", 200],
-                        ],
-                        1.6,
-                        { max: 10, e: (l) => "-" + 2 * l + "%" },
-                    ),
-                    STRAIN(
-                        "Mutagenic Guac",
-                        "🥑",
-                        "+8% Golden Sam power",
-                        [
-                            ["dna", 60],
-                            ["cilantro", 150],
-                        ],
-                        1.6,
-                        { e: (l) => "+" + 8 * l + "%" },
-                    ),
-                    STRAIN(
-                        "Chimeric Pet Serum",
-                        "💉",
-                        "+10% pet power",
-                        [
-                            ["dna", 100],
-                            ["peppers", 300],
-                        ],
-                        1.7,
-                        { e: (l) => "+" + 10 * l + "%" },
-                    ),
-                    STRAIN(
-                        "Omni-Strain",
-                        "🧬",
-                        "+5% global multiplier",
-                        [
-                            ["dna", 250],
-                            ["beans", 500],
-                            ["peppers", 500],
-                            ["cilantro", 500],
-                        ],
-                        1.75,
-                        { e: (l) => "+" + 5 * l + "%" },
-                    ),
-                ].map((u, i) =>
-                    i >= 2
-                        ? Object.assign(u, {
-                              req: () => lv("genelab", i - 1) > 0,
-                              rt: "Research the strain above first",
-                          })
-                        : u,
-                ),
-                upTitle: "Strain Research Tree",
-                maxLabel: "Max Gene Splice (bottom-to-top)",
-                auto: {
-                    name: "Gene Splicer Bot",
-                    shop: "ss",
-                    cost: 8,
-                    desc: "Splices every affordable strain level bottom-to-top.",
-                },
-                tick(s, dt, off) {
-                    addRes("dna", dnaRate() * dt * (off ? 0.5 : 1));
-                },
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("DNA extraction (all owned pets)", "rate") +
-                    '<p class="tiny muted" style="margin:4px 0 0">Rarer and higher-level pets yield far more DNA. Pets keep producing DNA while on expeditions.</p></div>',
-                live: () => ({ rate: fmt(dnaRate() * 60) + " 🧬/min" }),
-                fx(s, M) {
-                    M.bps *= 1 + 0.06 * lv("genelab", 1);
-                    M.click *= 1 + 0.06 * lv("genelab", 2);
-                    M.offline *= 1 + 0.1 * lv("genelab", 3);
-                    M.cost *= 1 - 0.02 * lv("genelab", 4);
-                    M.goldPower *= 1 + 0.08 * lv("genelab", 5);
-                    M.pet *= 1 + 0.1 * lv("genelab", 6);
-                    M.global *= 1 + 0.05 * lv("genelab", 7);
-                },
-            });
 
             /* #17 Burrito Antiquities Museum */
             const RELICS = [
@@ -12171,9 +10485,10 @@
                 return 3 + lv("museum", 0);
             }
             function relicsFound() {
-                return mvS("museum").found.reduce((a, b) => a + b, 0);
+                return (mvS("museum").found || []).reduce((a, b) => a + b, 0);
             }
             function museumFind(bonus, off) {
+                if (!mvUnlocked("museum")) return;
                 const s = mvS("museum");
                 let rar = rollRarity(bonus || 0);
                 let pool = RELICS.map((r, k) => k).filter(
@@ -12203,159 +10518,6 @@
                 });
                 return r * (1 + 0.25 * lv("museum", 1));
             }
-            F({
-                id: "museum",
-                n: 17,
-                g: "mythos",
-                tag: "Renown",
-                name: "Burrito Antiquities Museum",
-                icon: "🏺",
-                blurb: "Relics dug up at the Ore Pit (3% per layer) and brought home by expeditions can be restored and exhibited. Exhibits earn Renown, which multiplies every prestige currency you gain.",
-                gate: {
-                    t: "Discover 5 relics (mining digs & expeditions)",
-                    c: () => relicsFound() >= 5,
-                    p: () => relicsFound() / 5,
-                },
-                res: ["renown"],
-                state: () => ({
-                    found: RELICS.map(() => 0),
-                    ex: RELICS.map(() => false),
-                }),
-                ups: [
-                    {
-                        n: "Gallery Wing",
-                        i: "🏛️",
-                        d: "+1 exhibit slot",
-                        c: [["brt", 1e9, 3]],
-                        max: 9,
-                        e: () => museumSlots() + " slots",
-                    },
-                    {
-                        n: "Curators",
-                        i: "🧑‍🏫",
-                        d: "+25% Renown",
-                        c: [["mc", 40, 1.7]],
-                        e: (l) => "+" + 25 * l + "%",
-                    },
-                ].concat(
-                    RELICS.map((rl, k) => ({
-                        n: "Restore: " + rl.n,
-                        i: rl.i,
-                        d: "+Renown from this exhibit (" + rl.r + ")",
-                        c: [["brt", RELIC_RESTORE[rl.r], 4]],
-                        max: 5,
-                        req: (s) => s.found[k] > 0,
-                        rt: "Not yet discovered",
-                    })),
-                ),
-                upTitle: "Gallery & Restoration",
-                auto: {
-                    name: "Museum Docent AI",
-                    shop: "ds",
-                    cost: 100,
-                    desc: "Keeps your most valuable relics on display and bulk-restores them bottom-to-top.",
-                },
-                tick(s, dt, off) {
-                    addRes("renown", renownRate(s) * dt * (off ? 0.5 : 1));
-                },
-                acts: {
-                    exhibit(s, a) {
-                        const k = +a;
-                        if (!s.found[k]) return;
-                        if (
-                            !s.ex[k] &&
-                            s.ex.filter(Boolean).length >= museumSlots()
-                        ) {
-                            toast(
-                                "Gallery full",
-                                "Buy a Gallery Wing or take something down",
-                                "bad",
-                            );
-                            return;
-                        }
-                        s.ex[k] = !s.ex[k];
-                    },
-                },
-                autoRun(s) {
-                    const order = RELICS.map((r, k) => k)
-                        .filter((k) => s.found[k] > 0)
-                        .sort(
-                            (x, y) =>
-                                RELIC_VALUE[RELICS[y].r] *
-                                    Math.pow(1 + lv("museum", y + 2), 1.5) -
-                                RELIC_VALUE[RELICS[x].r] *
-                                    Math.pow(1 + lv("museum", x + 2), 1.5),
-                        );
-                    const want = new Set(order.slice(0, museumSlots()));
-                    RELICS.forEach((r, k) => {
-                        s.ex[k] = want.has(k);
-                    });
-                },
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Exhibits", "slots") +
-                    kv("Renown rate", "rate") +
-                    kv("Prestige gain bonus", "bonus") +
-                    "</div>" +
-                    '<div class="sec-head"><h4>Collection</h4></div><div class="mv-grid">' +
-                    RELICS.map(
-                        (rl, k) =>
-                            '<div class="mv-box r-' +
-                            rl.r +
-                            '"><b><span class="rn">' +
-                            rl.i +
-                            " " +
-                            rl.n +
-                            '</span></b><div class="tiny muted">' +
-                            rl.r +
-                            '</div><div class="tiny" data-live="rf' +
-                            k +
-                            '"></div>' +
-                            '<div class="mv-actions">' +
-                            actBtn(
-                                "museum",
-                                "exhibit",
-                                "Exhibit",
-                                "rx" + k,
-                                k,
-                            ) +
-                            "</div></div>",
-                    ).join("") +
-                    "</div>",
-                live: (s) => {
-                    const L = Math.log10(res("renown") + 1);
-                    const o = {
-                        slots:
-                            s.ex.filter(Boolean).length + " / " + museumSlots(),
-                        rate: fmt(renownRate(s) * 60) + " 🏅/min",
-                        bonus:
-                            "DS & SS x" +
-                            (1 + L * 0.1).toFixed(2) +
-                            " · CD x" +
-                            (1 + L * 0.05).toFixed(2),
-                    };
-                    RELICS.forEach((rl, k) => {
-                        o["rf" + k] = s.found[k]
-                            ? "Found ×" +
-                              s.found[k] +
-                              " · restored " +
-                              lv("museum", k + 2) +
-                              "/5"
-                            : "??? not yet found";
-                        o["rx" + k] = {
-                            h: s.ex[k] ? "On display ✓" : "Exhibit",
-                            d: !s.found[k],
-                        };
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    const L = Math.log10(res("renown") + 1);
-                    M.ds *= 1 + L * 0.1;
-                    M.ss *= 1 + L * 0.1;
-                    M.cd *= 1 + L * 0.05;
-                },
-            });
 
             /* #23 Burrito Tournament Arena (original) */
             const CHAMPS = [
@@ -12389,167 +10551,6 @@
                 const s = mvS("arena");
                 if (s.fight) s.fight.hp -= pow;
             }
-            F({
-                id: "arena",
-                n: 23,
-                g: "mythos",
-                tag: "Glory",
-                name: "Burrito Tournament Arena",
-                icon: "🏟️",
-                blurb: "Maxwell steps into the ring. Challenge the champion ladder: during a 20-second bout every click on Maxwell lands a blow, and your kitchen adds damage from its production.",
-                gate: {
-                    t: "Defeat 5 raid bosses",
-                    c: (g) => g.stats.bosses >= 5,
-                    p: (g) => g.stats.bosses / 5,
-                },
-                res: ["glory"],
-                state: () => ({
-                    rank: 0,
-                    fight: null,
-                    cool: 0,
-                    wins: 0,
-                    losses: 0,
-                }),
-                ups: [
-                    {
-                        n: "Arena Training",
-                        i: "🏋️",
-                        d: "+25% passive bout damage (base 50% of BPS per second)",
-                        c: [["glory", 3, 1.5]],
-                        e: (l) => "+" + 25 * l + "%",
-                    },
-                    {
-                        n: "Champion Belt",
-                        i: "🥇",
-                        d: "+5% click power",
-                        c: [["glory", 5, 1.6]],
-                        e: (l) => "+" + 5 * l + "%",
-                    },
-                    {
-                        n: "Crowd Favourite",
-                        i: "📣",
-                        d: "+5% global multiplier",
-                        c: [["glory", 8, 1.7]],
-                        e: (l) => "+" + 5 * l + "%",
-                    },
-                    {
-                        n: "Sponsorship Deals",
-                        i: "💸",
-                        d: "+10% Golden Sam power",
-                        c: [["glory", 12, 1.8]],
-                        e: (l) => "+" + 10 * l + "%",
-                    },
-                    {
-                        n: "Hall of Legends",
-                        i: "🏛️",
-                        d: "+2% DS from Rebirth",
-                        c: [["glory", 30, 2]],
-                        e: (l) => "+" + 2 * l + "%",
-                    },
-                ],
-                upTitle: "Glory Perks",
-                auto: {
-                    name: "Arena Sponsor",
-                    shop: "ds",
-                    cost: 80,
-                    desc: "Enters Maxwell into the next bout as soon as the arena is ready.",
-                },
-                tick(s, dt, off) {
-                    s.cool = Math.max(0, s.cool - dt);
-                    const f = s.fight;
-                    if (!f) return;
-                    f.hp -= arenaAutoDmg() * dt;
-                    f.t -= dt;
-                    if (f.hp <= 0) {
-                        const g = 1 + s.rank;
-                        addRes("glory", g);
-                        s.wins++;
-                        s.rank++;
-                        s.fight = null;
-                        s.cool = 10;
-                        mvToast(
-                            off,
-                            "VICTORY over " + champName(s.rank - 1),
-                            "+" + g + " Glory",
-                            "gold",
-                        );
-                        if (!off) chord([523, 659, 784, 1046], 0.2);
-                    } else if (f.t <= 0) {
-                        s.losses++;
-                        s.fight = null;
-                        s.cool = 30;
-                        mvToast(
-                            off,
-                            "Defeated by " + champName(s.rank),
-                            "Train up and try again",
-                            "bad",
-                        );
-                    }
-                },
-                acts: {
-                    challenge(s, a, off) {
-                        if (s.fight || s.cool > 0) return;
-                        s.fight = {
-                            hp: champHP(s.rank),
-                            max: champHP(s.rank),
-                            t: 20,
-                        };
-                        mvToast(
-                            off,
-                            "FIGHT!",
-                            champName(s.rank) + " — click Maxwell to attack!",
-                            "gold",
-                        );
-                    },
-                },
-                autoRun(s) {
-                    this.acts.challenge(s, null, true);
-                },
-                ready: (s) => !s.fight && s.cool <= 0,
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Next opponent", "opp") +
-                    kv("Champion HP", "hp") +
-                    bar("hb", "warn") +
-                    kv("Bout", "bout") +
-                    kv("Passive damage (from BPS)", "dmg") +
-                    kv("Record", "rec") +
-                    '<div class="mv-actions">' +
-                    actBtn("arena", "challenge", "Challenge", "btn") +
-                    "</div>" +
-                    '<p class="tiny muted" style="margin:4px 0 0">Tip: during a bout, click Maxwell on the left panel — each click deals its full burrito value as damage.</p></div>',
-                live: (s) => {
-                    const f = s.fight;
-                    return {
-                        opp: champName(s.rank) + " (rank " + (s.rank + 1) + ")",
-                        hp: f
-                            ? fmt(Math.max(0, f.hp)) + " / " + fmt(f.max)
-                            : fmt(champHP(s.rank)),
-                        hb: pctW(f ? Math.max(0, f.hp) / f.max : 1),
-                        bout: f
-                            ? Math.ceil(f.t) + "s left"
-                            : s.cool > 0
-                              ? "resting " + Math.ceil(s.cool) + "s"
-                              : "ready",
-                        dmg: fmt(arenaAutoDmg()) + "/s",
-                        rec: s.wins + " W · " + s.losses + " L",
-                        btn: {
-                            h: f
-                                ? "Fighting…"
-                                : s.cool > 0
-                                  ? "Resting " + Math.ceil(s.cool) + "s"
-                                  : "Challenge",
-                            d: !!f || s.cool > 0,
-                        },
-                    };
-                },
-                fx(s, M) {
-                    M.click *= 1 + 0.05 * lv("arena", 1);
-                    M.global *= 1 + 0.05 * lv("arena", 2);
-                    M.goldPower *= 1 + 0.1 * lv("arena", 3);
-                    M.ds *= 1 + 0.02 * lv("arena", 4);
-                },
-            });
 
             /* #25 Quantum Recipe Compiler (original) */
             function rpRate() {
@@ -12572,67 +10573,6 @@
                 ["Carne Asada Compiler", "🥩", "+4% global multiplier", 320],
                 ["Quantum Queso Kernel", "🧀", "+3% DS from Rebirth", 640],
             ];
-            F({
-                id: "recipes",
-                n: 25,
-                g: "mythos",
-                tag: "Research",
-                name: "Quantum Recipe Compiler",
-                icon: "📜",
-                blurb: "Maxwell's assistants and quantum labs crunch Research Points around the clock, compiling legendary recipes into permanent bonuses. Each recipe needs the one before it.",
-                gate: {
-                    t: "Own 25 Maxwell Assistants and Rebirth once",
-                    c: (g) => (g.buildings[2] || 0) >= 25 && g.rebirths >= 1,
-                    p: (g) => Math.min((g.buildings[2] || 0) / 25, g.rebirths),
-                },
-                res: ["rp"],
-                ups: [
-                    {
-                        n: "Research Library",
-                        i: "📚",
-                        d: "+25% Research Points",
-                        c: [["brt", 5e5, 1.5]],
-                        e: (l) => "+" + 25 * l + "%",
-                    },
-                ].concat(
-                    RECIPES.map((r, k) => ({
-                        n: r[0],
-                        i: r[1],
-                        d: r[2] + " per level",
-                        c: [["rp", r[3], 2]],
-                        max: 5,
-                        req: k ? () => lv("recipes", k) > 0 : null,
-                        rt: "Compile the recipe above first",
-                    })),
-                ),
-                upTitle: "Recipe Tree",
-                maxLabel: "Compile Max (bottom-to-top)",
-                auto: {
-                    name: "Sous-Chef Compiler",
-                    shop: "ds",
-                    cost: 30,
-                    desc: "Compiles every affordable recipe level bottom-to-top.",
-                },
-                tick(s, dt, off) {
-                    addRes("rp", rpRate() * dt * (off ? 0.5 : 1));
-                },
-                view: () =>
-                    '<div class="mv-box">' +
-                    kv("Research rate", "rate") +
-                    '<p class="tiny muted" style="margin:4px 0 0">Driven by Maxwell Assistants (√count) and Quantum Labs (√count × 4).</p></div>',
-                live: () => ({ rate: fmt(rpRate() * 60) + " 📘/min" }),
-                fx(s, M) {
-                    const L = (k) => lv("recipes", k + 1);
-                    M.bps *= 1 + 0.05 * L(0);
-                    M.click *= 1 + 0.05 * L(1);
-                    M.crit += L(2);
-                    M.offline *= 1 + 0.1 * L(3);
-                    M.gold *= 1 + 0.08 * L(4);
-                    M.mining *= 1 + 0.1 * L(5);
-                    M.global *= 1 + 0.04 * L(6);
-                    M.ds *= 1 + 0.03 * L(7);
-                },
-            });
 
             /* #30 Morgan Collectible Wrapper Cards (original) */
             const CARD_SETS = [
@@ -12752,188 +10692,6 @@
                     fresh ? "gold" : "good",
                 );
             }
-            F({
-                id: "cards",
-                n: 30,
-                g: "mythos",
-                tag: "Card Sets",
-                name: "Morgan Collectible Wrapper Cards",
-                icon: "🃏",
-                blurb: "Every burrito foil hides a trading card of Maxwell's world. Open packs, complete the four sets for big bonuses, and melt duplicates into Foil Dust to craft what you are missing.",
-                gate: {
-                    t: "Open 10 Mystery Crates",
-                    c: (g) => g.stats.crates >= 10,
-                    p: (g) => g.stats.crates / 10,
-                },
-                res: ["dust"],
-                state: () => ({ own: CARDS.map(() => 0), packs: 0 }),
-                ups: [
-                    {
-                        n: "Pack Sponsorship",
-                        i: "🤝",
-                        d: "-8% card pack cost",
-                        c: [["brt", 1e7, 1.8]],
-                        max: 10,
-                        e: (l) => "-" + 8 * l + "%",
-                    },
-                    {
-                        n: "Holo Foil Lamp",
-                        i: "💡",
-                        d: "+10% Foil Dust from duplicates",
-                        c: [["dust", 20, 1.6]],
-                        e: (l) => "+" + 10 * l + "%",
-                    },
-                    {
-                        n: "Card Sleeves",
-                        i: "🗂️",
-                        d: "+5% to every completed set bonus",
-                        c: [["mc", 30, 1.7]],
-                        e: (l) => "+" + 5 * l + "%",
-                    },
-                ],
-                auto: {
-                    name: "Card Collector Bot",
-                    shop: "brt",
-                    cost: 1e8,
-                    desc: "Opens as many packs as your budget allows each tick (max 20, respects your reserve).",
-                },
-                acts: {
-                    open(s, a, off) {
-                        const budget = off
-                            ? game.burritos *
-                              (1 - (game.settings.autoReserve || 0))
-                            : game.burritos;
-                        const n = Math.min(
-                            a === "max" ? (off ? 20 : 50) : 1,
-                            geoMax(packBase(), 1.25, s.packs, budget),
-                        );
-                        if (n <= 0) {
-                            mvToast(
-                                off,
-                                "Need " + fmt(packCost(1)),
-                                "for a card pack",
-                                "bad",
-                            );
-                            return;
-                        }
-                        game.burritos -= packCost(n);
-                        openPacks(s, n, off);
-                        if (!off) mvStruct();
-                    },
-                    craft(s, a) {
-                        const k = +a,
-                            c = CARDS[k];
-                        if (!c || s.own[k] > 0) return;
-                        const cost = CARD_CRAFT[c.r];
-                        if (res("dust") < cost) {
-                            toast(
-                                "Need " + cost + " Foil Dust",
-                                "to craft " + c.n,
-                                "bad",
-                            );
-                            return;
-                        }
-                        game.res.dust -= cost;
-                        s.own[k] = 1;
-                        toast("Crafted: " + c.n, c.r, "gold");
-                        mvStruct();
-                    },
-                },
-                autoRun(s) {
-                    this.acts.open(s, "max", true);
-                },
-                view: (s) =>
-                    '<div class="mv-box">' +
-                    kv("Unique cards", "uniq") +
-                    kv("Next pack", "cost") +
-                    kv("Collection bonus (+0.5% global per unique)", "cb") +
-                    '<div class="mv-actions">' +
-                    actBtn("cards", "open", "Open Pack", null, 1) +
-                    actBtn(
-                        "cards",
-                        "open",
-                        "⬆ Open Max Packs",
-                        null,
-                        "max",
-                        "good",
-                    ) +
-                    "</div></div>" +
-                    CARD_SETS.map(
-                        (st, si) =>
-                            '<div class="sec-head"><h4>' +
-                            st.i +
-                            " " +
-                            st.n +
-                            ' <span class="tiny muted">— set bonus: ' +
-                            st.bonus +
-                            "</span></h4>" +
-                            '<span class="pill" data-live="set' +
-                            si +
-                            '"></span></div><div class="mv-grid">' +
-                            CARDS.map((c, k) =>
-                                c.set !== si
-                                    ? ""
-                                    : '<div class="mv-box r-' +
-                                      c.r +
-                                      '"><b class="rn">' +
-                                      (s.own[k] ? c.n : "???") +
-                                      "</b>" +
-                                      '<div class="tiny muted">' +
-                                      c.r +
-                                      " · owned ×" +
-                                      (s.own[k] || 0) +
-                                      "</div>" +
-                                      (s.own[k]
-                                          ? ""
-                                          : '<div class="mv-actions">' +
-                                            actBtn(
-                                                "cards",
-                                                "craft",
-                                                "Craft (" +
-                                                    CARD_CRAFT[c.r] +
-                                                    " ✨)",
-                                                "cc" + k,
-                                                k,
-                                            ) +
-                                            "</div>") +
-                                      "</div>",
-                            ).join("") +
-                            "</div>",
-                    ).join(""),
-                live: (s) => {
-                    const o = {
-                        uniq:
-                            s.own.filter((x) => x > 0).length +
-                            " / " +
-                            CARDS.length,
-                        cost: fmt(packCost(1)) + " 🌯",
-                        cb:
-                            "x" +
-                            (
-                                1 +
-                                0.005 * s.own.filter((x) => x > 0).length
-                            ).toFixed(3),
-                    };
-                    CARD_SETS.forEach((st, si) => {
-                        o["set" + si] = setComplete(s, si)
-                            ? "✓ Complete"
-                            : "Incomplete";
-                    });
-                    CARDS.forEach((c, k) => {
-                        if (!s.own[k])
-                            o["cc" + k] = { d: res("dust") < CARD_CRAFT[c.r] };
-                    });
-                    return o;
-                },
-                fx(s, M) {
-                    const sl = 1 + 0.05 * lv("cards", 2);
-                    M.global *= 1 + 0.005 * s.own.filter((x) => x > 0).length;
-                    if (setComplete(s, 0)) M.bps *= 1 + 0.1 * sl;
-                    if (setComplete(s, 1)) M.click *= 1 + 0.1 * sl;
-                    if (setComplete(s, 2)) M.ds *= 1 + 0.05 * sl;
-                    if (setComplete(s, 3)) M.global *= 1 + 0.1 * sl;
-                },
-            });
 
             /* ==== MV FEATURES END ==== */
 
@@ -13019,8 +10777,6 @@
                         mvSel: {
                             industry: "orchard",
                             finance: "boardroom",
-                            cosmos: "stars",
-                            mythos: "council",
                         },
                     },
                     /* v6 */
@@ -13919,6 +11675,8 @@
                 const drawn = 43 - vg.deck.length;
                 if (won) {
                     game.stats.vaultWins = (game.stats.vaultWins || 0) + 1;
+                    game.stats.sessionVaultWins =
+                        (game.stats.sessionVaultWins || 0) + 1;
                     grantKey(
                         "Cracked Maxwell's Vault wide open",
                         VAULT_KEY_REWARD,
@@ -14078,6 +11836,8 @@
                     return;
                 }
                 game.keys -= c;
+                game.stats.sessionKeysSpent =
+                    (game.stats.sessionKeysSpent || 0) + c;
                 game.gearSlotsBonus = (game.gearSlotsBonus || 0) + 1;
                 toast(
                     "Artifact slot purchased",
@@ -14205,7 +11965,7 @@
                     base: 15,
                     stat: (g) => g.stats.sessionMined,
                     rew: "ds",
-                    amt: 4,
+                    amt: 5,
                 },
                 {
                     id: "d_crit",
@@ -14213,7 +11973,7 @@
                     base: 40,
                     stat: (g) => g.stats.sessionCrits,
                     rew: "ds",
-                    amt: 4,
+                    amt: 5,
                 },
                 {
                     id: "d_boss",
@@ -14229,7 +11989,50 @@
                     base: 6,
                     stat: (g) => g.stats.sessionAbilities,
                     rew: "ds",
+                    amt: 4,
+                },
+                {
+                    id: "d_spin",
+                    text: (n) => "Spin the Wheel of Maxwell " + n + " time(s)",
+                    base: 2,
+                    stat: (g) => g.stats.sessionSpins,
+                    rew: "ds",
+                    amt: 4,
+                },
+                {
+                    id: "d_vault",
+                    text: (n) => "Crack Maxwell's Vault " + n + " time(s)",
+                    base: 1,
+                    stat: (g) => g.stats.sessionVaultWins,
+                    rew: "keys",
+                    amt: 5,
+                },
+                {
+                    id: "d_stock",
+                    text: (n) =>
+                        "Buy " + fmtStatic(n) + " shares on the market",
+                    base: 30,
+                    stat: (g) => g.stats.sessionStockBuys,
+                    rew: "ds",
                     amt: 3,
+                },
+                {
+                    id: "d_deposit",
+                    text: (n) =>
+                        "Deposit at the Bank of Sam " + n + " time(s)",
+                    base: 3,
+                    stat: (g) => g.stats.sessionDeposits,
+                    rew: "brt",
+                    amt: 0,
+                    scale: true,
+                },
+                {
+                    id: "d_key",
+                    text: (n) => "Spend " + n + " Maxwell Keys",
+                    base: 3,
+                    stat: (g) => g.stats.sessionKeysSpent,
+                    rew: "ds",
+                    amt: 6,
                 },
             ];
             const MILESTONES = [
@@ -14343,6 +12146,77 @@
                     chk: (g) => g.stats.ascensions >= 1,
                     rew: "ds",
                     amt: 50,
+                },
+                {
+                    id: "m16",
+                    text: "Crack Maxwell's Vault 5 times",
+                    chk: (g) => g.stats.vaultWins >= 5,
+                    rew: "ds",
+                    amt: 15,
+                },
+                {
+                    id: "m17",
+                    text: "Find 50 Maxwell Keys in total",
+                    chk: (g) => g.stats.keysFound >= 50,
+                    rew: "crate",
+                    amt: 3,
+                },
+                {
+                    id: "m18",
+                    text: "Spin the Wheel of Maxwell 100 times",
+                    chk: (g) => g.stats.spins >= 100,
+                    rew: "ds",
+                    amt: 10,
+                },
+                {
+                    id: "m19",
+                    text: "Reach Rebirth 5",
+                    chk: (g) => g.rebirths >= 5,
+                    rew: "ds",
+                    amt: 30,
+                },
+                {
+                    id: "m20",
+                    text: "Own 500 shares across the market",
+                    chk: (g) =>
+                        g.stocks.reduce((s, x) => s + x.owned, 0) >= 500,
+                    rew: "ds",
+                    amt: 15,
+                },
+                {
+                    id: "m21",
+                    text: "Collect 10 pets",
+                    chk: (g) => g.pets.length >= 10,
+                    rew: "crate",
+                    amt: 3,
+                },
+                {
+                    id: "m22",
+                    text: "Reach mining Layer 150",
+                    chk: (g) => g.depth >= 150,
+                    rew: "ds",
+                    amt: 15,
+                },
+                {
+                    id: "m23",
+                    text: "Trigger Guac Smash 20 times",
+                    chk: (g) => g.stats.smashes >= 20,
+                    rew: "ds",
+                    amt: 10,
+                },
+                {
+                    id: "m24",
+                    text: "Reach a 150 combo",
+                    chk: (g) => g.stats.bestCombo >= 150,
+                    rew: "ds",
+                    amt: 15,
+                },
+                {
+                    id: "m25",
+                    text: "Unlock every achievement",
+                    chk: (g) => achCount() >= ACHIEVEMENTS.length,
+                    rew: "ds",
+                    amt: 100,
                 },
             ];
 
@@ -15704,7 +13578,11 @@
                     }
                 }
                 for (const l of LORE) {
-                    if (game.lifetime >= l.req && !game.lore.includes(l.t)) {
+                    if (game.lore.includes(l.t)) continue;
+                    const unlocked = l.unlock
+                        ? l.unlock(game)
+                        : game.lifetime >= l.req;
+                    if (unlocked) {
                         game.lore.push(l.t);
                         toast("Codex unlocked", l.t);
                         markDirty("codex");
@@ -15726,7 +13604,7 @@
                 };
                 const pool = DAILY_TEMPLATES.slice();
                 const picked = [];
-                for (let i = 0; i < 3 && pool.length; i++) {
+                for (let i = 0; i < 4 && pool.length; i++) {
                     const idx = Math.floor(
                         seedRand(d * 7 + i * 13) * pool.length,
                     );
@@ -15751,6 +13629,11 @@
                     "sessionCrits",
                     "sessionBosses",
                     "sessionAbilities",
+                    "sessionSpins",
+                    "sessionVaultWins",
+                    "sessionStockBuys",
+                    "sessionDeposits",
+                    "sessionKeysSpent",
                 ].forEach((k) => (game.stats[k] = 0));
                 markDirty("quests");
             }
@@ -15764,6 +13647,7 @@
                 if (!q || !t || game.quests.claimed[id]) return;
                 if (questProgress(q) < q.goal) return;
                 game.quests.claimed[id] = 1;
+                game.stats.questsClaimed = (game.stats.questsClaimed || 0) + 1;
                 grantReward(t.rew, t.amt, t.scale ? getBPS() * 1800 + 1e4 : 0);
                 markDirty("quests");
             }
@@ -15795,6 +13679,8 @@
                         amt + " artifact(s) delivered",
                         "good",
                     );
+                } else if (kind === "keys") {
+                    grantKey("Contract complete", amt);
                 }
                 chord([660, 880, 1100], 0.16);
                 recalc();
@@ -16284,6 +14170,8 @@
                 s.basis = (s.basis * s.owned + cost) / (s.owned + n);
                 s.owned += n;
                 game.stats.stocksBought += n;
+                game.stats.sessionStockBuys =
+                    (game.stats.sessionStockBuys || 0) + n;
                 mvApply();
                 playSfx(600, 0.08, "triangle");
                 markDirty("stocks");
@@ -16328,6 +14216,8 @@
                 }
                 game.burritos -= amt;
                 game.bank += amt;
+                game.stats.sessionDeposits =
+                    (game.stats.sessionDeposits || 0) + 1;
                 toast("Deposited", fmt(amt) + " burritos");
                 playSfx(520, 0.1, "triangle");
                 markDirty("minigames");
@@ -16395,9 +14285,8 @@
                     chronoSpeed("mining") *
                     vision;
                 gainBurritos(yieldAmt);
-                /* v6: digs also turn up alchemy ingredients and (3%) museum relics */
+                /* v6: digs also turn up alchemy ingredients */
                 alchemyMineDrop(ORES.indexOf(ore));
-                if (Math.random() < 0.03) museumFind(0.1 * ORES.indexOf(ore));
 
                 if (ore.name === "Cosmic Diamond") {
                     game.stats.diamonds++;
@@ -16484,6 +14373,8 @@
                 const btn = $("btn-hatch");
                 if (btn) btn.disabled = true;
                 game.keys -= c;
+                game.stats.sessionKeysSpent =
+                    (game.stats.sessionKeysSpent || 0) + c;
                 let rar = rollRarity();
                 if (tal("f7")) {
                     const r2 = rollRarity();
@@ -16684,6 +14575,8 @@
                 const btn = $("btn-crate");
                 if (btn) btn.disabled = true;
                 game.keys -= c;
+                game.stats.sessionKeysSpent =
+                    (game.stats.sessionKeysSpent || 0) + c;
                 const item = rollArtifact();
                 const def = ART_BY_ID[item.id];
                 spinCrateReel(item, def);
@@ -16858,6 +14751,8 @@
                 const btn = $("btn-gacha-open");
                 if (btn) btn.disabled = true;
                 game.keys -= c;
+                game.stats.sessionKeysSpent =
+                    (game.stats.sessionKeysSpent || 0) + c;
                 game.stats.gachaCases = (game.stats.gachaCases || 0) + 1;
                 const rar = rollGachaRarity();
                 const pool = GACHA_SKINS.filter((s) => s.rar === rar.id);
@@ -17135,6 +15030,8 @@
                 const btn = $("btn-theme-open");
                 if (btn) btn.disabled = true;
                 game.keys -= c;
+                game.stats.sessionKeysSpent =
+                    (game.stats.sessionKeysSpent || 0) + c;
                 game.stats.themeCases = (game.stats.themeCases || 0) + 1;
                 const rar = rollGachaRarity();
                 const pool = THEME_SKINS.filter((s) => s.rar === rar.id);
@@ -17404,6 +15301,7 @@
                 }
                 game.lastWheel = Date.now();
                 game.stats.spins++;
+                game.stats.sessionSpins = (game.stats.sessionSpins || 0) + 1;
                 const face = document.getElementById("wheel-face");
                 let spins = 0;
                 const iv = setInterval(() => {
@@ -18440,7 +16338,7 @@
                             el(
                                 "div",
                                 "muted tiny",
-                                "No modules here yet — unlock facilities in the Industry, Finance, Cosmos and Mythos tabs.",
+                                "No modules here yet — unlock facilities in the Industry and Finance tabs.",
                             ),
                         );
                         return;
@@ -19056,6 +16954,8 @@
                 if (t.rew === "ds") return t.amt + " DS";
                 if (t.rew === "crate")
                     return t.amt + " crate" + (t.amt > 1 ? "s" : "");
+                if (t.rew === "keys")
+                    return t.amt + " 🔑 Key" + (t.amt > 1 ? "s" : "");
                 return "burritos";
             }
 
@@ -19067,9 +16967,9 @@
                     const d = el("div", "lore-entry" + (got ? "" : " lock"));
                     d.innerHTML = got
                         ? "<b>" + l.t + "</b><br>" + l.b
-                        : "<b>???</b><br>Unlocks at " +
-                          fmt(l.req) +
-                          " lifetime burritos.";
+                        : "<b>???</b><br>" +
+                          (l.hint ||
+                              "Unlocks at " + fmt(l.req) + " lifetime burritos.");
                     c.appendChild(d);
                 });
                 $("codex-count").textContent =
@@ -19081,30 +16981,30 @@
                 g.innerHTML = "";
                 const bps = getBPS();
                 const rows = [
-                    ["Burritos in hand", fmt(game.burritos)],
-                    ["Burritos per second", fmt(bps)],
+                    ["Burritos on hand", fmt(game.burritos)],
+                    ["Burritos per second (the good BPS)", fmt(bps)],
                     ["Burritos per click", fmt(getClickPower())],
-                    ["Lifetime burritos", fmt(game.lifetime)],
-                    ["This run", fmt(game.runLifetime)],
-                    ["Best BPS reached", fmt(game.stats.bestBps)],
-                    ["Total clicks", fmt(game.clicks)],
-                    ["Hand-made burritos", fmt(game.stats.handmade)],
-                    ["Critical clicks", fmt(game.stats.crits)],
+                    ["Lifetime burritos (your legacy, foil-wrapped)", fmt(game.lifetime)],
+                    ["This run's burritos", fmt(game.runLifetime)],
+                    ["Best BPS reached (personal record)", fmt(game.stats.bestBps)],
+                    ["Total clicks (RIP mouse)", fmt(game.clicks)],
+                    ["Hand-made burritos (blisters not included)", fmt(game.stats.handmade)],
+                    ["Critical clicks (nat 20s)", fmt(game.stats.crits)],
                     ["Best combo", fmt(game.stats.bestCombo)],
-                    ["Crit chance", critChance().toFixed(1) + "%"],
-                    ["Crit damage", "x" + critDamage().toFixed(1)],
-                    ["Buildings owned", fmt(game.totalBuildings())],
+                    ["Crit chance (Vegas odds)", critChance().toFixed(1) + "%"],
+                    ["Crit damage (extra spicy)", "x" + critDamage().toFixed(1)],
+                    ["Buildings owned (zoning laws: ignored)", fmt(game.totalBuildings())],
                     ["Building types", typesOwned() + " / " + BUILDINGS.length],
                     [
-                        "Kitchen upgrades",
+                        "Kitchen upgrades (up to code, mostly)",
                         Object.keys(game.upgrades).length +
                             " / " +
                             UPGRADES.length,
                     ],
-                    ["Achievements", achCount() + " / " + ACHIEVEMENTS.length],
-                    ["Global multiplier", "x" + fmt(globalBonus())],
-                    ["Rebirths", fmt(game.rebirths)],
-                    ["Dough Shards", fmt(game.ds)],
+                    ["Achievements (no trophy included)", achCount() + " / " + ACHIEVEMENTS.length],
+                    ["Global multiplier (fun inflation)", "x" + fmt(globalBonus())],
+                    ["Rebirths (more lives than a cat)", fmt(game.rebirths)],
+                    ["Dough Shards (not the bread kind)", fmt(game.ds)],
                     ["Total DS earned", fmt(game.stats.totalRebirthDs)],
                     [
                         "Sam Shards",
@@ -19114,24 +17014,24 @@
                             " forged)",
                     ],
                     [
-                        "Cosmic Dust",
+                        "Cosmic Dust (smells like lime)",
                         fmt(game.cd) +
                             " (" +
                             game.stats.ascensions +
                             " ascensions)",
                     ],
                     [
-                        "Talent points",
+                        "Talent points (Maxwell's résumé)",
                         game.talentPoints +
                             " free, " +
                             Object.keys(game.talents).length +
                             " learned",
                     ],
-                    ["Golden Sams caught", fmt(game.stats.goldens)],
-                    ["Raid bosses slain", fmt(game.stats.bosses)],
-                    ["Falling burritos caught", fmt(game.stats.rain)],
+                    ["Golden Sams caught (fast for a burrito)", fmt(game.stats.goldens)],
+                    ["Raid bosses slain (mostly with condiments)", fmt(game.stats.bosses)],
+                    ["Burritos caught mid-air", fmt(game.stats.rain)],
                     [
-                        "Abilities used",
+                        "Abilities used (buttons mashed)",
                         fmt(
                             Object.values(game.stats.abilities).reduce(
                                 (a, b) => a + b,
@@ -19139,13 +17039,13 @@
                             ),
                         ),
                     ],
-                    ["Mining depth", "Layer " + fmt(game.depth)],
-                    ["Cosmic diamonds", fmt(game.stats.diamonds)],
-                    ["Pickaxe tier", game.pickaxe],
-                    ["Bank balance", fmt(game.bank)],
-                    ["Interest earned", fmt(game.stats.interest)],
-                    ["Shares bought", fmt(game.stats.stocksBought)],
-                    ["Dividend payouts", fmt(game.stats.dividends)],
+                    ["Mining depth (getting warmer)", "Layer " + fmt(game.depth)],
+                    ["Cosmic diamonds (shinier, don't tell Maxwell)", fmt(game.stats.diamonds)],
+                    ["Pickaxe tier (still technically a spoon)", game.pickaxe],
+                    ["Bank of Sam balance", fmt(game.bank)],
+                    ["Interest earned (free burritos, sort of)", fmt(game.stats.interest)],
+                    ["Shares bought (very legal, mostly)", fmt(game.stats.stocksBought)],
+                    ["Dividend payouts (capitalism, but tasty)", fmt(game.stats.dividends)],
                     ["Portfolio value", fmt(portfolioValue())],
                     ["Portfolio multiplier", "x" + CACHE.marketMult.toFixed(3)],
                     [
@@ -19156,33 +17056,32 @@
                             " earned)",
                     ],
                     [
-                        "Facilities unlocked",
+                        "Facilities unlocked (more zoning violations)",
                         MV_LIST.filter((f) => f.g && mvUnlocked(f.id)).length +
                             " / " +
                             MV_LIST.filter((f) => f.g).length,
                     ],
                     [
-                        "Modules installed",
+                        "Modules installed (automation for the lazy)",
                         Object.keys(game.modules).length +
                             " / " +
                             MODULES.length,
                     ],
                     [
-                        "Mech-Chef taps",
+                        "Mech-Chef taps (beep boop burrito)",
                         fmt(mvUnlocked("foundry") ? mvS("foundry").taps : 0),
                     ],
-                    ["Relics discovered", fmt(relicsFound())],
-                    ["Pets owned", game.pets.length + " / " + PETS.length],
-                    ["Artifacts held", game.inventory.length],
-                    ["Crates opened", fmt(game.stats.crates)],
-                    ["Wheel spins", fmt(game.stats.spins)],
-                    ["Roulette rounds", fmt(game.stats.roulette)],
-                    ["Vaults opened", fmt(game.stats.vaultCracks)],
-                    ["Vaults cracked", fmt(game.stats.vaultWins || 0)],
+                    ["Pets owned (emotional support burritos)", game.pets.length + " / " + PETS.length],
+                    ["Artifacts held (garage sale pending)", game.inventory.length],
+                    ["Crates opened (gambling, but legal)", fmt(game.stats.crates)],
+                    ["Wheel spins (dizzy but rich)", fmt(game.stats.spins)],
+                    ["Roulette rounds (bad decisions made)", fmt(game.stats.roulette)],
+                    ["Vaults opened (fingers crossed)", fmt(game.stats.vaultCracks)],
+                    ["Vaults cracked (safecracking, unionized)", fmt(game.stats.vaultWins || 0)],
                     ["Offline collections", fmt(game.stats.offlineCollects)],
-                    ["Longest offline", fmtTime(game.stats.bestOffline)],
-                    ["Play time", fmtTime(game.playTime)],
-                    ["Started", new Date(game.started).toLocaleDateString()],
+                    ["Longest offline (touched grass)", fmtTime(game.stats.bestOffline)],
+                    ["Time spent here (no regrets)", fmtTime(game.playTime)],
+                    ["Began this burrito journey", new Date(game.started).toLocaleDateString()],
                 ];
                 rows.forEach((r) =>
                     g.appendChild(
@@ -20462,7 +18361,7 @@
                                 "<br>" +
                                 "• <b>Rebirth DS</b> now follows your lifetime total — each extra DS needs more lifetime burritos than the last.<br>" +
                                 "• <b>The Market</b> matters: your portfolio multiplies burrito and DS gains, and top buildings and prestige tiers need share holdings.<br>" +
-                                "• <b>30 new facilities</b> live in the Industry, Finance, Cosmos and Mythos tabs.<br><br>" +
+                                "• <b>New facilities</b> live in the Industry and Finance tabs.<br><br>" +
                                 '<span class="tiny">Your v5 save is kept untouched as a backup.</span>',
                             [{ t: "Let's wrap", cls: "good", fn: () => {} }],
                         ),
@@ -21352,7 +19251,7 @@
                                 opened +
                                     " facilit" +
                                     (opened === 1 ? "y is" : "ies are") +
-                                    " already open to you — see Industry, Finance, Cosmos & Mythos",
+                                    " already open to you — see Industry & Finance",
                                 "gold",
                             ),
                         1500,
