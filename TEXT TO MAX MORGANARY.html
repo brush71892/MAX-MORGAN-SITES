@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEXT TO MAX MORGANARY CONVERTER</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons for UI Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        maxCol: '#06b6d4', // Cyan for MAX (0)
+                        morganCol: '#8b5cf6', // Violet for MORGAN (1)
+                        spaceCol: '#f59e0b' // Amber for 2026
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbars */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        .dark textarea::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .dark textarea::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="max-w-6xl mx-auto w-full mb-8 text-center">
+        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-slate-800/80 border border-slate-700/60 mb-4 shadow-inner">
+            <span class="flex h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs font-mono tracking-wider uppercase text-slate-300">Custom Binary Cipher Studio</span>
+        </div>
+        <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-indigo-400 to-violet-400 mb-3">
+            MAX / MORGAN / 2026 Converter
+        </h1>
+        <p class="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+            Convert plain text into custom bit representations where <span class="font-mono text-cyan-400 font-semibold">0 = MAX</span>, 
+            <span class="font-mono text-violet-400 font-semibold">1 = MORGAN</span>, and <span class="font-mono text-amber-400 font-semibold">Spaces = 2026</span>.
+        </p>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 flex-grow">
+        
+        <!-- SECTION 1: Text to Cipher Encoder -->
+        <section class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-5 md:p-6 border border-slate-700/50 shadow-xl flex flex-col justify-between">
+            <div>
+                <!-- Panel Header -->
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/60">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 bg-cyan-500/10 text-cyan-400 rounded-lg">
+                            <i class="ph ph-text-t text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-semibold text-lg text-slate-100">Text &rarr; Custom Binary</h2>
+                            <p class="text-xs text-slate-400">Encode standard text to cipher</p>
+                        </div>
+                    </div>
+                    <button onclick="clearEncoder()" class="text-xs text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1 px-2.5 py-1.5 rounded-md hover:bg-slate-700/50">
+                        <i class="ph ph-trash"></i> Clear
+                    </button>
+                </div>
+
+                <!-- Input Textarea -->
+                <div class="mb-4">
+                    <label for="textInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Plaintext Input</label>
+                    <textarea id="textInput" rows="5" placeholder="Type text here (e.g., 'Hello World')..." 
+                        class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all font-sans resize-none text-sm leading-relaxed"></textarea>
+                </div>
+
+                <!-- Output Display -->
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Encoded Output</label>
+                        <span id="encoderStats" class="text-xs text-slate-500 font-mono">0 chars</span>
+                    </div>
+                    <div class="relative group">
+                        <textarea id="cipherOutput" readonly rows="5" placeholder="Encoded cipher will appear here..." 
+                            class="w-full bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 text-cyan-300 font-mono-code text-xs leading-relaxed resize-none focus:outline-none"></textarea>
+                        <button onclick="copyToClipboard('cipherOutput', 'Cipher output copied!')" 
+                            class="absolute top-2.5 right-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all shadow-md active:scale-95">
+                            <i class="ph ph-copy text-sm"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Encoding Info Bar -->
+            <div class="mt-2 pt-3 border-t border-slate-700/40 text-xs text-slate-400 flex flex-wrap justify-between items-center gap-2">
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-cyan-400"></span> MAX = 0
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-violet-400"></span> MORGAN = 1
+                </span>
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span> 2026 = Space
+                </span>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Custom Binary to Text Decoder -->
+        <section class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-5 md:p-6 border border-slate-700/50 shadow-xl flex flex-col justify-between">
+            <div>
+                <!-- Panel Header -->
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/60">
+                    <div class="flex items-center gap-2.5">
+                        <div class="p-2 bg-violet-500/10 text-violet-400 rounded-lg">
+                            <i class="ph ph-brackets-curly text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-semibold text-lg text-slate-100">Custom Binary &rarr; Text</h2>
+                            <p class="text-xs text-slate-400">Decode MAX/MORGAN/2026 to text</p>
+                        </div>
+                    </div>
+                    <button onclick="clearDecoder()" class="text-xs text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-1 px-2.5 py-1.5 rounded-md hover:bg-slate-700/50">
+                        <i class="ph ph-trash"></i> Clear
+                    </button>
+                </div>
+
+                <!-- Input Textarea -->
+                <div class="mb-4">
+                    <label for="cipherInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Cipher Input</label>
+                    <textarea id="cipherInput" rows="5" placeholder="Paste cipher here (e.g., 'MAXMORGANMAX... 2026 MAXMORGAN...')..." 
+                        class="w-full bg-slate-900/90 border border-slate-700 rounded-xl p-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all font-mono-code text-xs leading-relaxed resize-none"></textarea>
+                </div>
+
+                <!-- Output Display -->
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Decoded Plaintext</label>
+                        <span id="decoderStatus" class="text-xs text-slate-500 font-medium">Ready</span>
+                    </div>
+                    <div class="relative group">
+                        <textarea id="textOutput" readonly rows="5" placeholder="Decoded text will appear here..." 
+                            class="w-full bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 text-violet-300 font-sans text-sm leading-relaxed resize-none focus:outline-none"></textarea>
+                        <button onclick="copyToClipboard('textOutput', 'Decoded text copied!')" 
+                            class="absolute top-2.5 right-2.5 bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/60 rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-all shadow-md active:scale-95">
+                            <i class="ph ph-copy text-sm"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error/Validation Message Bar -->
+            <div id="errorMessage" class="hidden mt-2 p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-lg text-xs text-rose-300 flex items-center gap-2">
+                <i class="ph ph-warning-circle text-base text-rose-400 shrink-0"></i>
+                <span id="errorText">Invalid cipher token detected.</span>
+            </div>
+            <div id="validMessage" class="mt-2 pt-3 border-t border-slate-700/40 text-xs text-slate-400 flex items-center justify-between">
+                <span>Separators: Space, Tab, Newlines, or '2026'</span>
+                <span class="text-emerald-400 font-mono flex items-center gap-1">
+                    <i class="ph ph-check-circle"></i> Auto-Detecting
+                </span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Quick Examples Bar -->
+    <div class="max-w-6xl mx-auto w-full bg-slate-800/30 border border-slate-800 rounded-xl p-4 mb-8">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+                <i class="ph ph-lightbulb text-amber-400 text-lg"></i>
+                <span><strong>Try a sample:</strong> Click to load test data into the converter.</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="loadSample('Hello World')" class="text-xs bg-slate-700/60 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-600/40 transition-all">
+                    "Hello World"
+                </button>
+                <button onclick="loadSample('MAX MORGAN')" class="text-xs bg-slate-700/60 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-600/40 transition-all">
+                    "MAX MORGAN"
+                </button>
+                <button onclick="loadSample('2026 Rules!')" class="text-xs bg-slate-700/60 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-600/40 transition-all">
+                    "2026 Rules!"
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl mx-auto w-full text-center text-xs text-slate-500 py-4 border-t border-slate-800/60">
+        <p>Custom Binary Cipher Converter &bull; 8-bit UTF-8/ASCII Encoding Scheme</p>
+    </footer>
+
+    <!-- Toast Notification Container -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-slate-100 border border-slate-600 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-4 z-50">
+        <i id="toastIcon" class="ph ph-check-circle text-emerald-400 text-xl"></i>
+        <span id="toastMessage" class="text-sm font-medium">Notification</span>
+    </div>
+
+    <script>
+        // Core Logic Implementation
+
+        /**
+         * Converts plain text to MAX/MORGAN/2026 Cipher.
+         * Rules:
+         * - Characters converted to 8-bit binary string.
+         * - '0' -> 'MAX'
+         * - '1' -> 'MORGAN'
+         * - Spaces in input text -> '2026'
+         */
+        function textToCustomBinary(text) {
+            if (!text) return '';
+
+            const encodedTokens = [];
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+
+                if (char === ' ') {
+                    // Space rule: replace space with '2026'
+                    encodedTokens.push('2026');
+                } else {
+                    // Convert character to 8-bit binary representation
+                    const charCode = char.charCodeAt(0);
+                    const binaryStr = charCode.toString(2).padStart(8, '0');
+
+                    // Map bits: 0 -> MAX, 1 -> MORGAN
+                    let customBitStr = '';
+                    for (let bit of binaryStr) {
+                        if (bit === '0') customBitStr += 'MAX';
+                        else if (bit === '1') customBitStr += 'MORGAN';
+                    }
+                    encodedTokens.push(customBitStr);
+                }
+            }
+
+            // Join tokens with single space for readability and unambiguous decoding
+            return encodedTokens.join(' ');
+        }
+
+        /**
+         * Converts MAX/MORGAN/2026 Cipher back to plain text.
+         * Handles flexible token separators (Spaces, 2026 tokens, Newlines).
+         */
+        function customBinaryToText(cipher) {
+            if (!cipher.trim()) {
+                return { text: '', error: null };
+            }
+
+            // Standardize spaces and split input tokens
+            // Tokenizing by whitespace or '2026' tokens
+            // First replace literal '2026' with a distinct separator token marker '__SPACE_2026__'
+            let normalized = cipher.replace(/2026/g, ' __SPACE_2026__ ');
+            
+            // Split by any whitespace
+            const rawTokens = normalized.trim().split(/\s+/).filter(t => t.length > 0);
+            
+            let resultText = '';
+
+            for (let token of rawTokens) {
+                if (token === '__SPACE_2026__') {
+                    resultText += ' ';
+                    continue;
+                }
+
+                // Parse character encoding string (sequence of MAX and MORGAN)
+                let binaryBits = '';
+                let index = 0;
+
+                while (index < token.length) {
+                    if (token.startsWith('MAX', index)) {
+                        binaryBits += '0';
+                        index += 3; // Length of 'MAX'
+                    } else if (token.startsWith('MORGAN', index)) {
+                        binaryBits += '1';
+                        index += 6; // Length of 'MORGAN'
+                    } else {
+                        // Unrecognized token substring
+                        const invalidSnippet = token.substring(index, Math.min(index + 8, token.length));
+                        return {
+                            text: '',
+                            error: `Unrecognized sequence starting at "${invalidSnippet}" in token "${token}". Only MAX, MORGAN, and 2026 are permitted.`
+                        };
+                    }
+                }
+
+                // Validate bit length (must be multiple of 8 bits or standard byte size)
+                if (binaryBits.length % 8 !== 0) {
+                    return {
+                        text: '',
+                        error: `Incomplete byte sequence in token "${token}". Found ${binaryBits.length} bits, expected a multiple of 8.`
+                    };
+                }
+
+                // Decode 8-bit binary chunks back to characters
+                for (let b = 0; b < binaryBits.length; b += 8) {
+                    const byteChunk = binaryBits.substring(b, b + 8);
+                    const charCode = parseInt(byteChunk, 2);
+                    resultText += String.fromCharCode(charCode);
+                }
+            }
+
+            return { text: resultText, error: null };
+        }
+
+        // DOM Elements
+        const textInput = document.getElementById('textInput');
+        const cipherOutput = document.getElementById('cipherOutput');
+        const encoderStats = document.getElementById('encoderStats');
+
+        const cipherInput = document.getElementById('cipherInput');
+        const textOutput = document.getElementById('textOutput');
+        const decoderStatus = document.getElementById('decoderStatus');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        // Real-time Event Handling
+        textInput.addEventListener('input', () => {
+            const inputVal = textInput.value;
+            const encoded = textToCustomBinary(inputVal);
+            cipherOutput.value = encoded;
+            encoderStats.textContent = `${inputVal.length} chars`;
+        });
+
+        cipherInput.addEventListener('input', () => {
+            const cipherVal = cipherInput.value;
+            const decodedResult = customBinaryToText(cipherVal);
+
+            if (decodedResult.error) {
+                // Display error UI
+                errorMessage.classList.remove('hidden');
+                errorText.textContent = decodedResult.error;
+                decoderStatus.textContent = "Error";
+                decoderStatus.className = "text-xs text-rose-400 font-semibold";
+                textOutput.value = '';
+            } else {
+                // Clear error UI
+                errorMessage.classList.add('hidden');
+                textOutput.value = decodedResult.text;
+                if (cipherVal.trim() === '') {
+                    decoderStatus.textContent = "Ready";
+                    decoderStatus.className = "text-xs text-slate-500 font-medium";
+                } else {
+                    decoderStatus.textContent = "Valid Cipher";
+                    decoderStatus.className = "text-xs text-emerald-400 font-medium";
+                }
+            }
+        });
+
+        // Helper Actions
+        function clearEncoder() {
+            textInput.value = '';
+            cipherOutput.value = '';
+            encoderStats.textContent = '0 chars';
+            showToast('Encoder reset', 'ph-trash', 'text-slate-400');
+        }
+
+        function clearDecoder() {
+            cipherInput.value = '';
+            textOutput.value = '';
+            errorMessage.classList.add('hidden');
+            decoderStatus.textContent = "Ready";
+            decoderStatus.className = "text-xs text-slate-500 font-medium";
+            showToast('Decoder reset', 'ph-trash', 'text-slate-400');
+        }
+
+        function loadSample(sampleText) {
+            textInput.value = sampleText;
+            textInput.dispatchEvent(new Event('input'));
+            
+            // Automatically mirror into decoder to show two-way equivalence
+            cipherInput.value = cipherOutput.value;
+            cipherInput.dispatchEvent(new Event('input'));
+
+            showToast(`Loaded sample "${sampleText}"`, 'ph-sparkle', 'text-cyan-400');
+        }
+
+        function copyToClipboard(elementId, successMsg) {
+            const textarea = document.getElementById(elementId);
+            if (!textarea || !textarea.value) {
+                showToast('Nothing to copy!', 'ph-warning', 'text-amber-400');
+                return;
+            }
+
+            textarea.select();
+            textarea.setSelectionRange(0, 99999); // For mobile devices
+
+            try {
+                document.execCommand('copy');
+                showToast(successMsg, 'ph-check-circle', 'text-emerald-400');
+            } catch (err) {
+                showToast('Failed to copy', 'ph-x-circle', 'text-rose-400');
+            }
+        }
+
+        // Toast Notification System
+        let toastTimeout;
+        function showToast(message, iconClass = 'ph-check-circle', iconColorClass = 'text-emerald-400') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMessage.textContent = message;
+            toastIcon.className = `ph ${iconClass} ${iconColorClass} text-xl`;
+
+            // Clear previous timeout if exists
+            if (toastTimeout) clearTimeout(toastTimeout);
+
+            // Show toast
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            // Auto hide after 2.5 seconds
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 2500);
+        }
+
+        window.addEventListener('load', () => {
+            // Initialize with sample text for immediate visual feedback
+            loadSample('Hello World');
+        });
+    </script>
+</body>
+</html>
