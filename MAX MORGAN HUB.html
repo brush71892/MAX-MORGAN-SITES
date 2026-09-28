@@ -75,7 +75,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             text-align: center;
             border: 1px solid #333;
             transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
@@ -89,7 +89,7 @@
 
         .game-icon {
             font-size: 2.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }
 
         .game-title {
@@ -97,10 +97,19 @@
             font-weight: bold;
             margin-bottom: 0.5rem;
             color: #ffffff;
+            transition: color 0.2s ease;
         }
 
         .game-card:hover .game-title {
             color: var(--hover-color);
+        }
+
+        /* Added description styling */
+        .game-description {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-top: 0.25rem;
         }
 
         footer {
@@ -124,21 +133,37 @@
         <a href="+1 MAX MORGAN ESCAPE.html" class="game-card">
             <div class="game-icon">🏃</div>
             <div class="game-title">+1 Max Morgan Escape</div>
+            <p class="game-description">Run, jump, dodge obstacles and ESCAPE MAX MORGAN</p>
         </a>
 
         <a href="MAX MORGAN CLICKER.html" class="game-card">
             <div class="game-icon">👆</div>
             <div class="game-title">Max Morgan Clicker</div>
+            <p class="game-description">Click to earn burritos, and become the ultimate max morgan</p>
         </a>
 
         <a href="MAX SWARMGAN SIMULATOR.html" class="game-card">
             <div class="game-icon">🐝</div>
             <div class="game-title">Max Swarmgan Simulator</div>
+            <p class="game-description">Command your growing swarm, collect pollen, expand your colony, and conquer the map.</p>
         </a>
 
         <a href="MorganRNG.html" class="game-card">
-            <div class="game-icon">🎲</div>
+            <div class="game-icon">🐟</div>
             <div class="game-title">Morgan RNG</div>
+            <p class="game-description">Roll the dice to catch ultra-rare fih, unlock unique auras, and test your luck!</p>
+        </a>
+
+        <a href="STEAL A MAX MORGAN.html" class="game-card">
+            <div class="game-icon">🐟</div>
+            <div class="game-title">Steal a Max Morgan</div>
+            <p class="game-description">Buy Max Morgans, Earn money, and STEAL max morgans</p>
+        </a>
+
+        <a href="TEXT TO MAX MORGANARY.html" class="game-card">
+            <div class="game-icon">🐟</div>
+            <div class="game-title">Text to Max Morganary</div>
+            <p class="game-description">Convert your favorite sayings into Max Morganary!</p>
         </a>
     </main>
 
