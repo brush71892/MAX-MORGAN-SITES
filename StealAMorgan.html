@@ -6,6 +6,7 @@
     <title>Steal a Max Morgan 3D</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Outfit:wght@400;600;800&display=swap');
@@ -25,7 +26,12 @@
         .s-input:focus{border-color:rgba(99,102,241,.8)}
         .s-input::placeholder{color:rgba(148,163,184,.5)}
         textarea.s-input{resize:vertical;font-size:11px;font-family:monospace;min-height:70px}
-    </style>
+    #chat-panel{position:fixed;left:12px;bottom:12px;width:min(300px,80vw);z-index:300}
+@media (pointer:coarse){#chat-panel{bottom:200px}}
+#chat-log{max-height:9.5rem;overflow-y:auto;font-size:12px;text-shadow:0 1px 2px #000}
+#chat-log div{background:rgba(15,23,42,.7);padding:2px 8px;border-radius:8px;margin-bottom:2px;color:#e2e8f0;word-break:break-word}
+#chat-log div.old{display:none}
+</style>
 </head>
 <body class="select-none overflow-hidden">
 
@@ -60,7 +66,7 @@
     <div class="glass-panel rounded-3xl p-6 w-full max-w-lg border border-indigo-500/30 my-4">
         <div class="flex items-center justify-between mb-5">
             <div>
-                <div class="font-game text-2xl text-white">LAN LOBBY</div>
+                <div class="font-game text-2xl text-white">SERVER BROWSER</div>
                 <div id="lobby-user-display" class="text-indigo-400 text-sm font-semibold"></div>
             </div>
             <button id="btn-logout" class="glass-btn px-3 py-2 rounded-xl text-slate-400 hover:text-white text-sm flex items-center gap-2">
@@ -78,25 +84,22 @@
         </div>
         <div class="grid grid-cols-1 gap-4">
             <div class="glass-panel rounded-2xl p-4 border border-emerald-500/30">
-                <div class="font-game text-white text-base flex items-center gap-2 mb-2"><i class="fa-solid fa-tower-broadcast text-emerald-400"></i>Host a LAN Game</div>
-                <p class="text-xs text-slate-400 mb-3">You run the server. Share your invite code with friends on the network.</p>
-                <button id="btn-host" class="w-full py-2.5 rounded-xl font-game text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition">
-                    <i class="fa-solid fa-play mr-2"></i>Host Game
-                </button>
+                <div class="font-game text-white text-base flex items-center gap-2 mb-2"><i class="fa-solid fa-tower-broadcast text-emerald-400"></i>Host a Server</div>
+                <p class="text-xs text-slate-400 mb-3">Open servers let anyone join. Private servers generate a 4-character password.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btn-host-open" class="py-2.5 rounded-xl font-game text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition"><i class="fa-solid fa-lock-open mr-2"></i>Open</button>
+                    <button id="btn-host-private" class="py-2.5 rounded-xl font-game text-white bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 transition"><i class="fa-solid fa-lock mr-2"></i>Private</button>
+                </div>
             </div>
             <div class="glass-panel rounded-2xl p-4 border border-indigo-500/30">
-                <div class="font-game text-white text-base flex items-center gap-2 mb-2"><i class="fa-solid fa-users text-indigo-400"></i>Join a LAN Game</div>
-                <textarea id="join-offer-input" class="s-input mb-2" placeholder="Paste invite code from host here..."></textarea>
-                <button id="btn-join" class="w-full py-2.5 rounded-xl font-game text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition">
-                    <i class="fa-solid fa-right-to-bracket mr-2"></i>Generate Join Code
-                </button>
-                <div id="join-answer-area" class="hidden mt-3">
-                    <div class="text-xs text-slate-400 mb-1">Your Join Code — copy this and give to host:</div>
-                    <textarea id="join-answer-output" class="s-input" readonly></textarea>
-                    <button id="btn-copy-answer" class="mt-1 w-full py-2 rounded-xl text-sm font-semibold text-white bg-indigo-700 hover:bg-indigo-600 transition">
-                        <i class="fa-solid fa-copy mr-1"></i>Copy Join Code
-                    </button>
-                    <div class="text-xs text-slate-400 mt-2 text-center">Give this to the host, then wait for them to start the game.</div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="font-game text-white text-base flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400"></i>Join a Server</div>
+                    <button id="btn-refresh-servers" class="glass-btn px-2 py-1 rounded text-xs text-slate-300 hover:text-white"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+                </div>
+                <div id="server-list" class="space-y-2 max-h-56 overflow-y-auto"></div>
+                <div id="pw-row" class="hidden mt-3 flex gap-2">
+                    <input id="pw-input" maxlength="4" class="s-input flex-1 uppercase tracking-widest text-center" placeholder="Server password">
+                    <button id="btn-pw-join" class="px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition">Join</button>
                 </div>
             </div>
         </div>
@@ -110,8 +113,8 @@
 <!-- HOST WAITING ROOM -->
 <div id="waiting-screen" class="fixed inset-0 z-[180] bg-slate-950/98 backdrop-blur flex items-center justify-center p-4 hidden overflow-y-auto">
     <div class="glass-panel rounded-3xl p-6 w-full max-w-xl border border-emerald-500/30 my-4">
-        <div class="font-game text-2xl text-white mb-1">Hosting Room</div>
-        <div class="text-slate-400 text-xs mb-5">Share invite codes with friends on the same network. Up to 3 can join you.</div>
+        <div class="font-game text-2xl text-white mb-1"><span id="waiting-title">Hosting Room</span></div>
+        <div class="text-slate-400 text-xs mb-5">Your server is listed in the browser. Up to 3 players can join you.</div>
 
         <!-- Host entry -->
         <div class="flex items-center gap-3 p-3 glass-panel rounded-xl border border-emerald-500/30 mb-4">
@@ -119,6 +122,7 @@
             <div><div class="text-white text-sm font-semibold" id="waiting-host-name"></div><div class="text-xs text-emerald-400">Host · Ready</div></div>
         </div>
 
+        <div id="server-pw-badge" class="hidden text-center mb-4 glass-panel rounded-xl p-3 border border-amber-500/40"><div class="text-xs text-slate-400">Server password</div><div id="server-pw" class="font-game text-3xl text-amber-400 tracking-[0.4em]"></div></div>
         <!-- 3 client slots -->
         <div id="client-slots" class="space-y-3 mb-5"></div>
 
@@ -131,6 +135,10 @@
     </div>
 </div>
 
+<div id="chat-panel" class="hidden ui-interactive">
+    <div id="chat-log"></div>
+    <input id="chat-input" maxlength="120" autocomplete="off" class="s-input text-xs w-full" placeholder="Press Enter to chat...">
+</div>
 <!-- CANVAS -->
 <canvas id="game-canvas" class="hidden"></canvas>
 
@@ -248,14 +256,26 @@
 // ============================================================
 // CONSTANTS
 // ============================================================
-const RARITIES = [
-    {id:0,name:"Classic Max",    price:0,    income:10,  color:"#9e9e9e",border:"#cccccc",badge:"COMMON"},
-    {id:1,name:"Scientist Max",  price:150,  income:35,  color:"#4caf50",border:"#81c784",badge:"UNCOMMON"},
-    {id:2,name:"Gamer Max",      price:500,  income:90,  color:"#2196f3",border:"#64b5f6",badge:"RARE"},
-    {id:3,name:"Golden Max",     price:2500, income:250, color:"#ffc107",border:"#ffd54f",badge:"EPIC"},
-    {id:4,name:"Speedrunner Max",price:8000, income:750, color:"#e91e63",border:"#f06292",badge:"LEGENDARY"},
-    {id:5,name:"Brainrot God Max",price:25000,income:2500,color:"#9c27b0",border:"#ba68c8",badge:"MYTHIC"}
-];
+const RT=[ // name, badge, income/s, color, border
+ ["Classic Max","COMMON",10,"#9e9e9e","#cccccc"],["Farmer Max","COMMON",18,"#a1887f","#d7ccc8"],
+ ["Scientist Max","UNCOMMON",32,"#4caf50","#81c784"],["Chef Max","UNCOMMON",55,"#ff7043","#ffab91"],
+ ["Gamer Max","RARE",95,"#2196f3","#64b5f6"],["Ninja Max","RARE",160,"#455a64","#90a4ae"],
+ ["Astronaut Max","EPIC",280,"#5c6bc0","#9fa8da"],["Golden Max","EPIC",480,"#ffc107","#ffd54f"],
+ ["Wizard Max","LEGENDARY",800,"#00897b","#4db6ac"],["Speedrunner Max","LEGENDARY",1400,"#e91e63","#f06292"],
+ ["Robot Max","MYTHIC",2400,"#607d8b","#b0bec5"],["Brainrot God Max","MYTHIC",4200,"#9c27b0","#ba68c8"],
+ ["Vampire Max","ANCIENT",7200,"#b71c1c","#ef5350"],["Dragon Max","ANCIENT",12500,"#ff6f00","#ffb74d"],
+ ["Cosmic Max","COSMIC",21000,"#00e5ff","#84ffff"],["Galaxy Max","COSMIC",37000,"#651fff","#b388ff"],
+ ["Divine Max","DIVINE",65000,"#fff176","#fffde7"],["Angel Max","DIVINE",115000,"#ffffff","#e1f5fe"],
+ ["Glitch Max","SECRET",200000,"#00e676","#69f0ae"],["Void Max","SECRET",350000,"#4a148c","#b388ff"],
+ ["Omega Max","OMEGA",620000,"#ff1744","#ff8a80"],["Infinity Max","OMEGA",1100000,"#d500f9","#ea80fc"],
+ ["Admin Max","GODLIKE",2000000,"#ffd600","#ff6d00"],["Morgan Max","GODLIKE",3600000,"#ffffff","#ffd700"]];
+const r2=n=>{const q=Math.pow(10,Math.floor(Math.log10(n))-1);return Math.round(n/q)*q;};
+const RARITIES=RT.map((t,i)=>({id:i,name:t[0],badge:t[1],income:t[2],color:t[3],border:t[4],price:i?r2(t[2]*12):0,w:30*Math.pow(.76,i)}));
+const RW_TOTAL=RARITIES.reduce((a,r)=>a+r.w,0);
+function rollRarity(){let x=Math.random()*RW_TOTAL;for(const r of RARITIES){x-=r.w;if(x<=0)return r.id;}return 0;}
+// Upgrade costs scale exponentially so they stay meaningful late-game
+const UP={speed:{b:200,g:2.4,max:10},slap:{b:300,g:2.4,max:10},mult:{b:1000,g:2.5,max:15},auto:{b:2000,g:3,max:5}};
+const upCost=(k,lvl)=>Math.round(UP[k].b*Math.pow(UP[k].g,lvl-1));
 const BASE_COLORS=[{c:0x6366f1,h:"#6366f1"},{c:0xef4444,h:"#ef4444"},{c:0x22c55e,h:"#22c55e"},{c:0xeab308,h:"#eab308"}];
 const BASE_COORDS=[{x:-32,z:32},{x:32,z:32},{x:-32,z:-32},{x:32,z:-32}];
 
@@ -289,76 +309,112 @@ let curUser='',saveD=null,gameMode='solo';
 // Each RTCPeerConnection has a DataChannel.
 // Host: hostPCs[slotIndex] = {pc, channel, baseIndex, username, connected}
 // Client: clientPC = {pc, channel, baseIndex}
-const ICE = {iceServers:[{urls:'stun:stun.l.google.com:19302'}]};
-let hostPCs={};          // host side: keyed by slotIndex (1,2,3)
-let clientPC=null;       // client side
+const PCFG={reliable:true,serialization:'json'};
+const DIR_ID='stealamax-directory-v1';
+let hostPCs={};          // host side: keyed by slotIndex (1,2,3): {pc,channel,baseIndex,username,connected}
+let clientPC=null;       // client side: {pc,channel,baseIndex}
 let gameRunning=false;
 let netBroadcastTimer=0;
+let hostPeer=null,hostInfo=null,hbTimer=null,dirPeer=null,dirStore={};
 
-function encodeDesc(desc){return btoa(JSON.stringify({type:desc.type,sdp:desc.sdp}))}
-function decodeDesc(str){return JSON.parse(atob(str.trim()))}
+function rndPw(){const c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<4;i++)r+=c[Math.floor(Math.random()*c.length)];return r;}
 
-async function waitIce(pc){
-    return new Promise(resolve=>{
-        if(pc.iceGatheringState==='complete'){resolve();return}
-        pc.addEventListener('icegatheringstatechange',()=>{
-            if(pc.iceGatheringState==='complete')resolve();
+// ---- Server directory: first player online claims a well-known peer id and keeps the list ----
+function dirHandle(m){
+    const now=Date.now();
+    Object.keys(dirStore).forEach(k=>{if(now-dirStore[k].t>15000)delete dirStore[k];});
+    if(m.t==='reg')dirStore[m.s.id]={...m.s,t:now};
+    if(m.t==='unreg')delete dirStore[m.id];
+    return m.t==='list'?Object.values(dirStore):null;
+}
+function claimDir(){return new Promise(res=>{
+    const p=new Peer(DIR_ID);
+    p.on('open',()=>{dirPeer=p;
+        p.on('connection',c=>c.on('data',m=>{const r=dirHandle(m);try{c.send({r})}catch{}}));
+        res(true);});
+    p.on('error',()=>{try{p.destroy()}catch{};res(false);});
+});}
+function dirCall(m,tries=2){
+    return new Promise(res=>{
+        if(dirPeer&&!dirPeer.destroyed)return res(dirHandle(m));
+        const p=new Peer();let done=false;
+        const fin=async(v,fail)=>{
+            if(done)return;done=true;try{p.destroy()}catch{}
+            if(fail&&tries>0){if(await claimDir())return res(dirHandle(m));return res(await dirCall(m,tries-1));}
+            res(v);
+        };
+        p.on('error',()=>fin(null,true));
+        p.on('open',()=>{
+            const c=p.connect(DIR_ID,PCFG);
+            c.on('open',()=>c.send(m));
+            c.on('data',d=>fin(d.r));
+            c.on('error',()=>fin(null,true));
+            setTimeout(()=>fin(null,true),5000);
         });
-        setTimeout(resolve,8000); // fallback
     });
 }
 
-// HOST: generate invite code for slot s (1,2,3)
-async function hostGenerateInvite(s){
-    if(hostPCs[s]){try{hostPCs[s].pc.close()}catch{}}
-    const pc=new RTCPeerConnection(ICE);
-    const channel=pc.createDataChannel('g',{ordered:false,maxRetransmits:0});
-    setupHostChannel(channel,s,pc);
-    const offer=await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    await waitIce(pc);
-    hostPCs[s]={pc,channel:null,baseIndex:s,username:'Slot '+(s+1),connected:false};
-    // channel reference set via ondatachannel or directly since host creates it
-    hostPCs[s].channel=channel;
-    return encodeDesc(pc.localDescription);
+// ---- HOST ----
+function registerServer(){
+    if(!hostInfo)return;
+    dirCall({t:'reg',s:{id:hostInfo.id,name:hostInfo.name,priv:hostInfo.priv,n:1+connectedClientCount(),started:gameRunning}});
 }
-
-function setupHostChannel(channel,s,pc){
-    channel.onopen=()=>{
-        if(hostPCs[s])hostPCs[s].connected=true;
-        updateWaitingUI();
-        channel.send(JSON.stringify({type:'WELCOME',baseIndex:s}));
-        if(gameRunning){
-            channel.send(JSON.stringify({type:'START'}));
-            channel.send(JSON.stringify({type:'STATE',st:buildSnapshot()}));
-        }
-    };
-    channel.onclose=()=>{
-        if(hostPCs[s])hostPCs[s].connected=false;
-        if(gameRunning){makeBotForSlot(s);broadcastAll({type:'PLAYER_LEFT',bi:s});}
-        updateWaitingUI();
-    };
-    channel.onmessage=e=>{
-        try{handleClientMsg(s,JSON.parse(e.data))}catch{}
-    };
-}
-
-async function hostAcceptAnswer(s,answerCode){
-    const slot=hostPCs[s];if(!slot)return;
+async function startHosting(priv){
+    cleanupNetwork();
+    gameMode='host';hostPCs={};document.getElementById('chat-log').innerHTML='';updateChatVis();
+    hostInfo={id:'sam-'+Math.random().toString(36).slice(2,10),name:curUser+"'s server",priv,pw:priv?rndPw():''};
+    setLobbyStatus('Starting server...','');
     try{
-        const desc=decodeDesc(answerCode);
-        await slot.pc.setRemoteDescription(new RTCSessionDescription(desc));
-    }catch(e){showToast('Invalid join code for slot '+(s+1),'error');}
+        hostPeer=new Peer(hostInfo.id);
+        await new Promise((ok,bad)=>{hostPeer.on('open',ok);hostPeer.on('error',bad);});
+    }catch(e){cleanupNetwork();gameMode='solo';setLobbyStatus('Could not start server: '+(e.type||e.message),'error');return;}
+    hostPeer.on('connection',onHostConn);
+    hostPeer.on('error',e=>console.warn('host peer',e));
+    registerServer();hbTimer=setInterval(registerServer,5000);
+    document.getElementById('waiting-title').textContent=priv?'Private Server':'Open Server';
+    document.getElementById('server-pw-badge').classList.toggle('hidden',!priv);
+    document.getElementById('server-pw').textContent=hostInfo.pw;
+    updateWaitingUI();showScreen('waiting');
+}
+function onHostConn(conn){
+    let s=0;
+    const deny=m=>{try{conn.send(JSON.stringify({type:'DENIED',m}))}catch{}setTimeout(()=>{try{conn.close()}catch{}},400);};
+    conn.on('data',raw=>{
+        let d;try{d=typeof raw==='string'?JSON.parse(raw):raw}catch{return}
+        if(!s){
+            if(d.type!=='JOIN'||!hostInfo)return;
+            if(hostInfo.priv&&String(d.pw||'').toUpperCase()!==hostInfo.pw)return deny('Wrong server password');
+            s=[1,2,3].find(i=>!hostPCs[i]||!hostPCs[i].connected);
+            if(!s)return deny('Server is full');
+            const name=String(d.name||'Player '+s).slice(0,16);
+            hostPCs[s]={pc:conn,channel:conn,baseIndex:s,username:name,connected:true};
+            conn.send(JSON.stringify({type:'WELCOME',baseIndex:s}));
+            if(gameRunning){
+                conn.send(JSON.stringify({type:'START'}));
+                conn.send(JSON.stringify({type:'STATE',st:buildSnapshot()}));
+                updateBaseName(s,name);broadcastAll({type:'NAME',bi:s,name});
+            }
+            relayChat('',name+' joined',-1);updateWaitingUI();registerServer();return;
+        }
+        if(d.type==='CHAT'){
+            const now=Date.now();if(now-(hostPCs[s].lastChat||0)<400)return;hostPCs[s].lastChat=now;
+            const m=String(d.m||'').slice(0,120).trim();if(m)relayChat(hostPCs[s].username,m,s);return;
+        }
+        handleClientMsg(s,d);
+    });
+    conn.on('close',()=>{
+        if(!s)return;
+        if(hostPCs[s]&&hostPCs[s].channel===conn){
+            hostPCs[s].connected=false;
+            if(gameRunning){makeBotForSlot(s);broadcastAll({type:'PLAYER_LEFT',bi:s});}
+        }
+        if(hostPCs[s])relayChat('',hostPCs[s].username+' left',-1);
+        updateWaitingUI();registerServer();
+    });
 }
 
 function handleClientMsg(s,d){
     if(!gameRunning)return;
-    if(d.type==='HELLO'){
-        if(hostPCs[s])hostPCs[s].username=d.name||('Player '+(s+1));
-        updateBaseName(s,hostPCs[s].username);
-        broadcastAll({type:'NAME',bi:s,name:hostPCs[s].username});
-        updateWaitingUI();
-    }
     if(d.type==='INPUT'){applyNetInput(s,d);}
     if(d.type==='ACTION'){applyNetAction(s,d.a);}
 }
@@ -366,37 +422,35 @@ function handleClientMsg(s,d){
 function broadcastAll(data){
     const str=JSON.stringify(data);
     Object.values(hostPCs).forEach(slot=>{
-        if(slot.connected&&slot.channel&&slot.channel.readyState==='open'){
+        if(slot.connected&&slot.channel&&slot.channel.open){
             try{slot.channel.send(str)}catch{}
         }
     });
 }
 
-// CLIENT: accepts host's invite code, returns join code
-async function clientJoin(offerCode){
-    if(clientPC){try{clientPC.pc.close()}catch{}}
-    const pc=new RTCPeerConnection(ICE);
-    let channel=null;
-    pc.ondatachannel=e=>{
-        channel=e.channel;
-        clientPC.channel=channel;
-        channel.onopen=()=>{
-            channel.send(JSON.stringify({type:'HELLO',name:curUser}));
-        };
-        channel.onmessage=ev=>{
-            try{handleHostMsg(JSON.parse(ev.data))}catch{}
-        };
-        channel.onclose=()=>{
-            if(gameRunning){showToast('Disconnected from host','error');returnToLobby();}
-        };
-    };
-    const desc=decodeDesc(offerCode);
-    await pc.setRemoteDescription(new RTCSessionDescription(desc));
-    const answer=await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    await waitIce(pc);
-    clientPC={pc,channel,baseIndex:1};
-    return encodeDesc(pc.localDescription);
+// ---- CLIENT ----
+function joinServer(id,pw){
+    return new Promise((ok,bad)=>{
+        cleanupNetwork();
+        const peer=new Peer();
+        const t=setTimeout(()=>{cleanupNetwork();bad(new Error('Could not reach server'));},8000);
+        peer.on('error',e=>{clearTimeout(t);bad(new Error(e.type==='peer-unavailable'?'Server is no longer available':(e.type||'Connection error')));});
+        peer.on('open',()=>{
+            const conn=peer.connect(id,PCFG);
+            clientPC={pc:{close(){try{peer.destroy()}catch{}}},channel:conn,baseIndex:1};
+            conn.on('open',()=>{conn.send(JSON.stringify({type:'JOIN',name:curUser,pw}));document.getElementById('chat-log').innerHTML='';});
+            conn.on('data',raw=>{
+                let d;try{d=JSON.parse(raw)}catch{return}
+                if(d.type==='DENIED'){clearTimeout(t);cleanupNetwork();bad(new Error(d.m));return;}
+                if(d.type==='WELCOME'){clearTimeout(t);gameMode='client';updateChatVis();ok();}
+                handleHostMsg(d);
+            });
+            conn.on('close',()=>{
+                if(gameRunning){showToast('Disconnected from host','error');returnToLobby();}
+                else if(clientPC){cleanupNetwork();gameMode='solo';setLobbyStatus('The server closed','error');refreshServers();}
+            });
+        });
+    });
 }
 
 function handleHostMsg(d){
@@ -415,10 +469,11 @@ function handleHostMsg(d){
         if(bot)bot.isNetPlayer=false;
     }
     if(d.type==='TOAST'){showToast(d.m,d.k);}
+    if(d.type==='CHAT'){addChat(d.n,d.m,d.bi);}
 }
 
 function sendToHost(data){
-    if(clientPC&&clientPC.channel&&clientPC.channel.readyState==='open'){
+    if(clientPC&&clientPC.channel&&clientPC.channel.open){
         try{clientPC.channel.send(JSON.stringify(data))}catch{}
     }
 }
@@ -463,8 +518,17 @@ function applySnapshot(st){
     // players
     if(st.players){
         st.players.forEach(ps=>{
+            const ent=ps.bi===player.baseIndex?player:bots.find(b=>b.baseIndex===ps.bi);
+            if(ent){
+                const have=ent.carriedItem?ent.carriedItem.rarityIndex:null;
+                if(have!==ps.ci){
+                    if(ent.carriedItem){scene.remove(ent.carriedItem.mesh);ent.carriedItem=null;}
+                    if(ps.ci!==null&&ps.ci!==undefined){const m=createMaxMesh(ps.ci);scene.add(m);ent.carriedItem={rarityIndex:ps.ci,mesh:m,state:'carried'};}
+                    if(ent===player)updateCarriedUI();
+                }
+            }
             if(ps.bi===player.baseIndex)return;
-            const bot=bots.find(b=>b.baseIndex===ps.bi);
+            const bot=ent;
             if(!bot)return;
             bot.x=ps.x;bot.z=ps.z;bot.angle=ps.a;bot.cash=ps.cash;
             if(bot.mesh){bot.mesh.position.set(bot.x,0,bot.z);bot.mesh.rotation.y=bot.angle;}
@@ -521,15 +585,57 @@ function applySnapshot(st){
 function cleanupNetwork(){
     Object.values(hostPCs).forEach(s=>{try{s.pc.close()}catch{}});
     hostPCs={};
-    if(clientPC){try{clientPC.pc.close()}catch{};clientPC=null;}
+    setTimeout(updateChatVis,0);
+    if(hbTimer){clearInterval(hbTimer);hbTimer=null;}
+    if(hostInfo){dirCall({t:'unreg',id:hostInfo.id});hostInfo=null;}
+    if(hostPeer){try{hostPeer.destroy()}catch{};hostPeer=null;}
+    if(clientPC){const c=clientPC;clientPC=null;try{c.pc.close()}catch{}}
 }
 
 function connectedClientCount(){return Object.values(hostPCs).filter(s=>s.connected).length;}
+
+
+// ============================================================
+// CHAT (host relays messages to everyone)
+// ============================================================
+let chatOpen=false,lastChatSend=0;
+function updateChatVis(){document.getElementById('chat-panel').classList.toggle('hidden',!(gameMode==='host'||gameMode==='client'));}
+function addChat(n,m,bi){
+    const log=document.getElementById('chat-log'),d=document.createElement('div');d.dataset.t=Date.now();
+    if(n){const b=document.createElement('b');b.textContent=n+': ';b.style.color=(BASE_COLORS[bi]||{h:'#94a3b8'}).h;d.appendChild(b);d.appendChild(document.createTextNode(m));}
+    else{d.textContent=m;d.style.color='#94a3b8';d.style.fontStyle='italic';}
+    log.appendChild(d);while(log.children.length>60)log.removeChild(log.firstChild);
+    log.scrollTop=log.scrollHeight;
+}
+function relayChat(n,m,bi){addChat(n,m,bi);broadcastAll({type:'CHAT',n,m,bi});}
+function sendChat(text){
+    text=text.trim().slice(0,120);if(!text)return;
+    if(gameMode==='host')relayChat(curUser,text,0);
+    else if(gameMode==='client')sendToHost({type:'CHAT',m:text});
+}
+setInterval(()=>{ // fade old messages while playing
+    const now=Date.now();
+    document.querySelectorAll('#chat-log div').forEach(d=>d.classList.toggle('old',!chatOpen&&gameRunning&&now-d.dataset.t>10000));
+},1000);
+(()=>{
+    const inp=document.getElementById('chat-input');
+    inp.addEventListener('focus',()=>{chatOpen=true;});
+    inp.addEventListener('blur',()=>{chatOpen=false;});
+    ['keydown','keyup'].forEach(ev=>inp.addEventListener(ev,e=>{
+        e.stopPropagation();
+        if(ev==='keydown'&&e.code==='Enter'){sendChat(inp.value);inp.value='';if(gameRunning)inp.blur();}
+        if(ev==='keydown'&&e.code==='Escape')inp.blur();
+    }));
+    window.addEventListener('keydown',e=>{
+        if(e.code==='Enter'&&(gameMode==='host'||gameMode==='client')&&document.activeElement!==inp){e.preventDefault();inp.focus();for(const k in keys)keys[k]=false;}
+    });
+})();
 
 // ============================================================
 // SCREEN MANAGEMENT
 // ============================================================
 function showScreen(n){
+    updateChatVis();
     ['login-screen','lobby-screen','waiting-screen'].forEach(id=>document.getElementById(id).classList.add('hidden'));
     document.getElementById('game-canvas').classList.add('hidden');
     document.getElementById('ui-container').classList.add('hidden');
@@ -557,73 +663,49 @@ function refreshLobby(){
             `<span class="glass-panel px-3 py-1 rounded-full text-xs text-slate-300 border border-slate-700">${o.n} <span class="text-emerald-400">$${fmtMoney(o.c)}</span></span>`
         ).join('');
     }
-    // reset join UI
-    document.getElementById('join-offer-input').value='';
-    document.getElementById('join-answer-area').classList.add('hidden');
-    document.getElementById('join-answer-output').value='';
     document.getElementById('lobby-status').classList.add('hidden');
+    refreshServers();
 }
 
 function updateWaitingUI(){
     document.getElementById('waiting-host-name').textContent=curUser;
     const container=document.getElementById('client-slots');
-    container.innerHTML='';
-    [1,2,3].forEach(s=>{
-        const slot=hostPCs[s];
-        const name=slot?(slot.connected?slot.username:'Slot '+(s+1)):'Slot '+(s+1);
-        const connected=slot&&slot.connected;
-        const div=document.createElement('div');
-        div.className='glass-panel p-4 rounded-xl border '+(connected?'border-emerald-500/40':'border-slate-700/40');
-        div.innerHTML=`
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-2">
-                    <div class="w-3 h-3 rounded-full ${connected?'bg-emerald-400':'bg-slate-600'}"></div>
-                    <span class="text-sm font-semibold text-white">${name}</span>
-                    ${connected?'<span class="text-xs text-emerald-400">Connected</span>':'<span class="text-xs text-slate-500">Waiting...</span>'}
-                </div>
-                <button class="text-xs glass-btn px-2 py-1 rounded text-slate-300 hover:text-white" onclick="genInviteForSlot(${s})">
-                    ${slot?'Re-generate':'Generate Invite Code'}
-                </button>
-            </div>
-            <div id="slot-invite-${s}" class="${slot?'':'hidden'}">
-                <div class="text-xs text-slate-400 mb-1">Invite Code (copy this to player ${s+1}):</div>
-                <textarea class="s-input mb-1" id="slot-code-${s}" readonly style="min-height:55px;font-size:10px"></textarea>
-                <button onclick="copySlotCode(${s})" class="text-xs glass-btn px-2 py-1 rounded text-indigo-300 hover:text-white mb-2"><i class="fa-solid fa-copy mr-1"></i>Copy</button>
-                <div class="text-xs text-slate-400 mb-1">Paste their Join Code here:</div>
-                <div class="flex gap-2">
-                    <textarea class="s-input flex-1" id="slot-answer-${s}" placeholder="Paste join code from player ${s+1}..." style="min-height:45px;font-size:10px"></textarea>
-                    <button onclick="acceptSlotAnswer(${s})" class="px-3 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition">Accept</button>
-                </div>
-            </div>`;
-        container.appendChild(div);
-        if(slot&&slot.offerCode){
-            const ta=document.getElementById('slot-code-'+s);
-            if(ta)ta.value=slot.offerCode;
-        }
+    container.innerHTML=[1,2,3].map(s=>{
+        const slot=hostPCs[s],c=slot&&slot.connected;
+        return `<div class="glass-panel p-3 rounded-xl border ${c?'border-emerald-500/40':'border-slate-700/40'} flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full ${c?'bg-emerald-400':'bg-slate-600'}"></div>
+            <span class="text-sm font-semibold text-white">${c?slot.username:'Slot '+(s+1)}</span>
+            <span class="text-xs ${c?'text-emerald-400':'text-slate-500'}">${c?'Connected':'Waiting for player...'}</span></div>`;
+    }).join('');
+}
+
+// ---- Server browser ----
+let pendingServer=null;
+async function refreshServers(){
+    const list=document.getElementById('server-list');if(!list)return;
+    list.innerHTML='<div class="text-xs text-slate-500 text-center py-3">Searching for servers...</div>';
+    document.getElementById('pw-row').classList.add('hidden');pendingServer=null;
+    const res=await dirCall({t:'list'});
+    const servers=(res||[]).filter(x=>!hostInfo||x.id!==hostInfo.id);
+    if(!servers.length){list.innerHTML='<div class="text-xs text-slate-500 text-center py-3">No servers found. Host one!</div>';return;}
+    list.innerHTML=servers.map(x=>{
+        const full=x.n>=4;
+        return `<div class="glass-panel rounded-xl p-2.5 border border-slate-700/50 flex items-center gap-3">
+            <i class="fa-solid ${x.priv?'fa-lock text-amber-400':'fa-lock-open text-emerald-400'}"></i>
+            <div class="flex-1 min-w-0"><div class="text-sm text-white font-semibold truncate"></div>
+            <div class="text-xs text-slate-400">${x.priv?'Private':'Open'} · ${x.n}/4${x.started?' · In game':''}</div></div>
+            <button data-id="${x.id}" data-priv="${x.priv?1:0}" ${full?'disabled':''} class="srv-join px-3 py-1.5 rounded-lg text-xs font-semibold text-white ${full?'bg-slate-700':'bg-indigo-600 hover:bg-indigo-500'}">${full?'Full':'Join'}</button></div>`;
+    }).join('');
+    [...list.children].forEach((el,i)=>el.querySelector('.truncate').textContent=servers[i].name);
+    list.querySelectorAll('.srv-join').forEach(b=>b.onclick=()=>{
+        if(b.dataset.priv==='1'){pendingServer=b.dataset.id;document.getElementById('pw-row').classList.remove('hidden');document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
+        else attemptJoin(b.dataset.id,'');
     });
 }
-
-async function genInviteForSlot(s){
-    const btn=event.target;btn.textContent='Generating...';btn.disabled=true;
-    try{
-        const code=await hostGenerateInvite(s);
-        hostPCs[s].offerCode=code;
-        updateWaitingUI();
-        const ta=document.getElementById('slot-code-'+s);
-        if(ta)ta.value=code;
-        document.getElementById('slot-invite-'+s).classList.remove('hidden');
-    }catch(e){showToast('WebRTC error: '+e.message,'error');}
-}
-
-function copySlotCode(s){
-    const ta=document.getElementById('slot-code-'+s);
-    if(ta){navigator.clipboard.writeText(ta.value).then(()=>showToast('Invite code copied!','success')).catch(()=>{ta.select();document.execCommand('copy');showToast('Copied!','success');});}
-}
-
-async function acceptSlotAnswer(s){
-    const ta=document.getElementById('slot-answer-'+s);
-    if(!ta||!ta.value.trim()){showToast('Paste the join code first','error');return;}
-    await hostAcceptAnswer(s,ta.value.trim());
+async function attemptJoin(id,pw){
+    setLobbyStatus('Connecting...','');
+    try{await joinServer(id,pw);setLobbyStatus('Joined! Waiting for the host to start the game...','success');}
+    catch(e){gameMode='solo';setLobbyStatus(e.message,'error');}
 }
 
 // ============================================================
@@ -749,30 +831,85 @@ function updateBaseName(bi,name){
 }
 
 // ---- MESH BUILDERS ----
+function makeChar(o){
+    const g=new THREE.Group();
+    const M=(c,e)=>new THREE.MeshStandardMaterial({color:c,roughness:.55,emissive:e||0,emissiveIntensity:e?.45:0});
+    const bx=(w,h,d,m,x,y,z,p)=>{const k=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);k.position.set(x,y,z);k.castShadow=true;(p||g).add(k);return k;};
+    const sk=M(o.skin||0xffdbac),sh=M(o.shirt,o.glow),pa=M(o.pants||0x1e293b),dk=M(0x111827),hr=M(o.hair||0x3e2723);
+    const legs=[-.21,.21].map(x=>{const p=new THREE.Group();p.position.set(x,.74,0);g.add(p);bx(.34,.6,.36,pa,0,-.32,0,p);bx(.36,.16,.48,dk,0,-.66,.06,p);return p;});
+    bx(.9,.86,.48,sh,0,1.17,0);bx(.92,.12,.5,dk,0,.78,0);bx(.3,.3,.02,M(0xffffff),0,1.2,.25);
+    const arms=[-1,1].map(d=>{const p=new THREE.Group();p.position.set(d*.62,1.5,0);g.add(p);bx(.28,.5,.3,sh,0,-.22,0,p);bx(.26,.3,.28,sk,0,-.6,0,p);return p;});
+    bx(.7,.7,.7,sk,0,1.92,0);
+    bx(.76,.2,.76,hr,0,2.3,0);bx(.76,.5,.16,hr,0,2.05,-.3);bx(.08,.3,.7,hr,-.36,2.1,0);bx(.08,.3,.7,hr,.36,2.1,0);bx(.7,.14,.06,hr,0,2.2,.36);
+    if(!o.visor){[-.16,.16].forEach(x=>{bx(.16,.18,.02,M(0xffffff),x,1.95,.36);bx(.08,.12,.02,dk,x,1.95,.37);});}
+    bx(.2,.05,.02,M(0x7f1d1d),0,1.76,.36);
+    g.userData={legs,arms,ph:0,amp:0,px:0,pz:0};
+    return {g,M,bx,dk};
+}
+function animChar(m,dt){
+    const u=m.userData;if(!u.legs)return;
+    const d=Math.hypot(m.position.x-u.px,m.position.z-u.pz);u.px=m.position.x;u.pz=m.position.z;
+    const sp=d/Math.max(dt,.001),mv=sp>1.5&&sp<40;
+    if(mv)u.ph+=dt*11;
+    u.amp+=((mv?Math.min(1,sp/8)*.9:0)-u.amp)*Math.min(1,dt*12);
+    const a=Math.sin(u.ph)*u.amp;
+    u.legs[0].rotation.x=a;u.legs[1].rotation.x=-a;u.arms[0].rotation.x=-a;u.arms[1].rotation.x=a;
+}
+function spinItem(it,dt){if(it&&it.mesh&&it.mesh.userData.spin)it.mesh.userData.spin.forEach(q=>q.o.rotation.y+=q.s*dt);}
+
 function createMaxMesh(ri){
-    const r=RARITIES[ri],g=new THREE.Group(),hc=new THREE.Color(r.color);
-    const mk=(geo,mat,px,py,pz,rx=0)=>{const m=new THREE.Mesh(geo,mat);m.position.set(px,py,pz);m.rotation.x=rx;m.castShadow=true;g.add(m);return m;};
-    mk(new THREE.BoxGeometry(.65,.65,.65),new THREE.MeshStandardMaterial({color:0xffdbac,roughness:.6}),0,1.45,0);
-    mk(new THREE.BoxGeometry(.72,.25,.72),new THREE.MeshStandardMaterial({color:0x4a2e1b,roughness:.8}),0,1.78,0);
-    mk(new THREE.BoxGeometry(.68,.18,.2),new THREE.MeshStandardMaterial({color:0x00d2ff,emissive:0x00d2ff,emissiveIntensity:.6,roughness:.2}),0,1.52,.28);
-    const tm=new THREE.MeshStandardMaterial({color:hc,roughness:.5,metalness:.1});
-    mk(new THREE.BoxGeometry(.75,.85,.45),tm,0,.80,0);
-    mk(new THREE.BoxGeometry(.25,.7,.25),new THREE.MeshStandardMaterial({color:hc}),-0.5,.80,.1,-.4);
-    mk(new THREE.BoxGeometry(.25,.7,.25),new THREE.MeshStandardMaterial({color:hc}),0.5,.80,.1,-.4);
-    const lm=new THREE.MeshStandardMaterial({color:0x1e293b});
-    mk(new THREE.BoxGeometry(.32,.75,.35),lm,-0.2,.375,0);mk(new THREE.BoxGeometry(.32,.75,.35),lm,.2,.375,0);
-    const label=makeItemTag(r);label.position.set(0,2.3,0);g.add(label);
+    const r=RARITIES[ri],hc=new THREE.Color(r.color);
+    const C=makeChar({shirt:hc,glow:ri>=14?hc:0,visor:true,hair:0x4a2e1b}),g=C.g,M=C.M,bx=C.bx;
+    g.userData.spin=[];
+    const mesh=(geo,col,em,x,y,z,p)=>{const k=new THREE.Mesh(geo,M(col,em));k.position.set(x,y,z);k.castShadow=true;(p||g).add(k);return k;};
+    const cyl=(a,b,h,col,x,y,z,em)=>mesh(new THREE.CylinderGeometry(a,b,h,12),col,em,x,y,z);
+    const cone=(r0,h,col,x,y,z,em)=>mesh(new THREE.ConeGeometry(r0,h,8),col,em,x,y,z);
+    const ring=(R,col,y,tube,em)=>{const k=mesh(new THREE.TorusGeometry(R,tube||.05,8,28),col,em===undefined?col:em,0,y,0);k.rotation.x=Math.PI/2;return k;};
+    const spin=(o,sp)=>{g.userData.spin.push({o,s:sp});return o;};
+    const orbit=(n,col,R,y,sz)=>{const o=new THREE.Group();o.position.y=y;g.add(o);
+        for(let i=0;i<n;i++){const a=i/n*Math.PI*2;mesh(new THREE.BoxGeometry(sz,sz,sz),col,col,Math.cos(a)*R,Math.sin(i*2)*.2,Math.sin(a)*R,o);}
+        return spin(o,2.2);};
+    const wings=(col,em)=>[-1,1].forEach(d=>{const w=new THREE.Group();w.position.set(d*.35,1.5,-.32);w.rotation.y=d*.5;w.rotation.z=-d*.25;g.add(w);
+        bx(.9,.16,.06,M(col,em),d*.45,0,0,w);bx(.7,.14,.06,M(col,em),d*.4,-.2,0,w);bx(.5,.12,.06,M(col,em),d*.32,-.38,0,w);});
+    const crown=()=>{bx(.6,.14,.6,M(0xffc107,0xffa000),0,2.52,0);[[-.24,-.24],[.24,-.24],[-.24,.24],[.24,.24],[0,0]].forEach(q=>cone(.09,.22,0xffd54f,q[0],2.68,q[1],0xffa000));};
+    const halo=(y,col)=>spin(ring(.45,col,y,.05),1.5);
+    const floor=(col)=>{const k=ring(.95,col,.06,.06);return spin(k,1);};
+    const horns=(col)=>[-1,1].forEach(d=>{const k=cone(.1,.42,col,d*.28,2.62,0,col);k.rotation.z=-d*.35;});
+    const white=0xffffff;
+    switch(ri){
+      case 1: cyl(.58,.58,.05,0xe6c36a,0,2.42,0);cyl(.32,.36,.2,0xe6c36a,0,2.52,0);break;
+      case 2: bx(.96,.7,.52,M(white),0,1.1,0);bx(.72,.16,.07,M(0xb3e5fc,0x4fc3f7),0,2.16,.37);break;
+      case 3: cyl(.36,.4,.3,white,0,2.58,0);bx(.7,.22,.7,M(white),0,2.82,0);break;
+      case 4: {const a=mesh(new THREE.TorusGeometry(.44,.05,8,18,Math.PI),0x111827,0,0,1.95,0);
+              [-1,1].forEach(d=>bx(.14,.3,.32,M(0x111827,0x00e5ff),d*.44,1.95,0));break;}
+      case 5: bx(.78,.12,.78,M(0xd32f2f),0,2.18,0);bx(.1,.1,.4,M(0xd32f2f),0,2.18,-.5);bx(.72,.26,.05,M(0x111111),0,1.78,.36);break;
+      case 6: mesh(new THREE.SphereGeometry(.6,16,12),0x90caf9,0,0,1.95,0).material.transparent=true;g.children[g.children.length-1].material.opacity=.28;bx(.6,.7,.25,M(white),0,1.2,-.36);break;
+      case 7: crown();break;
+      case 8: cone(.42,.9,0x1a237e,0,2.75,0);cyl(.62,.62,.05,0x1a237e,0,2.4,0);break;
+      case 9: bx(.76,.14,.07,M(0x111111,0xff1744),0,1.97,.37);bx(.2,.7,.03,M(0xffeb3b,0xffeb3b),0,1.17,.25);bx(.78,.1,.78,M(0xffeb3b),0,2.2,0);break;
+      case 10: cyl(.03,.03,.4,0xb0bec5,0,2.6,0);mesh(new THREE.SphereGeometry(.09,8,8),0xff1744,0xff1744,0,2.82,0);bx(.96,.3,.52,M(0xb0bec5),0,1.4,0);break;
+      case 11: for(let i=0;i<5;i++){const k=cone(.09,.5,0xd500f9,-.28+i*.14,2.6,0,0xd500f9);k.rotation.z=(i-2)*.25;}break;
+      case 12: bx(.95,1.1,.06,M(0x7f0000),0,1.2,-.3);bx(1.1,.3,.12,M(0x111111),0,1.6,-.1);bx(.05,.1,.02,M(white),-.06,1.7,.36);bx(.05,.1,.02,M(white),.06,1.7,.36);break;
+      case 13: horns(0xffb74d);wings(0xff6f00,0);break;
+      case 14: halo(2.7,0x00e5ff);break;
+      case 15: orbit(4,0xb388ff,.95,1.3,.16);halo(2.7,0x651fff);break;
+      case 16: halo(2.75,0xfff176);break;
+      case 17: wings(white,0xe1f5fe);halo(2.75,0xfff59d);break;
+      case 18: orbit(6,0x00e676,1,1.4,.2);break;
+      case 19: floor(0xb388ff);orbit(3,0x1a0033,.9,1.4,.22);break;
+      case 20: horns(0xff1744);bx(.6,.1,.05,M(0xff1744,0xff1744),0,1.95,.37);floor(0xff1744);break;
+      case 21: {const a=ring(.9,0xea80fc,1.3,.05);spin(a,1.8);const b=ring(.9,0xd500f9,1.3,.05);b.rotation.z=Math.PI/2;spin(b,-1.4);break;}
+      case 22: crown();wings(0xffd600,0xff6d00);halo(2.95,0xffd600);break;
+      case 23: crown();wings(white,0xffd700);halo(2.95,0xffd700);floor(0xffd700);orbit(5,0xffd700,1.1,1.4,.16);break;
+    }
+    const label=makeItemTag(r);label.position.set(0,ri>=13?3.5:3.1,0);g.add(label);
     return g;
 }
 
 function makeAvatarMesh(c){
-    const g=new THREE.Group();
-    const mk=(geo,mat,px,py,pz)=>{const m=new THREE.Mesh(geo,mat);m.position.set(px,py,pz);m.castShadow=true;g.add(m);};
-    mk(new THREE.BoxGeometry(.8,.8,.8),new THREE.MeshStandardMaterial({color:0xffdbac}),0,1.8,0);
-    mk(new THREE.BoxGeometry(.9,1.1,.5),new THREE.MeshStandardMaterial({color:c,roughness:.4}),0,.95,0);
-    mk(new THREE.BoxGeometry(.4,.9,.45),new THREE.MeshStandardMaterial({color:0x0f172a}),-.23,.45,0);
-    mk(new THREE.BoxGeometry(.4,.9,.45),new THREE.MeshStandardMaterial({color:0x0f172a}),.23,.45,0);
-    return g;
+    const C=makeChar({shirt:c,pants:0x1e293b,hair:0x2b1b12});
+    C.bx(.8,.12,.82,C.M(c),0,2.4,.03);C.bx(.8,.1,.3,C.M(c),0,2.36,.5);
+    return C.g;
 }
 
 function makeItemTag(r){
@@ -877,6 +1014,11 @@ function setupControls(){
 }
 
 function doAction(a){
+    if(gameMode==='client'){
+        if(a==='F'&&player.slapCd<=0){player.slapCd=1.2;sfx.playSlap();}
+        if(a==='Q'&&player.shieldCd<=0){player.shieldCd=45;sfx.playShield();}
+        sendToHost({type:'ACTION',a});return;
+    }
     if(a==='E')triggerPickUpOrSteal(player);
     if(a==='G')triggerDropItem(player);
     if(a==='F')triggerSlap(player);
@@ -967,6 +1109,11 @@ function updateBots(dt){
             if(bot.mesh){bot.mesh.position.set(bot.x,0,bot.z);bot.mesh.rotation.y=bot.angle;}
             if(bot.carriedItem&&bot.carriedItem.mesh)
                 bot.carriedItem.mesh.position.set(bot.x+Math.sin(bot.angle)*.8,2.1,bot.z+Math.cos(bot.angle)*.8);
+            const nb=bases[bot.baseIndex];
+            if(gameMode==='host'&&bot.carriedItem&&nb&&Math.hypot(bot.x-nb.x,bot.z-nb.z)<5.5){
+                const ep=nb.pedestals.find(p=>p.item===null);
+                if(ep){ep.item=bot.carriedItem;bot.carriedItem.state='pedestal';bot.carriedItem.mesh.position.set(ep.x,1.3,ep.z);bot.carriedItem=null;updateBaseTag(nb);}
+            }
             return;
         }
 
@@ -990,6 +1137,10 @@ function updateBots(dt){
             if(rn)triggerSlap(bot);
         }
         if(bot.mesh){bot.mesh.position.set(bot.x,0,bot.z);bot.mesh.rotation.y=bot.angle;}
+        if(bot.carriedItem&&bot.carriedItem.mesh){
+            bot.carriedItem.mesh.position.set(bot.x+Math.sin(bot.angle)*.8,2.1,bot.z+Math.cos(bot.angle)*.8);
+            bot.carriedItem.mesh.rotation.y=bot.angle;
+        }
     });
 }
 
@@ -1003,8 +1154,7 @@ function updateConveyor(dt){
     spawnTimer+=dt;
     if(spawnTimer>=3.2){
         spawnTimer=0;
-        const r=Math.random();
-        const ri=r>.95?5:r>.85?4:r>.70?3:r>.50?2:r>.25?1:0;
+        const ri=rollRarity();
         const m=createMaxMesh(ri);m.position.set(0,.95,-26);scene.add(m);
         itemsOnConveyor.push(assignId({rarityIndex:ri,mesh:m,state:'conveyor'}));
     }
@@ -1051,6 +1201,14 @@ function autoSave(){
 function animate(){
     if(!gameRunning)return;
     requestAnimationFrame(animate);
+    frame();
+}
+// A Worker timer isn't throttled in background tabs, so hosts keep simulating while hidden
+const tickWorker=new Worker(URL.createObjectURL(new Blob(['setInterval(()=>postMessage(0),50)'],{type:'text/javascript'})));
+tickWorker.onmessage=()=>{if(document.hidden&&gameRunning)frame();};
+window.addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+function frame(){
+    if(!gameRunning)return;
     const dt=Math.min(clock.getDelta(),.1),t=clock.getElapsedTime();
 
     let mx=0,mz=0;
@@ -1076,7 +1234,7 @@ function animate(){
     }
 
     const pb=bases[player.baseIndex];
-    if(player.carriedItem&&Math.hypot(player.x-pb.x,player.z-pb.z)<5.5){
+    if(gameMode!=='client'&&player.carriedItem&&Math.hypot(player.x-pb.x,player.z-pb.z)<5.5){
         const ep=pb.pedestals.find(p=>p.item===null);
         if(ep){ep.item=player.carriedItem;player.carriedItem.state='pedestal';player.carriedItem.mesh.position.set(ep.x,1.3,ep.z);
             player.carriedItem=null;updateCarriedUI();updateBaseTag(pb);showToast('Item placed!','success');}
@@ -1098,6 +1256,10 @@ function animate(){
         updateBots(dt);updateParticles(dt);processIncome(t);
     }
     updateParticles(dt);
+    animChar(player.mesh,dt);bots.forEach(b=>b.mesh&&animChar(b.mesh,dt));
+    itemsOnConveyor.forEach(i=>spinItem(i,dt));itemsOnGround.forEach(i=>spinItem(i,dt));
+    bases.forEach(b=>b.pedestals.forEach(p=>spinItem(p.item,dt)));
+    spinItem(player.carriedItem,dt);bots.forEach(b=>spinItem(b.carriedItem,dt));
     updateUI();
 
     const ty=1.6;
@@ -1107,7 +1269,7 @@ function animate(){
         player.z+cameraDistance*Math.cos(cameraAnglePitch)*Math.cos(cameraAngleYaw)
     );
     camera.lookAt(player.x,ty,player.z);
-    renderer.render(scene,camera);
+    if(!document.hidden)renderer.render(scene,camera);
 }
 
 // ---- UI ----
@@ -1151,13 +1313,13 @@ function showToast(msg,type='info'){
     t.className=`toast-anim glass-panel px-4 py-2 rounded-xl text-xs font-semibold text-white border ${bg} shadow-lg`;
     t.textContent=msg;c.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
-function fmtMoney(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'k';return Math.floor(n).toLocaleString();}
+function fmtMoney(n){if(n>=1e12)return(n/1e12).toFixed(1)+'T';if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'k';return Math.floor(n).toLocaleString();}
 
 // ---- SHOP ----
-document.getElementById('btn-buy-speed').onclick=()=>{const c=player.speedLvl*100;if(player.cash>=c&&player.speedLvl<10){player.cash-=c;player.speedLvl++;player.speed+=1.8;document.getElementById('shop-lvl-speed').textContent=player.speedLvl;document.getElementById('shop-cost-speed').textContent=player.speedLvl*100;showToast('Speed Boost Purchased!','success');updateUI();}};
-document.getElementById('btn-buy-slap-shop').onclick=()=>{const c=player.slapLvl*150;if(player.cash>=c&&player.slapLvl<10){player.cash-=c;player.slapLvl++;player.slapPower+=.25;document.getElementById('shop-lvl-slap').textContent=player.slapLvl;document.getElementById('shop-cost-slap').textContent=player.slapLvl*150;showToast('Slap Force Upgraded!','success');updateUI();}};
-document.getElementById('btn-buy-mult').onclick=()=>{const c=player.multLvl*300;if(player.cash>=c&&player.multLvl<10){player.cash-=c;player.multLvl++;document.getElementById('shop-lvl-mult').textContent=player.multLvl;document.getElementById('shop-cost-mult').textContent=player.multLvl*300;showToast('Income Multiplier Upgraded!','success');updateUI();}};
-document.getElementById('btn-buy-auto').onclick=()=>{const c=(player.autoLvl+1)*500;if(player.cash>=c&&player.autoLvl<5){player.cash-=c;player.autoLvl++;document.getElementById('shop-lvl-auto').textContent=player.autoLvl;document.getElementById('shop-cost-auto').textContent=(player.autoLvl+1)*500;showToast('Auto-Collector Upgraded!','success');updateUI();}};
+document.getElementById('btn-buy-speed').onclick=()=>{const c=upCost('speed',player.speedLvl);if(player.cash>=c&&player.speedLvl<UP.speed.max){player.cash-=c;player.speedLvl++;player.speed+=1.8;document.getElementById('shop-lvl-speed').textContent=player.speedLvl;document.getElementById('shop-cost-speed').textContent=fmtMoney(upCost('speed',player.speedLvl));showToast('Speed Boost Purchased!','success');updateUI();}};
+document.getElementById('btn-buy-slap-shop').onclick=()=>{const c=upCost('slap',player.slapLvl);if(player.cash>=c&&player.slapLvl<UP.slap.max){player.cash-=c;player.slapLvl++;player.slapPower+=.25;document.getElementById('shop-lvl-slap').textContent=player.slapLvl;document.getElementById('shop-cost-slap').textContent=fmtMoney(upCost('slap',player.slapLvl));showToast('Slap Force Upgraded!','success');updateUI();}};
+document.getElementById('btn-buy-mult').onclick=()=>{const c=upCost('mult',player.multLvl);if(player.cash>=c&&player.multLvl<UP.mult.max){player.cash-=c;player.multLvl++;document.getElementById('shop-lvl-mult').textContent=player.multLvl;document.getElementById('shop-cost-mult').textContent=fmtMoney(upCost('mult',player.multLvl));showToast('Income Multiplier Upgraded!','success');updateUI();}};
+document.getElementById('btn-buy-auto').onclick=()=>{const c=upCost('auto',player.autoLvl+1);if(player.cash>=c&&player.autoLvl<UP.auto.max){player.cash-=c;player.autoLvl++;document.getElementById('shop-lvl-auto').textContent=player.autoLvl;document.getElementById('shop-cost-auto').textContent=fmtMoney(upCost('auto',player.autoLvl+1));showToast('Auto-Collector Upgraded!','success');updateUI();}};
 
 // ============================================================
 // GAME LIFECYCLE
@@ -1184,10 +1346,10 @@ function startGame(){
         document.getElementById('shop-lvl-slap').textContent=player.slapLvl;
         document.getElementById('shop-lvl-auto').textContent=player.autoLvl;
         document.getElementById('shop-lvl-mult').textContent=player.multLvl;
-        document.getElementById('shop-cost-speed').textContent=player.speedLvl*100;
-        document.getElementById('shop-cost-slap').textContent=player.slapLvl*150;
-        document.getElementById('shop-cost-auto').textContent=(player.autoLvl+1)*500;
-        document.getElementById('shop-cost-mult').textContent=player.multLvl*300;
+        document.getElementById('shop-cost-speed').textContent=fmtMoney(upCost('speed',player.speedLvl));
+        document.getElementById('shop-cost-slap').textContent=fmtMoney(upCost('slap',player.slapLvl));
+        document.getElementById('shop-cost-auto').textContent=fmtMoney(upCost('auto',player.autoLvl+1));
+        document.getElementById('shop-cost-mult').textContent=fmtMoney(upCost('mult',player.multLvl));
     }
 
     updateBaseName(player.baseIndex,curUser);
@@ -1238,31 +1400,13 @@ document.getElementById('btn-logout').onclick=()=>{curUser='';saveD=null;showScr
 // ============================================================
 document.getElementById('btn-solo').onclick=()=>{gameMode='solo';startGame();};
 
-document.getElementById('btn-host').onclick=()=>{
-    gameMode='host';
-    hostPCs={};
-    document.getElementById('waiting-host-name').textContent=curUser;
-    updateWaitingUI();
-    showScreen('waiting');
-};
-
-document.getElementById('btn-join').onclick=async()=>{
-    const offer=document.getElementById('join-offer-input').value.trim();
-    if(!offer){setLobbyStatus('Paste an invite code first','error');return;}
-    setLobbyStatus('Generating join code...','');
-    try{
-        const answer=await clientJoin(offer);
-        document.getElementById('join-answer-output').value=answer;
-        document.getElementById('join-answer-area').classList.remove('hidden');
-        setLobbyStatus('Join code generated! Copy it and give it to the host. Wait for them to start.','success');
-    }catch(e){setLobbyStatus('Failed: '+e.message,'error');}
-};
-
-document.getElementById('btn-copy-answer').onclick=()=>{
-    const ta=document.getElementById('join-answer-output');
-    navigator.clipboard.writeText(ta.value)
-        .then(()=>showToast('Join code copied!','success'))
-        .catch(()=>{ta.select();document.execCommand('copy');showToast('Copied!','success');});
+document.getElementById('btn-host-open').onclick=()=>startHosting(false);
+document.getElementById('btn-host-private').onclick=()=>startHosting(true);
+document.getElementById('btn-refresh-servers').onclick=refreshServers;
+document.getElementById('btn-pw-join').onclick=()=>{
+    const pw=document.getElementById('pw-input').value.trim();
+    if(pw.length<4){setLobbyStatus('Enter the 4-character password','error');return;}
+    if(pendingServer)attemptJoin(pendingServer,pw);
 };
 
 document.getElementById('btn-start-game').onclick=()=>{
