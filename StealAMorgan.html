@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Steal a Max Morgan 3D</title>
+    <title>Steal a Max Morgan 3D - Deluxe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -191,18 +191,20 @@
             <button id="btn-drop"   class="glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-amber-600/80 to-amber-700/80 hover:from-amber-500 hover:to-amber-600"><i class="fa-solid fa-hand-holding-box text-lg"></i><span>Drop (G)</span></button>
             <button id="btn-pickup" class="glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-emerald-600/80 to-emerald-700/80 hover:from-emerald-500 hover:to-emerald-600"><i class="fa-solid fa-hand text-lg"></i><span>Pick/Steal (E)</span></button>
             <button id="btn-slap"   class="relative glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-rose-600/80 to-rose-700/80 hover:from-rose-500 hover:to-rose-600 overflow-hidden">
-                <i class="fa-solid fa-hand-fist text-lg"></i><span>Slap (F)</span>
+                <i class="fa-solid fa-hand-fist text-lg"></i><span>Use (F)</span>
                 <div id="slap-cd-overlay" class="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-xs text-rose-400 hidden"><span id="slap-cd-time">1.2s</span></div>
             </button>
             <button id="btn-shield" class="relative glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-cyan-600/80 to-blue-700/80 hover:from-cyan-500 hover:to-blue-600 overflow-hidden">
                 <i class="fa-solid fa-shield-halved text-lg"></i><span>Shield (Q)</span>
                 <div id="shield-cd-overlay" class="absolute inset-0 bg-slate-950/80 flex items-center justify-center text-xs text-cyan-400 hidden"><span id="shield-cd-time">30s</span></div>
             </button>
+            <button id="btn-sell" class="glass-btn px-4 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-yellow-600/80 to-amber-700/80"><i class="fa-solid fa-sack-dollar text-lg"></i><span>Sell (R)</span></button>
             <button id="btn-shop"   class="glass-btn px-5 py-3 rounded-2xl text-white font-game flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500"><i class="fa-solid fa-cart-shopping text-lg text-amber-300"></i><span>Shop (B)</span></button>
         </div>
     </div>
 </div>
 
+<div id="hotbar" class="fixed left-1/2 -translate-x-1/2 bottom-[92px] z-40 hidden"><div class="flex flex-col items-center gap-1"><div id="ev-banner" class="hidden px-4 py-1 rounded-full bg-amber-400 text-slate-900 font-game text-sm"></div><div id="hotbar-slots" class="flex gap-1.5 pointer-events-auto ui-interactive"></div></div></div>
 <div id="joystick-zone" class="ui-interactive"><div id="joystick-knob"></div></div>
 
 <!-- SHOP -->
@@ -215,7 +217,7 @@
             </div>
             <button id="btn-close-shop" class="w-10 h-10 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="p-5 overflow-y-auto space-y-4 flex-1">
+        <div id="shop-list" class="p-5 overflow-y-auto space-y-4 flex-1">
             <!-- Speed -->
             <div class="glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-slate-700/60">
                 <div class="flex items-center gap-4">
@@ -272,12 +274,12 @@ const RT=[ // name, badge, income/s, color, border
 const r2=n=>{const q=Math.pow(10,Math.floor(Math.log10(n))-1);return Math.round(n/q)*q;};
 const RARITIES=RT.map((t,i)=>({id:i,name:t[0],badge:t[1],income:t[2],color:t[3],border:t[4],price:i?r2(t[2]*12):0,w:30*Math.pow(.76,i)}));
 const RW_TOTAL=RARITIES.reduce((a,r)=>a+r.w,0);
-function rollRarity(){let x=Math.random()*RW_TOTAL;for(const r of RARITIES){x-=r.w;if(x<=0)return r.id;}return 0;}
+function rollRarity(l=1){const ws=RARITIES.map(r=>r.w*Math.pow(l,r.id/6));let x=Math.random()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<ws.length;i++){x-=ws[i];if(x<=0)return i;}return 0;}
 // Upgrade costs scale exponentially so they stay meaningful late-game
 const UP={speed:{b:200,g:2.4,max:10},slap:{b:300,g:2.4,max:10},mult:{b:1000,g:2.5,max:15},auto:{b:2000,g:3,max:5}};
 const upCost=(k,lvl)=>Math.round(UP[k].b*Math.pow(UP[k].g,lvl-1));
 const BASE_COLORS=[{c:0x6366f1,h:"#6366f1"},{c:0xef4444,h:"#ef4444"},{c:0x22c55e,h:"#22c55e"},{c:0xeab308,h:"#eab308"}];
-const BASE_COORDS=[{x:-32,z:32},{x:32,z:32},{x:-32,z:-32},{x:32,z:-32}];
+const BASE_COORDS=[{x:-30,z:-24},{x:30,z:-24},{x:-30,z:24},{x:30,z:24}];
 
 // ============================================================
 // AUTH / SAVE
@@ -310,6 +312,7 @@ let curUser='',saveD=null,gameMode='solo';
 // Host: hostPCs[slotIndex] = {pc, channel, baseIndex, username, connected}
 // Client: clientPC = {pc, channel, baseIndex}
 const PCFG={reliable:true,serialization:'json'};
+const PEER_OPT={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}};
 const DIR_ID='stealamax-directory-v1';
 let hostPCs={};          // host side: keyed by slotIndex (1,2,3): {pc,channel,baseIndex,username,connected}
 let clientPC=null;       // client side: {pc,channel,baseIndex}
@@ -322,22 +325,23 @@ function rndPw(){const c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let r='';for(let i=0;
 // ---- Server directory: first player online claims a well-known peer id and keeps the list ----
 function dirHandle(m){
     const now=Date.now();
-    Object.keys(dirStore).forEach(k=>{if(now-dirStore[k].t>15000)delete dirStore[k];});
+    Object.keys(dirStore).forEach(k=>{if(now-dirStore[k].t>25000)delete dirStore[k];});
     if(m.t==='reg')dirStore[m.s.id]={...m.s,t:now};
     if(m.t==='unreg')delete dirStore[m.id];
     return m.t==='list'?Object.values(dirStore):null;
 }
 function claimDir(){return new Promise(res=>{
-    const p=new Peer(DIR_ID);
-    p.on('open',()=>{dirPeer=p;
+    const p=new Peer(DIR_ID,PEER_OPT);
+    let up=false;p.on('disconnected',()=>{try{p.reconnect()}catch{}});p.on('close',()=>{if(dirPeer===p)dirPeer=null;});
+    p.on('open',()=>{up=true;dirPeer=p;
         p.on('connection',c=>c.on('data',m=>{const r=dirHandle(m);try{c.send({r})}catch{}}));
         res(true);});
-    p.on('error',()=>{try{p.destroy()}catch{};res(false);});
+    p.on('error',()=>{if(!up){try{p.destroy()}catch{};res(false);}});
 });}
 function dirCall(m,tries=2){
     return new Promise(res=>{
         if(dirPeer&&!dirPeer.destroyed)return res(dirHandle(m));
-        const p=new Peer();let done=false;
+        const p=new Peer(undefined,PEER_OPT);let done=false;
         const fin=async(v,fail)=>{
             if(done)return;done=true;try{p.destroy()}catch{}
             if(fail&&tries>0){if(await claimDir())return res(dirHandle(m));return res(await dirCall(m,tries-1));}
@@ -365,12 +369,12 @@ async function startHosting(priv){
     hostInfo={id:'sam-'+Math.random().toString(36).slice(2,10),name:curUser+"'s server",priv,pw:priv?rndPw():''};
     setLobbyStatus('Starting server...','');
     try{
-        hostPeer=new Peer(hostInfo.id);
+        hostPeer=new Peer(hostInfo.id,PEER_OPT);
         await new Promise((ok,bad)=>{hostPeer.on('open',ok);hostPeer.on('error',bad);});
     }catch(e){cleanupNetwork();gameMode='solo';setLobbyStatus('Could not start server: '+(e.type||e.message),'error');return;}
-    hostPeer.on('connection',onHostConn);
+    hostPeer.on('connection',onHostConn);hostPeer.on('disconnected',()=>{try{hostPeer.reconnect()}catch{}});
     hostPeer.on('error',e=>console.warn('host peer',e));
-    registerServer();hbTimer=setInterval(registerServer,5000);
+    registerServer();hbTimer=setInterval(registerServer,8000);
     document.getElementById('waiting-title').textContent=priv?'Private Server':'Open Server';
     document.getElementById('server-pw-badge').classList.toggle('hidden',!priv);
     document.getElementById('server-pw').textContent=hostInfo.pw;
@@ -416,7 +420,7 @@ function onHostConn(conn){
 function handleClientMsg(s,d){
     if(!gameRunning)return;
     if(d.type==='INPUT'){applyNetInput(s,d);}
-    if(d.type==='ACTION'){applyNetAction(s,d.a);}
+    if(d.type==='ACTION'){applyNetAction(s,d.a,d.g);}
 }
 
 function broadcastAll(data){
@@ -432,12 +436,12 @@ function broadcastAll(data){
 function joinServer(id,pw){
     return new Promise((ok,bad)=>{
         cleanupNetwork();
-        const peer=new Peer();
-        const t=setTimeout(()=>{cleanupNetwork();bad(new Error('Could not reach server'));},8000);
+        const peer=new Peer(undefined,PEER_OPT);
+        const t=setTimeout(()=>{cleanupNetwork();bad(new Error('Could not reach server'));},15000);
         peer.on('error',e=>{clearTimeout(t);bad(new Error(e.type==='peer-unavailable'?'Server is no longer available':(e.type||'Connection error')));});
         peer.on('open',()=>{
             const conn=peer.connect(id,PCFG);
-            clientPC={pc:{close(){try{peer.destroy()}catch{}}},channel:conn,baseIndex:1};
+            clientPC={pc:{close(){try{peer.destroy()}catch{}}},channel:conn,baseIndex:1};conn.on('error',()=>{clearTimeout(t);bad(new Error('Connection failed'));});
             conn.on('open',()=>{conn.send(JSON.stringify({type:'JOIN',name:curUser,pw}));document.getElementById('chat-log').innerHTML='';});
             conn.on('data',raw=>{
                 let d;try{d=JSON.parse(raw)}catch{return}
@@ -469,6 +473,8 @@ function handleHostMsg(d){
         if(bot)bot.isNetPlayer=false;
     }
     if(d.type==='TOAST'){showToast(d.m,d.k);}
+    if(d.type==='CASH'){player.cash+=d.v;showToast('+$'+fmtMoney(d.v),'success');}
+    if(d.type==='EV'){evName=d.n;evLeft=d.l;evSpeed=d.sp;}
     if(d.type==='CHAT'){addChat(d.n,d.m,d.bi);}
 }
 
@@ -484,12 +490,12 @@ function applyNetInput(s,d){
     bot.x=d.x;bot.z=d.z;bot.angle=d.a;
     if(bot.mesh){bot.mesh.position.set(bot.x,0,bot.z);bot.mesh.rotation.y=bot.angle;}
 }
-function applyNetAction(s,a){
+function applyNetAction(s,a,g){
     const ent=s===0?player:bots.find(b=>b.baseIndex===s);
     if(!ent)return;
     if(a==='E')triggerPickUpOrSteal(ent);
     if(a==='G')triggerDropItem(ent);
-    if(a==='F')triggerSlap(ent);
+    if(a==='F')useGear(ent,GEARS[g]?g:'slap');if(a==='R'){const v=sellHeld(ent);if(v&&s)paySlot(s,v);}if(a==='LUCK')applyLuck(g);
     if(a==='Q')triggerShield(ent);
 }
 
@@ -500,9 +506,9 @@ function buildSnapshot(){
     return{
         players:[
             {bi:0,x:player.x,z:player.z,a:player.angle,cash:player.cash,
-             ci:player.carriedItem?player.carriedItem.rarityIndex:null},
+             ci:player.carriedItem?player.carriedItem.rarityIndex:null,fz:player.frozen||0,sl:player.slowT||0},
             ...bots.map(b=>({bi:b.baseIndex,x:b.x,z:b.z,a:b.angle,cash:b.cash,
-             ci:b.carriedItem?b.carriedItem.rarityIndex:null}))
+             ci:b.carriedItem?b.carriedItem.rarityIndex:null,fz:b.frozen||0,sl:b.slowT||0}))
         ],
         bases:bases.map(b=>({
             id:b.id,sh:b.shieldActive,
@@ -519,7 +525,7 @@ function applySnapshot(st){
     if(st.players){
         st.players.forEach(ps=>{
             const ent=ps.bi===player.baseIndex?player:bots.find(b=>b.baseIndex===ps.bi);
-            if(ent){
+            if(ent){ent.frozen=ps.fz||0;ent.slowT=ps.sl||0;
                 const have=ent.carriedItem?ent.carriedItem.rarityIndex:null;
                 if(have!==ps.ci){
                     if(ent.carriedItem){scene.remove(ent.carriedItem.mesh);ent.carriedItem=null;}
@@ -599,7 +605,7 @@ function connectedClientCount(){return Object.values(hostPCs).filter(s=>s.connec
 // CHAT (host relays messages to everyone)
 // ============================================================
 let chatOpen=false,lastChatSend=0;
-function updateChatVis(){document.getElementById('chat-panel').classList.toggle('hidden',!(gameMode==='host'||gameMode==='client'));}
+function updateChatVis(){document.getElementById('chat-panel').classList.toggle('hidden',!(gameMode==='host'||gameMode==='client'||(gameMode==='solo'&&gameRunning)));}
 function addChat(n,m,bi){
     const log=document.getElementById('chat-log'),d=document.createElement('div');d.dataset.t=Date.now();
     if(n){const b=document.createElement('b');b.textContent=n+': ';b.style.color=(BASE_COLORS[bi]||{h:'#94a3b8'}).h;d.appendChild(b);d.appendChild(document.createTextNode(m));}
@@ -610,6 +616,7 @@ function addChat(n,m,bi){
 function relayChat(n,m,bi){addChat(n,m,bi);broadcastAll({type:'CHAT',n,m,bi});}
 function sendChat(text){
     text=text.trim().slice(0,120);if(!text)return;
+    if(text[0]==='/'){if(gameMode==='client')return addChat('','Only the host can use admin commands');return runAdmin(text);}
     if(gameMode==='host')relayChat(curUser,text,0);
     else if(gameMode==='client')sendToHost({type:'CHAT',m:text});
 }
@@ -627,7 +634,7 @@ setInterval(()=>{ // fade old messages while playing
         if(ev==='keydown'&&e.code==='Escape')inp.blur();
     }));
     window.addEventListener('keydown',e=>{
-        if(e.code==='Enter'&&(gameMode==='host'||gameMode==='client')&&document.activeElement!==inp){e.preventDefault();inp.focus();for(const k in keys)keys[k]=false;}
+        if(e.code==='Enter'&&(gameMode!=='solo'||gameRunning)&&document.activeElement!==inp){e.preventDefault();inp.focus();for(const k in keys)keys[k]=false;}
     });
 })();
 
@@ -639,11 +646,11 @@ function showScreen(n){
     ['login-screen','lobby-screen','waiting-screen'].forEach(id=>document.getElementById(id).classList.add('hidden'));
     document.getElementById('game-canvas').classList.add('hidden');
     document.getElementById('ui-container').classList.add('hidden');
-    document.getElementById('joystick-zone').style.display='none';
+    document.getElementById('joystick-zone').style.display='none';document.getElementById('hotbar').classList.add('hidden');
     if(n==='login')document.getElementById('login-screen').classList.remove('hidden');
     if(n==='lobby'){document.getElementById('lobby-screen').classList.remove('hidden');refreshLobby();}
     if(n==='waiting')document.getElementById('waiting-screen').classList.remove('hidden');
-    if(n==='game'){
+    if(n==='game'){document.getElementById('hotbar').classList.remove('hidden');
         document.getElementById('game-canvas').classList.remove('hidden');
         document.getElementById('ui-container').classList.remove('hidden');
         if('ontouchstart'in window)document.getElementById('joystick-zone').style.display='block';
@@ -743,9 +750,9 @@ function initEngine(){
     sun.shadow.camera.top=d;sun.shadow.camera.bottom=-d;
     scene.add(sun);
 
-    const gm=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x111827,roughness:.8,metalness:.2}));
+    const gm=new THREE.Mesh(new THREE.PlaneGeometry(140,140),new THREE.MeshStandardMaterial({color:0x111827,roughness:.8,metalness:.2}));
     gm.rotation.x=-Math.PI/2;gm.receiveShadow=true;scene.add(gm);
-    const gh=new THREE.GridHelper(120,30,0x6366f1,0x1e293b);gh.position.y=0.01;scene.add(gh);
+    const gh=new THREE.GridHelper(140,35,0x6366f1,0x1e293b);gh.position.y=0.01;scene.add(gh);
 
     buildConveyor();
     buildBases();
@@ -756,23 +763,33 @@ function initEngine(){
 
 function buildConveyor(){
     const g=new THREE.Group();
-    const add=(geo,mat,px,py,pz)=>{const m=new THREE.Mesh(geo,mat);m.position.set(px,py,pz);m.castShadow=true;g.add(m);};
-    add(new THREE.BoxGeometry(4.5,.5,58),new THREE.MeshStandardMaterial({color:0x1e293b,roughness:.5,metalness:.5}),0,.25,0);
-    add(new THREE.BoxGeometry(3.6,.04,57.8),new THREE.MeshStandardMaterial({color:0x0f172a,roughness:.3}),0,.52,0);
-    const rail=new THREE.MeshStandardMaterial({color:0x6366f1,emissive:0x4f46e5,emissiveIntensity:.5});
-    add(new THREE.BoxGeometry(.3,.3,58),rail,-2.2,.60,0);
-    add(new THREE.BoxGeometry(.3,.3,58),rail,2.2,.60,0);
-    add(new THREE.BoxGeometry(5,3.5,3),new THREE.MeshStandardMaterial({color:0x334155,metalness:.8}),0,1.75,-28);
+    const add=(geo,mat,x,y,z)=>{const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
+    add(new THREE.BoxGeometry(5,.3,92),new THREE.MeshStandardMaterial({color:0xb71c1c,roughness:.95}),0,.2,0); // red carpet
+    const gold=new THREE.MeshStandardMaterial({color:0xffc107,emissive:0xff8f00,emissiveIntensity:.3});
+    add(new THREE.BoxGeometry(.25,.35,92),gold,-2.6,.25,0);add(new THREE.BoxGeometry(.25,.35,92),gold,2.6,.25,0);
+    const st=new THREE.MeshStandardMaterial({color:0x475569,roughness:.9});
+    add(new THREE.BoxGeometry(2.4,8,5),st,-4,4,-46);add(new THREE.BoxGeometry(2.4,8,5),st,4,4,-46);
+    add(new THREE.BoxGeometry(10.8,2.6,5),st,0,6.7,-46);
+    add(new THREE.BoxGeometry(5.6,5.4,.4),new THREE.MeshBasicMaterial({color:0x000000}),0,2.7,-48.4);
+    add(new THREE.BoxGeometry(10.8,.6,5.4),gold,0,8.2,-46);
     scene.add(g);
 }
-
+function buildHouse(c,col){
+    const dir=c.x<0?1:-1; // doorway faces the carpet
+    const W=(w,h,d,x,y,z,color,op)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.7,transparent:!!op,opacity:op||1}));m.position.set(c.x+x,y,c.z+z);m.castShadow=true;m.receiveShadow=true;scene.add(m);};
+    const wall=0xe7d3b0;
+    W(15,.3,15,0,.15,0,0x8d6e63);
+    W(15,4.4,.4,0,2.4,-7.5,wall);W(15,4.4,.4,0,2.4,7.5,wall);W(.4,4.4,15,-dir*7.5,2.4,0,wall);
+    W(.4,4.4,4.5,dir*7.5,2.4,-5.25,wall);W(.4,4.4,4.5,dir*7.5,2.4,5.25,wall);W(.4,1.2,6,dir*7.5,4,0,wall);
+    W(16.5,.5,16.5,0,5.05,0,col.c,.35);
+}
 function buildBases(){
     for(let i=0;i<4;i++){
         const coord=BASE_COORDS[i],col=BASE_COLORS[i];
         const baseObj={id:i,name:i===0?curUser:'Bot '+(i+1),x:coord.x,z:coord.z,
                        color:col.c,hex:col.h,pedestals:[],shieldActive:false,shieldTimer:0,shieldMesh:null,tagSprite:null};
         const pad=new THREE.Mesh(new THREE.BoxGeometry(14,.4,14),new THREE.MeshStandardMaterial({color:col.c,roughness:.4,metalness:.3}));
-        pad.position.set(coord.x,.20,coord.z);pad.receiveShadow=true;scene.add(pad);
+        pad.position.set(coord.x,.20,coord.z);pad.receiveShadow=true;scene.add(pad);buildHouse(coord,col);
 
         const colOff=[-4.2,-1.4,1.4,4.2],rowOff=[-3.2,3.2];
         let pid=0;
@@ -792,7 +809,7 @@ function buildBases(){
         baseObj.shieldMesh.visible=false;scene.add(baseObj.shieldMesh);
 
         const tag=makeBaseTag(baseObj.name,col.h,'Slots: 0/8');
-        tag.position.set(coord.x,6.5,coord.z);scene.add(tag);
+        tag.position.set(coord.x,7.8,coord.z);scene.add(tag);
         baseObj.tagSprite=tag;
         bases.push(baseObj);
     }
@@ -999,10 +1016,12 @@ function setupControls(){
         if(e.code==='KeyG')doAction('G');
         if(e.code==='KeyF')doAction('F');
         if(e.code==='KeyQ')doAction('Q');
+        if(e.code==='KeyR')doAction('R');if(/^Digit[1-9]$/.test(e.code)){player.sel=+e.code[5]-1;renderHotbar();}
         if(e.code==='KeyB')document.getElementById('shop-modal').classList.toggle('hidden');
     });
     window.addEventListener('keyup',e=>keys[e.code]=false);
 
+    document.getElementById('btn-sell').onclick=()=>doAction('R');
     document.getElementById('btn-pickup').onclick=()=>doAction('E');
     document.getElementById('btn-drop').onclick=()=>doAction('G');
     document.getElementById('btn-slap').onclick=()=>doAction('F');
@@ -1017,11 +1036,12 @@ function doAction(a){
     if(gameMode==='client'){
         if(a==='F'&&player.slapCd<=0){player.slapCd=1.2;sfx.playSlap();}
         if(a==='Q'&&player.shieldCd<=0){player.shieldCd=45;sfx.playShield();}
-        sendToHost({type:'ACTION',a});return;
+        sendToHost({type:'ACTION',a,g:curGear()});return;
     }
     if(a==='E')triggerPickUpOrSteal(player);
     if(a==='G')triggerDropItem(player);
-    if(a==='F')triggerSlap(player);
+    if(a==='F')useGear(player,curGear());
+    if(a==='R'){const v=sellHeld(player);showToast(v?'Sold for $'+fmtMoney(v):'Hold a Max, or stand at a pedestal, to sell','info');}
     if(a==='Q')triggerShield(player);
     if(gameMode==='client')sendToHost({type:'ACTION',a});
 }
@@ -1078,11 +1098,11 @@ function triggerPickUpOrSteal(ent){
     }
 }
 
-function triggerSlap(ent){
-    if(ent.slapCd>0)return;ent.slapCd=1.2;sfx.playSlap();
+function triggerSlap(ent,rng=3.2,pw=1,cd=1.2){
+    if(ent.slapCd>0)return;ent.slapCd=cd;sfx.playSlap();
     [player,...bots].filter(e=>e!==ent).forEach(t=>{
-        if(Math.hypot(ent.x-t.x,ent.z-t.z)<3.2){
-            const ang=Math.atan2(t.z-ent.z,t.x-ent.x),f=22*ent.slapPower;
+        if(Math.hypot(ent.x-t.x,ent.z-t.z)<rng){
+            const ang=Math.atan2(t.z-ent.z,t.x-ent.x),f=22*ent.slapPower*pw;
             t.vx+=Math.cos(ang)*f;t.vz+=Math.sin(ang)*f;
             if(t.carriedItem)triggerDropItem(t);
             createParticles((ent.x+t.x)/2,1.2,(ent.z+t.z)/2,0xef4444);
@@ -1105,7 +1125,7 @@ function updateBots(dt){
         if(bot.slapCd>0)bot.slapCd=Math.max(0,bot.slapCd-dt);
         bot.x+=bot.vx*dt;bot.z+=bot.vz*dt;bot.vx*=.85;bot.vz*=.85;
 
-        if(bot.isNetPlayer){
+        if(bot.isNetPlayer){if(bot.frozen>0)bot.frozen-=dt;if(bot.slowT>0)bot.slowT-=dt;
             if(bot.mesh){bot.mesh.position.set(bot.x,0,bot.z);bot.mesh.rotation.y=bot.angle;}
             if(bot.carriedItem&&bot.carriedItem.mesh)
                 bot.carriedItem.mesh.position.set(bot.x+Math.sin(bot.angle)*.8,2.1,bot.z+Math.cos(bot.angle)*.8);
@@ -1118,24 +1138,7 @@ function updateBots(dt){
         }
 
         const ob=bases[bot.baseIndex];
-        if(bot.carriedItem){
-            moveTowards(bot,ob.x,ob.z,dt);
-            if(Math.hypot(bot.x-ob.x,bot.z-ob.z)<5){
-                const ep=ob.pedestals.find(p=>p.item===null);
-                if(ep){ep.item=bot.carriedItem;bot.carriedItem.state='pedestal';bot.carriedItem.mesh.position.set(ep.x,1.3,ep.z);bot.carriedItem=null;updateBaseTag(ob);}
-                else triggerDropItem(bot);
-            }
-        }else{
-            let best=null,bv=-1;
-            itemsOnConveyor.forEach(it=>{const v=RARITIES[it.rarityIndex].income;if(v>bv){bv=v;best=it;}});
-            if(best){moveTowards(bot,best.mesh.position.x,best.mesh.position.z,dt);triggerPickUpOrSteal(bot);}
-            else moveTowards(bot,ob.x,ob.z,dt);
-        }
-
-        if(bot.slapCd<=0){
-            const rn=[player,...bots].find(e=>e!==bot&&Math.hypot(bot.x-e.x,bot.z-e.z)<2.5);
-            if(rn)triggerSlap(bot);
-        }
+        if(bot.frozen>0)bot.frozen-=dt;else botAI(bot,ob,dt);
         if(bot.mesh){bot.mesh.position.set(bot.x,0,bot.z);bot.mesh.rotation.y=bot.angle;}
         if(bot.carriedItem&&bot.carriedItem.mesh){
             bot.carriedItem.mesh.position.set(bot.x+Math.sin(bot.angle)*.8,2.1,bot.z+Math.cos(bot.angle)*.8);
@@ -1146,21 +1149,21 @@ function updateBots(dt){
 
 function moveTowards(ent,tx,tz,dt){
     const dx=tx-ent.x,dz=tz-ent.z,d=Math.hypot(dx,dz);
-    if(d>.5){ent.angle=Math.atan2(dx,dz);const s=ent.speed*dt;ent.x+=dx/d*s;ent.z+=dz/d*s;}
+    if(d>.5){ent.angle=Math.atan2(dx,dz);const s=ent.speed*dt*(ent.slowT>0?.35:1)*(ent.baseIndex===player.baseIndex?1:evSpeed);ent.x+=dx/d*s;ent.z+=dz/d*s;}
 }
 
 // ---- CONVEYOR ----
 function updateConveyor(dt){
     spawnTimer+=dt;
-    if(spawnTimer>=3.2){
+    if(spawnTimer>=2.6){
         spawnTimer=0;
-        const ri=rollRarity();
-        const m=createMaxMesh(ri);m.position.set(0,.95,-26);scene.add(m);
+        const ri=rollRarity(luck);
+        const m=createMaxMesh(ri);m.position.set(0,.95,-42);scene.add(m);
         itemsOnConveyor.push(assignId({rarityIndex:ri,mesh:m,state:'conveyor'}));
     }
     for(let i=itemsOnConveyor.length-1;i>=0;i--){
         const it=itemsOnConveyor[i];it.mesh.position.z+=4.5*dt;
-        if(it.mesh.position.z>26){scene.remove(it.mesh);itemsOnConveyor.splice(i,1);}
+        if(it.mesh.position.z>42){scene.remove(it.mesh);itemsOnConveyor.splice(i,1);}
     }
 }
 
@@ -1193,7 +1196,7 @@ function processIncome(t){
 
 function autoSave(){
     if(!curUser)return;
-    saveData(curUser,{cash:player.cash,sp:player.speedLvl,sl:player.slapLvl,al:player.autoLvl,ml:player.multLvl,
+    saveData(curUser,{cash:player.cash,sp:player.speedLvl,sl:player.slapLvl,al:player.autoLvl,ml:player.multLvl,gr:player.inv,
         sess:(saveD.sess||0),op:bots.map(b=>({n:b.name,c:b.cash}))});
 }
 
@@ -1216,17 +1219,19 @@ function frame(){
     if(keys['KeyA']||keys['ArrowLeft'])mx-=1;if(keys['KeyD']||keys['ArrowRight'])mx+=1;
     if(joyActive){mx=joyVec.x;mz=joyVec.y;}
 
+    if(player.frozen>0){player.frozen-=dt;mx=mz=0;}
+    if(player.slowT>0)player.slowT-=dt;
     if(mx!==0||mz!==0){
         const len=Math.hypot(mx,mz),nx=mx/len,nz=mz/len;
         const wx=nx*Math.cos(cameraAngleYaw)+nz*Math.sin(cameraAngleYaw);
         const wz=-nx*Math.sin(cameraAngleYaw)+nz*Math.cos(cameraAngleYaw);
-        player.x+=wx*player.speed*dt;player.z+=wz*player.speed*dt;
+        const sf=(player.slowT>0?.35:1)*evSpeed;player.x+=wx*player.speed*sf*dt;player.z+=wz*player.speed*sf*dt;
         player.angle=Math.atan2(wx,wz);
     }
     player.x+=player.vx*dt;player.z+=player.vz*dt;
     player.vx*=.85;player.vz*=.85;
-    player.x=Math.max(-55,Math.min(55,player.x));
-    player.z=Math.max(-55,Math.min(55,player.z));
+    player.x=Math.max(-65,Math.min(65,player.x));
+    player.z=Math.max(-65,Math.min(65,player.z));
 
     if(player.carriedItem){
         player.carriedItem.mesh.position.set(player.x+Math.sin(player.angle)*.8,2.1,player.z+Math.cos(player.angle)*.8);
@@ -1246,16 +1251,16 @@ function frame(){
     player.mesh.position.set(player.x,0,player.z);player.mesh.rotation.y=player.angle;
 
     if(gameMode!=='client'){
-        updateBots(dt);updateConveyor(dt);processIncome(t);
+        updateBots(dt);updateConveyor(dt);processIncome(t);eventTick(dt);
         if(gameMode==='host'){
             netBroadcastTimer+=dt;
             if(netBroadcastTimer>=.05){netBroadcastTimer=0;broadcastAll({type:'STATE',st:buildSnapshot()});}
         }
     }else{
         sendToHost({type:'INPUT',x:player.x,z:player.z,a:player.angle});
-        updateBots(dt);updateParticles(dt);processIncome(t);
+        updateBots(dt);updateParticles(dt);processIncome(t);evCount(dt);
     }
-    updateParticles(dt);
+    updateParticles(dt);[player,...bots].forEach(setIce);
     animChar(player.mesh,dt);bots.forEach(b=>b.mesh&&animChar(b.mesh,dt));
     itemsOnConveyor.forEach(i=>spinItem(i,dt));itemsOnGround.forEach(i=>spinItem(i,dt));
     bases.forEach(b=>b.pedestals.forEach(p=>spinItem(p.item,dt)));
@@ -1322,6 +1327,135 @@ document.getElementById('btn-buy-mult').onclick=()=>{const c=upCost('mult',playe
 document.getElementById('btn-buy-auto').onclick=()=>{const c=upCost('auto',player.autoLvl+1);if(player.cash>=c&&player.autoLvl<UP.auto.max){player.cash-=c;player.autoLvl++;document.getElementById('shop-lvl-auto').textContent=player.autoLvl;document.getElementById('shop-cost-auto').textContent=fmtMoney(upCost('auto',player.autoLvl+1));showToast('Auto-Collector Upgraded!','success');updateUI();}};
 
 // ============================================================
+// GEARS, SELLING, EVENTS, LUCK, ADMIN, SMART BOTS
+// ============================================================
+let luck=1,evSpeed=1,evLeft=0,evName='',evTimer=25;
+player.inv=['slap',null,null,null,null,null,null,null,null];player.sel=0;
+const GEARS={slap:{n:'Slap',i:'fa-hand-fist',p:0,cd:1.2,rng:3.2,d:'Free starter. Knocks people back'},
+ bat:{n:'Mega Bat',i:'fa-baseball-bat-ball',p:3500,cd:2.2,rng:5,pw:2.6,d:'Huge knockback and reach'},
+ freeze:{n:'Freeze Ray',i:'fa-snowflake',p:1500,cd:6,rng:14,dur:3,col:0x67e8f9,d:'Freezes a target for 3s'},
+ web:{n:'Web Gun',i:'fa-spider',p:2500,cd:5,rng:14,dur:5,col:0xe2e8f0,d:'Slows a target for 5s'},
+ zap:{n:'Zapper',i:'fa-bolt',p:9000,cd:8,rng:18,col:0xfde047,d:'Stuns 1.5s and makes them drop their Max'}};
+const LUCKS={a:{n:'Luck Potion',m:2,t:60,c:3000},b:{n:'Mega Luck Potion',m:5,t:30,c:15000},c:{n:'Cosmic Luck',m:12,t:20,c:60000}};
+const curGear=()=>player.inv[player.sel]||'slap';
+function renderHotbar(){
+    const el=document.getElementById('hotbar-slots');el.innerHTML='';
+    player.inv.forEach((id,i)=>{const G=id&&GEARS[id],d=document.createElement('div');
+        d.className='w-12 h-12 rounded-xl glass-panel border-2 flex items-center justify-center relative text-white cursor-pointer '+(i===player.sel?'border-amber-400':'border-slate-600/60');
+        d.innerHTML=`<span class="absolute top-0.5 left-1.5 text-[10px] text-slate-400">${i+1}</span>`+(G?`<i class="fa-solid ${G.i} text-lg" title="${G.n}"></i>`:'');
+        d.onclick=()=>{player.sel=i;renderHotbar();};el.appendChild(d);});
+}
+function buildShopExtras(){
+    const L=document.getElementById('shop-list');L.querySelectorAll('.xtra').forEach(e=>e.remove());
+    const row=(ic,t,d,price,fn,own)=>{const e=document.createElement('div');e.className='xtra glass-panel p-4 rounded-2xl flex items-center justify-between gap-4 border border-slate-700/60';
+        e.innerHTML=`<div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl bg-sky-500/20 text-sky-300 flex items-center justify-center text-2xl"><i class="fa-solid ${ic}"></i></div><div><div class="font-game text-white">${t}</div><div class="text-xs text-slate-400">${d}</div></div></div>`;
+        const b=document.createElement('button');b.className='glass-btn px-4 py-2.5 rounded-xl font-game text-sm text-emerald-400 border border-emerald-500/40';b.textContent=own?'OWNED':'$'+fmtMoney(price);if(!own)b.onclick=fn;e.appendChild(b);L.appendChild(e);};
+    Object.entries(GEARS).forEach(([id,G])=>{if(id!=='slap')row(G.i,G.n+' (gear)',G.d,G.p,()=>buyGear(id),player.inv.includes(id));});
+    Object.entries(LUCKS).forEach(([k,q])=>row('fa-clover',q.n,`Luck x${q.m} for ${q.t}s, whole server`,q.c,()=>buyLuck(k),false));
+}
+function buyGear(id){const G=GEARS[id],i=player.inv.indexOf(null);
+    if(player.cash<G.p)return showToast('Not enough cash','error');if(i<0)return showToast('Inventory full','error');
+    player.cash-=G.p;player.inv[i]=id;renderHotbar();buildShopExtras();showToast(G.n+' added to slot '+(i+1),'success');}
+function buyLuck(k){const q=LUCKS[k];if(player.cash<q.c)return showToast('Not enough cash','error');
+    player.cash-=q.c;if(gameMode==='client')sendToHost({type:'ACTION',a:'LUCK',g:k});else applyLuck(k);}
+function applyLuck(k){const q=LUCKS[k];if(!q)return;luck=Math.max(luck,q.m);evLeft=Math.max(evLeft,q.t);evName=q.n;announce(q.n+'! Luck x'+luck);}
+function announce(m){showToast(m,'warning');if(gameMode==='host'){broadcastAll({type:'TOAST',m,k:'warning'});broadcastAll({type:'EV',n:evName,l:evLeft,sp:evSpeed});}}
+function paySlot(s,v){const h=hostPCs[s];if(h&&h.connected&&h.channel&&h.channel.open)try{h.channel.send(JSON.stringify({type:'CASH',v}))}catch{}}
+function aimTarget(ent,rng){let best=null,bd=1e9;[player,...bots].forEach(t=>{if(t===ent)return;const d=Math.hypot(t.x-ent.x,t.z-ent.z);if(d>rng)return;
+    let df=Math.atan2(t.x-ent.x,t.z-ent.z)-ent.angle;df=Math.atan2(Math.sin(df),Math.cos(df));if(Math.abs(df)<1&&d<bd){bd=d;best=t;}});return best;}
+function useGear(ent,id){
+    const G=GEARS[id]||GEARS.slap;
+    if(id==='slap'||id==='bat'||!GEARS[id])return triggerSlap(ent,G.rng,G.pw||1,G.cd);
+    if(ent.slapCd>0)return;ent.slapCd=G.cd;sfx.playSlap();
+    const t=aimTarget(ent,G.rng);
+    if(!t){if(ent===player)showToast('No target in front of you','info');return;}
+    if(id==='freeze')t.frozen=G.dur;if(id==='web')t.slowT=G.dur;if(id==='zap'){t.frozen=1.5;if(t.carriedItem)triggerDropItem(t);}
+    createParticles(t.x,1.5,t.z,G.col);
+    if(t===player)showToast((ent.name||'Someone')+' hit you with '+G.n+'!','error');else if(ent===player)showToast(G.n+' hit '+t.name+'!','success');
+}
+function setIce(e){if(!e.mesh)return;let ic=e.mesh.userData.ice;
+    if(!ic){ic=new THREE.Mesh(new THREE.BoxGeometry(1.5,3.2,1.3),new THREE.MeshBasicMaterial({color:0x67e8f9,transparent:true,opacity:.45}));ic.position.y=1.6;e.mesh.add(ic);e.mesh.userData.ice=ic;}
+    ic.visible=e.frozen>0;}
+function sellHeld(ent){
+    let it=ent.carriedItem,ped=null;
+    if(!it){const ob=bases[ent.baseIndex];ped=ob&&ob.pedestals.find(p=>p.item&&Math.hypot(ent.x-p.x,ent.z-p.z)<3);if(ped)it=ped.item;}
+    if(!it)return 0;
+    const r=RARITIES[it.rarityIndex],v=Math.round(Math.max(r.price,r.income*6)*.5);
+    scene.remove(it.mesh);
+    if(ped){ped.item=null;updateBaseTag(bases[ent.baseIndex]);}else ent.carriedItem=null;
+    ent.cash+=v;if(ent===player)updateCarriedUI();sfx.playCash();return v;
+}
+// ---- events ----
+function spawnGround(ri,x,z){const m=createMaxMesh(ri);m.position.set(x,.6,z);scene.add(m);itemsOnGround.push(assignId({rarityIndex:ri,mesh:m,state:'ground'}));}
+function rain(v){[player,...bots].forEach(e=>e.cash+=v);Object.keys(hostPCs).forEach(s=>paySlot(+s,v));}
+function meteors(n,l){for(let i=0;i<n;i++)spawnGround(rollRarity(l),(Math.random()-.5)*18,(Math.random()-.5)*70);}
+const EVENTS={
+ 'Lucky Hour':()=>{luck=Math.max(luck,3);evLeft=40;},
+ 'Golden Rush':()=>{luck=Math.max(luck,6);evLeft=25;},
+ 'Speed Storm':()=>{evSpeed=1.5;evLeft=20;},
+ 'Cash Rain':()=>rain(5000),
+ 'Meteor Shower':()=>meteors(8,4),
+ 'Admin Abuse':()=>{luck=10;evSpeed=1.6;evLeft=30;meteors(12,10);rain(25000);}};
+function startEvent(n){const f=EVENTS[n];if(!f)return false;f();evName=n;announce('EVENT: '+n+'!');return true;}
+function evCount(dt){
+    if(evLeft>0){evLeft-=dt;if(evLeft<=0){evLeft=0;luck=1;evSpeed=1;evName='';}}
+    const b=document.getElementById('ev-banner');if(b){b.classList.toggle('hidden',evLeft<=0);b.textContent=`${evName}${luck>1?' · Luck x'+luck:''}${evSpeed>1?' · Speed x'+evSpeed:''} · ${Math.ceil(evLeft)}s`;}
+}
+function eventTick(dt){evCount(dt);evTimer-=dt;if(evTimer<=0){evTimer=45+Math.random()*30;
+    const k=Object.keys(EVENTS).filter(n=>n!=='Admin Abuse'||Math.random()<.15);startEvent(k[Math.floor(Math.random()*k.length)]);}}
+// ---- admin (host only) ----
+function runAdmin(text){
+    const [c,...a]=text.slice(1).trim().split(/\s+/),arg=a.join(' '),n=parseFloat(a[0]),say=m=>addChat('',m);
+    const foe=q=>bots.find(b=>b.name.toLowerCase().includes(q.toLowerCase())||String(b.baseIndex)===q);
+    switch((c||'').toLowerCase()){
+     case 'help':say('/cash n /give 0-23 /gear id|all /luck x [secs] /event name /abuse /freeze [name] /kick name /speed n /tp 0-3 /clear /events');break;
+     case 'events':say(Object.keys(EVENTS).join(', '));break;
+     case 'cash':player.cash+=n||0;say('+$'+fmtMoney(n||0));break;
+     case 'give':{const i=Math.max(0,Math.min(23,n|0||0));if(player.carriedItem)triggerDropItem(player);const m=createMaxMesh(i);scene.add(m);
+        player.carriedItem=assignId({rarityIndex:i,mesh:m,state:'carried'});updateCarriedUI();say('Gave '+RARITIES[i].name);break;}
+     case 'gear':{(arg==='all'?Object.keys(GEARS):[arg]).forEach(id=>{const i=player.inv.indexOf(null);if(GEARS[id]&&!player.inv.includes(id)&&i>=0)player.inv[i]=id;});renderHotbar();buildShopExtras();say('Gear updated');break;}
+     case 'luck':luck=n||2;evLeft=parseFloat(a[1])||60;evName='Admin Luck';announce('Admin set luck x'+luck);break;
+     case 'event':{const k=Object.keys(EVENTS).find(k=>k.toLowerCase().replace(/ /g,'')===arg.toLowerCase().replace(/ /g,''));k?startEvent(k):say('Unknown event. /events');break;}
+     case 'abuse':startEvent('Admin Abuse');break;
+     case 'freeze':{const ts=arg?[foe(arg)].filter(Boolean):bots;ts.forEach(t=>t.frozen=8);say('Froze '+ts.length);break;}
+     case 'kick':{const s=Object.keys(hostPCs).find(s=>hostPCs[s].connected&&hostPCs[s].username.toLowerCase().includes(arg.toLowerCase()));
+        if(s){try{hostPCs[s].channel.close()}catch{}say('Kicked '+hostPCs[s].username);}else say('No such player');break;}
+     case 'speed':player.speed=n||12;say('Speed '+player.speed);break;
+     case 'tp':{const b=bases[n|0];if(b){player.x=b.x;player.z=b.z;}break;}
+     case 'clear':itemsOnGround.forEach(i=>scene.remove(i.mesh));itemsOnGround.length=0;say('Cleared ground items');break;
+     default:say('Unknown command. Try /help');}
+}
+// ---- smarter bots ----
+const ownerOf=id=>id===player.baseIndex?player:bots.find(e=>e.baseIndex===id);
+function botGoal(b){
+    let best=null,bv=0;
+    const sc=(v,x,z,k=1)=>{const q=v*k/(Math.hypot(b.x-x,b.z-z)+10);if(q>bv){bv=q;best={x,z};}};
+    itemsOnConveyor.forEach(it=>sc(RARITIES[it.rarityIndex].income,it.mesh.position.x,it.mesh.position.z));
+    itemsOnGround.forEach(it=>sc(RARITIES[it.rarityIndex].income,it.mesh.position.x,it.mesh.position.z,1.3));
+    bases.forEach(o=>{if(o.id===b.baseIndex||o.shieldActive)return;const ow=ownerOf(o.id);
+        const guarded=ow&&!(ow.frozen>0)&&Math.hypot(ow.x-o.x,ow.z-o.z)<10;
+        o.pedestals.forEach(p=>{if(p.item)sc(RARITIES[p.item.rarityIndex].income,p.x,p.z,guarded?.25:.9);});});
+    return best;
+}
+function botAI(b,ob,dt){
+    if(b.shieldCd>0)b.shieldCd-=dt;if(b.slowT>0)b.slowT-=dt;b.fzCd=(b.fzCd||0)-dt;b.think=(b.think||0)-dt;
+    const foes=[player,...bots].filter(e=>e!==b);
+    if(!ob.shieldActive&&!(b.shieldCd>0)&&ob.pedestals.some(p=>p.item)&&foes.some(e=>e.baseIndex!==b.baseIndex&&!e.carriedItem&&Math.hypot(e.x-ob.x,e.z-ob.z)<9))triggerShield(b);
+    if(b.carriedItem){
+        moveTowards(b,ob.x,ob.z,dt);
+        if(Math.hypot(b.x-ob.x,b.z-ob.z)<5){const ep=ob.pedestals.find(p=>!p.item);
+            if(ep){ep.item=b.carriedItem;b.carriedItem.state='pedestal';b.carriedItem.mesh.position.set(ep.x,1.3,ep.z);b.carriedItem=null;updateBaseTag(ob);}
+            else sellHeld(b);}
+    }else{
+        if(b.think<=0){b.think=.5;b.goal=botGoal(b);}
+        if(b.goal){moveTowards(b,b.goal.x,b.goal.z,dt);triggerPickUpOrSteal(b);}else moveTowards(b,ob.x,ob.z,dt);
+    }
+    if(b.fzCd<=0){const t=foes.find(e=>!(e.frozen>0)&&Math.hypot(e.x-b.x,e.z-b.z)<12&&((e.carriedItem&&e.baseIndex!==b.baseIndex&&Math.hypot(e.x-ob.x,e.z-ob.z)<22)||(b.carriedItem&&Math.hypot(e.x-b.x,e.z-b.z)<7)));
+        if(t){b.fzCd=8;t.frozen=2.5;createParticles(t.x,1.5,t.z,0x67e8f9);if(t===player)showToast(b.name+' froze you!','error');}}
+    if(b.slapCd<=0){const t=foes.find(e=>Math.hypot(b.x-e.x,b.z-e.z)<2.8&&(e.carriedItem||b.carriedItem));if(t)triggerSlap(b);}
+}
+
+// ============================================================
 // GAME LIFECYCLE
 // ============================================================
 function startGame(){
@@ -1352,10 +1486,12 @@ function startGame(){
         document.getElementById('shop-cost-mult').textContent=fmtMoney(upCost('mult',player.multLvl));
     }
 
+    player.inv=(saveD&&saveD.gr&&saveD.gr.length===9)?saveD.gr.slice():['slap',null,null,null,null,null,null,null,null];if(!player.inv.includes('slap'))player.inv[0]='slap';
+    player.sel=0;player.frozen=0;player.slowT=0;luck=1;evSpeed=1;evLeft=0;evTimer=25;evName='';buildShopExtras();renderHotbar();
     updateBaseName(player.baseIndex,curUser);
     buildPlayerMesh();
 
-    gameRunning=true;
+    gameRunning=true;updateChatVis();
     showScreen('game');
     showToast(`Welcome ${curUser}! WASD=move E=pickup F=slap Q=shield G=drop`,'info');
     animate();
@@ -1365,7 +1501,7 @@ function returnToLobby(){
     gameRunning=false;
     if(curUser){
         const ops=bots.map(b=>({n:b.name,c:b.cash}));
-        saveData(curUser,{cash:player.cash,sp:player.speedLvl,sl:player.slapLvl,al:player.autoLvl,ml:player.multLvl,
+        saveData(curUser,{cash:player.cash,sp:player.speedLvl,sl:player.slapLvl,al:player.autoLvl,ml:player.multLvl,gr:player.inv,
             sess:(saveD.sess||0)+1,op:ops});
         const updated=getAccounts()[curUser];if(updated)saveD=updated;
     }
