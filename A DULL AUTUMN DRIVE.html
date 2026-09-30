@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Dull Autumn Trip - 3D Endless Driving Game</title>
+    <!-- Tailwind CSS for UI layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Font for Nostalgic Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #12100e;
+            font-family: 'Courier Prime', monospace;
+            user-select: none;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Retro Overlay Filters */
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 100px rgba(15, 10, 5, 0.7);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .crt-grain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 14, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 3px, 6px 100%;
+            pointer-events: none;
+            z-index: 3;
+            opacity: 0.6;
+        }
+
+        /* Rain Glass Effect Overlay */
+        #rain-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            opacity: 0.4;
+        }
+
+        .retro-text {
+            font-family: 'VT323', monospace;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.8);
+        }
+
+        .typewriter-text {
+            font-family: 'Special Elite', cursive;
+        }
+
+        /* Custom Scrollbar for Retro UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2a221b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8c6d46;
+        }
+    </style>
+</head>
+<body class="text-amber-100 flex flex-col justify-between h-screen relative select-none">
+
+    <div id="canvas-container"></div>
+    <div class="vignette"></div>
+    <div class="crt-grain"></div>
+    <canvas id="rain-overlay"></canvas>
+
+    <!-- Top HUD Banner -->
+    <div class="relative z-10 flex justify-between items-start p-4 md:p-6 pointer-events-none">
+        <div class="bg-amber-950/80 border-2 border-amber-800/60 p-3 rounded-lg shadow-xl backdrop-blur-sm pointer-events-auto">
+            <h1 class="typewriter-text text-xl md:text-2xl font-bold text-amber-200 tracking-wider">A Dull Autumn Trip</h1>
+            <p class="text-xs text-amber-400/80 italic">Desolate Route 84 • Route Endless</p>
+            <div class="mt-2 text-xs flex gap-4 text-amber-300">
+                <span>ODOMETER: <strong id="hud-distance" class="text-amber-100 font-mono text-sm">0.0</strong> km</span>
+                <span>TEMP: <strong id="hud-temp" class="text-amber-100 font-mono text-sm">85</strong>°C</span>
+            </div>
+        </div>
+
+        <!-- Weather & Status Indicator -->
+        <div class="bg-amber-950/80 border-2 border-amber-800/60 p-3 rounded-lg shadow-xl backdrop-blur-sm text-right pointer-events-auto min-w-[140px]">
+            <div class="text-xs text-amber-400/70 uppercase tracking-widest">Environment</div>
+            <div id="hud-weather" class="text-sm font-semibold text-amber-200">Overcast Fog</div>
+            <div class="mt-1 text-xs text-amber-400/90 flex items-center justify-end gap-1">
+                <span id="hud-mode-badge" class="px-1.5 py-0.5 bg-amber-800/50 rounded text-[10px] border border-amber-600/40">DRIVING</span>
+                <span id="hud-wiper-status" class="text-[10px] text-amber-500">Wipers: OFF</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center Interaction Prompt -->
+    <div id="interaction-prompt" class="relative z-10 self-center bg-black/75 text-amber-200 px-6 py-2 rounded-full border border-amber-600/50 hidden text-sm md:text-base font-mono animate-pulse shadow-2xl pointer-events-none">
+        Press <span class="bg-amber-700/60 px-2 py-0.5 rounded text-white border border-amber-400">E</span> to Action
+    </div>
+
+    <!-- Bottom Dashboard UI Controls & Cassette Radio Player -->
+    <div class="relative z-10 p-4 md:p-6 flex flex-col md:flex-row justify-between items-end gap-4 pointer-events-none">
+        
+        <!-- Retro Controls & Instructions Legend -->
+        <div class="bg-amber-950/85 border-2 border-amber-800/60 p-3.5 rounded-lg shadow-2xl backdrop-blur-sm pointer-events-auto text-xs text-amber-300/80 space-y-1 hidden sm:block max-w-xs">
+            <div class="font-bold text-amber-200 mb-1 border-b border-amber-800/50 pb-1">VEHICLE CONTROLS</div>
+            <div><span class="text-amber-100 font-bold">W / A / S / D</span> - Accelerate / Steer / Brake</div>
+            <div><span class="text-amber-100 font-bold">SPACE</span> - Handbrake &nbsp;|&nbsp; <span class="text-amber-100 font-bold">C</span> - Camera View</div>
+            <div><span class="text-amber-100 font-bold">F</span> - Headlights &nbsp;|&nbsp; <span class="text-amber-100 font-bold">E</span> - Enter/Exit Car</div>
+            <div><span class="text-amber-100 font-bold">R</span> - Change Radio &nbsp;|&nbsp; <span class="text-amber-100 font-bold">P</span> - Toggle Wipers</div>
+        </div>
+
+        <!-- Dashboard Instrument Display -->
+        <div class="bg-stone-900/90 border-4 border-amber-900/80 p-3 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-4 self-center md:self-auto">
+            
+            <!-- Speedometer -->
+            <div class="flex flex-col items-center">
+                <div class="relative w-20 h-20 bg-stone-950 rounded-full border-2 border-amber-800/80 flex items-center justify-center shadow-inner">
+                    <div id="gauge-speed-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-8 bg-red-600 origin-bottom transform -rotate-120 transition-transform duration-75"></div>
+                    <span id="speed-display" class="retro-text text-xl text-amber-400 mt-5">0</span>
+                    <span class="text-[9px] text-amber-600 absolute bottom-2">KM/H</span>
+                </div>
+            </div>
+
+            <!-- Fuel Gauge -->
+            <div class="flex flex-col items-center">
+                <div class="relative w-16 h-16 bg-stone-950 rounded-full border-2 border-amber-800/80 flex items-center justify-center shadow-inner">
+                    <div id="gauge-fuel-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-6 bg-amber-500 origin-bottom transform rotate-45 transition-transform duration-300"></div>
+                    <span class="text-[9px] text-amber-600 absolute bottom-2 font-bold">FUEL</span>
+                </div>
+                <span id="hud-fuel-pct" class="text-[10px] text-amber-300 font-mono mt-1">100%</span>
+            </div>
+
+            <!-- Radio Player Panel -->
+            <div class="bg-amber-950/60 p-2.5 rounded-lg border border-amber-800/40 flex flex-col gap-1 text-xs w-36">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-amber-400/80 uppercase tracking-wider">AM RADIO</span>
+                    <span id="radio-indicator" class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+                </div>
+                <div id="radio-station-name" class="retro-text text-sm text-amber-200 truncate">Station 91.4 AM</div>
+                <div class="flex justify-between gap-1 mt-1">
+                    <button id="btn-radio-prev" class="bg-amber-900/80 hover:bg-amber-800 px-2 py-1 rounded text-[10px] text-amber-100 border border-amber-700/50">◄</button>
+                    <button id="btn-radio-toggle" class="bg-amber-900/80 hover:bg-amber-800 px-2.5 py-1 rounded text-[10px] text-amber-100 border border-amber-700/50 font-bold">ON/OFF</button>
+                    <button id="btn-radio-next" class="bg-amber-900/80 hover:bg-amber-800 px-2 py-1 rounded text-[10px] text-amber-100 border border-amber-700/50">►</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Onscreen Touch Controls for Mobile -->
+    <div class="md:hidden fixed bottom-24 left-4 right-4 z-20 flex justify-between pointer-events-auto">
+        <div class="grid grid-cols-3 gap-1 w-32">
+            <div></div>
+            <button id="touch-w" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">▲</button>
+            <div></div>
+            <button id="touch-a" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">◄</button>
+            <button id="touch-s" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">▼</button>
+            <button id="touch-d" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">►</button>
+        </div>
+        <div class="flex flex-col gap-2">
+            <button id="touch-cam" class="bg-stone-800/80 border border-amber-600/50 rounded px-4 py-2 text-xs text-amber-200">CAM</button>
+            <button id="touch-exit" class="bg-amber-800/80 border border-amber-600/50 rounded px-4 py-3 text-xs text-amber-100 font-bold">EXIT/ENTER</button>
+        </div>
+    </div>
+
+    <!-- Start / Game Over Overlay Modal -->
+    <div id="modal-screen" class="fixed inset-0 z-30 bg-stone-950/95 flex items-center justify-center p-4">
+        <div class="bg-amber-950/90 border-4 border-amber-800/80 rounded-2xl max-w-lg w-full p-6 md:p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
+            <!-- Vintage Polaroid Banner -->
+            <div class="inline-block p-3 bg-stone-200 rounded shadow-md transform -rotate-2">
+                <div class="w-full h-32 bg-amber-900/30 rounded flex items-center justify-center overflow-hidden relative">
+                    <div class="absolute inset-0 bg-gradient-to-t from-amber-950/80 to-transparent"></div>
+                    <span class="typewriter-text text-amber-900 text-2xl font-bold tracking-widest uppercase">AUTUMN 1994</span>
+                </div>
+            </div>
+
+            <div>
+                <h2 id="modal-title" class="typewriter-text text-3xl md:text-4xl font-bold text-amber-100 tracking-wide">A Dull Autumn Trip</h2>
+                <p id="modal-desc" class="text-sm text-amber-300/90 mt-2 leading-relaxed">
+                    An infinite journey down desolate foggy highways. Collect roadside fuel, keep your engine from overheating, and embrace the melancholic lo-fi tunes.
+                </p>
+            </div>
+
+            <div id="modal-stats" class="hidden bg-stone-900/80 p-4 rounded-lg border border-amber-800/50 text-left space-y-1.5 text-xs text-amber-200 font-mono">
+                <div>DISTANCE TRAVELED: <span id="stat-dist" class="text-amber-400 font-bold">0</span> KM</div>
+                <div>RADIO SONGS LISTENED: <span id="stat-songs" class="text-amber-400 font-bold">0</span></div>
+                <div>REASON: <span id="stat-reason" class="text-red-400 font-bold">OUT OF FUEL</span></div>
+            </div>
+
+            <button id="btn-start" class="w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-lg rounded-xl border-2 border-amber-600 transition shadow-lg transform active:scale-98">
+                BEGIN JOURNEY
+            </button>
+            <p class="text-[11px] text-amber-400/60 italic">Audio enabled on start • WASD to drive or walk</p>
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, clock;
+        let car, carSpeed = 0, maxSpeed = 1.1, acceleration = 0.008, friction = 0.002, brakePower = 0.02;
+        let steerAngle = 0, maxSteer = 0.035, steerSpeed = 0.002, steerDecay = 0.003;
+        let carPos = { x: 0, z: 0 };
+        
+        let gameState = 'START'; // 'START', 'DRIVING', 'ON_FOOT', 'GAMEOVER'
+        let cameraMode = 'FIRST_PERSON'; // 'FIRST_PERSON', 'THIRD_PERSON'
+        let headlightsOn = true;
+        let wipersOn = false;
+
+        // Player Foot Controls State
+        let playerPos = { x: 0, y: 1.2, z: 0 };
+        let playerYaw = 0, playerPitch = 0;
+
+        // Mechanics Metrics
+        let fuel = 100; // percent
+        let engineTemp = 85; // Celsius
+        let distanceTraveled = 0; // km
+        let wiperAngle = 0;
+
+        // Key states
+        const keys = { w: false, a: false, s: false, d: false, space: false };
+
+        // Procedural World Chunks
+        const chunks = [];
+        const CHUNK_SIZE = 120;
+        const RENDER_DISTANCE = 4;
+        let lastChunkZ = 0;
+
+        // Interactive Objects
+        const interactiveItems = [];
+        let nearbyItem = null;
+
+        // Particle Systems
+        let rainParticles, leafParticles;
+
+        class AudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.engineGain = null;
+                this.engineOsc = null;
+                this.radioGain = null;
+                this.currentStation = 0;
+                this.radioPlaying = true;
+                this.stations = [
+                    { name: '91.4 AM - Autumn Memories', type: 'lofi' },
+                    { name: '98.1 AM - Muted Rain', type: 'ambient' },
+                    { name: '104.5 AM - Static Drift', type: 'static' }
+                ];
+                this.synthTrackNote = 0;
+                this.songCount = 0;
+            }
+
+            init() {
+                if (this.ctx) return;
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioCtx();
+
+                // Engine Sound Synthesizer
+                this.engineOsc = this.ctx.createOscillator();
+                const engineFilter = this.ctx.createBiquadFilter();
+                this.engineGain = this.ctx.createGain();
+
+                this.engineOsc.type = 'sawtooth';
+                this.engineOsc.frequency.setValueAtTime(45, this.ctx.currentTime);
+                
+                engineFilter.type = 'lowpass';
+                engineFilter.frequency.setValueAtTime(250, this.ctx.currentTime);
+
+                this.engineGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+
+                this.engineOsc.connect(engineFilter);
+                engineFilter.connect(this.engineGain);
+                this.engineGain.connect(this.ctx.destination);
+                this.engineOsc.start();
+
+                // Radio System Setup
+                this.radioGain = this.ctx.createGain();
+                this.radioGain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                this.radioGain.connect(this.ctx.destination);
+
+                this.startRadioScheduler();
+            }
+
+            updateEngine(speedRatio) {
+                if (!this.ctx || !this.engineOsc) return;
+                const pitch = 40 + (speedRatio * 120);
+                this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.1);
+            }
+
+            startRadioScheduler() {
+                const notes = [220, 261.63, 293.66, 329.63, 392.00, 440]; // A Minor Pentatonic
+                setInterval(() => {
+                    if (!this.ctx || !this.radioPlaying) return;
+
+                    const station = this.stations[this.currentStation];
+                    if (station.type === 'lofi') {
+                        // Play relaxing ambient chord sequence
+                        const osc = this.ctx.createOscillator();
+                        const g = this.ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)] * 0.5, this.ctx.currentTime);
+                        
+                        g.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.5);
+
+                        osc.connect(g);
+                        g.connect(this.radioGain);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + 2.5);
+                    } else if (station.type === 'ambient') {
+                        const osc = this.ctx.createOscillator();
+                        const g = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(110 + Math.random() * 40, this.ctx.currentTime);
+                        
+                        g.gain.setValueAtTime(0.03, this.ctx.currentTime);
+                        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 4.0);
+
+                        osc.connect(g);
+                        g.connect(this.radioGain);
+                        osc.start();
+                        osc.stop(this.ctx.currentTime + 4.0);
+                    }
+                }, 1200);
+            }
+
+            nextStation() {
+                this.currentStation = (this.currentStation + 1) % this.stations.length;
+                this.songCount++;
+                return this.stations[this.currentStation].name;
+            }
+
+            prevStation() {
+                this.currentStation = (this.currentStation - 1 + this.stations.length) % this.stations.length;
+                return this.stations[this.currentStation].name;
+            }
+
+            toggleRadio() {
+                this.radioPlaying = !this.radioPlaying;
+                if (this.radioGain) {
+                    this.radioGain.gain.setValueAtTime(this.radioPlaying ? 0.2 : 0, this.ctx.currentTime);
+                }
+                return this.radioPlaying;
+            }
+
+            playSound(type) {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                if (type === 'pickup') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.2);
+                } else if (type === 'door') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(60, this.ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.15);
+                }
+            }
+        }
+
+        const audio = new AudioEngine();
+
+        function initScene() {
+            const container = document.getElementById('canvas-container');
+
+            scene = new THREE.Scene();
+            // Melancholic amber/gray atmospheric fog
+            scene.background = new THREE.Color(0x2d251e);
+            scene.fog = new THREE.FogExp2(0x2d251e, 0.012);
+
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 500);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 0.85;
+            container.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0x8c735d, 0.6);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0xd99b66, 1.2);
+            sunLight.position.set(-60, 40, -50);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 1024;
+            sunLight.shadow.mapSize.height = 1024;
+            sunLight.shadow.camera.near = 0.5;
+            sunLight.shadow.camera.far = 250;
+            const d = 60;
+            sunLight.shadow.camera.left = -d;
+            sunLight.shadow.camera.right = d;
+            sunLight.shadow.camera.top = d;
+            sunLight.shadow.camera.bottom = -d;
+            scene.add(sunLight);
+
+            // Build Low-Poly Vehicle
+            createCar();
+
+            // Weather Rain Particles
+            createWeatherParticles();
+
+            // Initial World Chunks
+            for (let i = 0; i < RENDER_DISTANCE; i++) {
+                generateChunk(i * -CHUNK_SIZE);
+            }
+
+            window.addEventListener('resize', onWindowResize);
+            setupInputListeners();
+            initRain2DCanvas();
+        }
+
+        function createCar() {
+            car = new THREE.Group();
+
+            // Main Car Body Shell
+            const bodyGeo = new THREE.BoxGeometry(2.0, 0.9, 4.2);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x5a3d28, roughness: 0.6, metalness: 0.2 }); // Rustic Brown
+            const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
+            bodyMesh.position.y = 0.75;
+            bodyMesh.castShadow = true;
+            car.add(bodyMesh);
+
+            // Car Cabin Top
+            const cabinGeo = new THREE.BoxGeometry(1.8, 0.75, 2.2);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x221e1a, roughness: 0.4 });
+            const cabinMesh = new THREE.Mesh(cabinGeo, cabinMat);
+            cabinMesh.position.set(0, 1.5, -0.2);
+            cabinMesh.castShadow = true;
+            car.add(cabinMesh);
+
+            // Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 12);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+
+            const wheelPositions = [
+                [-1.0, 0.4, 1.3],
+                [1.0, 0.4, 1.3],
+                [-1.0, 0.4, -1.3],
+                [1.0, 0.4, -1.3]
+            ];
+
+            wheelPositions.forEach(pos => {
+                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+                wheel.rotation.z = Math.PI / 2;
+                wheel.position.set(...pos);
+                wheel.castShadow = true;
+                car.add(wheel);
+            });
+
+            // Headlights
+            const headlightGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.1, 12);
+            const headlightMat = new THREE.MeshBasicMaterial({ color: 0xfff3d1 });
+            
+            const hlLeft = new THREE.Mesh(headlightGeo, headlightMat);
+            hlLeft.rotation.x = Math.PI / 2;
+            hlLeft.position.set(-0.7, 0.8, -2.11);
+            car.add(hlLeft);
+
+            const hlRight = hlLeft.clone();
+            hlRight.position.x = 0.7;
+            car.add(hlRight);
+
+            // Spotlights for Night/Fog Headlight Beams
+            const spotLightLeft = new THREE.SpotLight(0xfff5cc, 3, 40, Math.PI / 6, 0.4);
+            spotLightLeft.position.set(-0.7, 0.8, -2.1);
+            spotLightLeft.target.position.set(-0.7, 0.5, -15);
+            car.add(spotLightLeft);
+            car.add(spotLightLeft.target);
+
+            const spotLightRight = spotLightLeft.clone();
+            spotLightRight.position.x = 0.7;
+            spotLightRight.target.position.x = 0.7;
+            car.add(spotLightRight);
+            car.add(spotLightRight.target);
+
+            // Dashboard Steering Wheel (Inside Cabin)
+            const wheelRingGeo = new THREE.TorusGeometry(0.22, 0.03, 8, 16);
+            const wheelRingMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const steeringWheel = new THREE.Mesh(wheelRingGeo, wheelRingMat);
+            steeringWheel.name = "steeringWheel";
+            steeringWheel.position.set(-0.45, 1.35, -0.4);
+            steeringWheel.rotation.x = -Math.PI / 6;
+            car.add(steeringWheel);
+
+            scene.add(car);
+        }
+
+        function generateChunk(zOffset) {
+            const chunk = new THREE.Group();
+            chunk.position.z = zOffset;
+
+            // Road Segment
+            const roadGeo = new THREE.PlaneGeometry(12, CHUNK_SIZE);
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+            const road = new THREE.Mesh(roadGeo, roadMat);
+            road.rotation.x = -Math.PI / 2;
+            road.position.y = 0.01;
+            road.receiveShadow = true;
+            chunk.add(road);
+
+            // Dashed Center Road Markings
+            for (let i = -CHUNK_SIZE / 2; i < CHUNK_SIZE / 2; i += 8) {
+                const stripeGeo = new THREE.PlaneGeometry(0.3, 4);
+                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xd4a359 });
+                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                stripe.rotation.x = -Math.PI / 2;
+                stripe.position.set(0, 0.02, i);
+                chunk.add(stripe);
+            }
+
+            // Terrain Shoulders
+            const terrainGeo = new THREE.PlaneGeometry(150, CHUNK_SIZE, 12, 12);
+            // Add subtle elevation roughness
+            const pos = terrainGeo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                const vx = pos.getX(i);
+                if (Math.abs(vx) > 8) {
+                    pos.setZ(i, Math.sin(vx * 0.1) * Math.cos(pos.getY(i) * 0.1) * 2.5);
+                }
+            }
+            terrainGeo.computeVertexNormals();
+
+            const terrainMat = new THREE.MeshStandardMaterial({ color: 0x3d2e1e, roughness: 0.95 }); // Autumn mud brown
+            const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+            terrain.rotation.x = -Math.PI / 2;
+            terrain.receiveShadow = true;
+            chunk.add(terrain);
+
+            // Powerlines & Utility Poles along the roadside
+            const poleGeo = new THREE.CylinderGeometry(0.12, 0.18, 8, 8);
+            const poleMat = new THREE.MeshStandardMaterial({ color: 0x2a1c10, roughness: 0.9 });
+            
+            for (let i = -CHUNK_SIZE / 2; i < CHUNK_SIZE / 2; i += 30) {
+                const pole = new THREE.Mesh(poleGeo, poleMat);
+                pole.position.set(-8.5, 4, i);
+                pole.castShadow = true;
+                chunk.add(pole);
+            }
+
+            // Scatter Low-Poly Autumn Trees & Fallen Logs
+            for (let i = 0; i < 28; i++) {
+                const x = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 55);
+                const z = (Math.random() - 0.5) * CHUNK_SIZE;
+                const tree = createAutumnTree();
+                tree.position.set(x, 0, z);
+                chunk.add(tree);
+            }
+
+            // Occasional Abandoned Roadside Relic (e.g. Gas Station / Shack)
+            if (Math.random() < 0.45) {
+                const isRight = Math.random() > 0.5;
+                const relicX = isRight ? 14 : -14;
+                const relicZ = (Math.random() - 0.5) * (CHUNK_SIZE - 20);
+                
+                const gasStation = createGasStationRelic(zOffset + relicZ, relicX);
+                gasStation.position.set(relicX, 0, relicZ);
+                chunk.add(gasStation);
+            }
+
+            // Spawn Collectible Gas Cans or Toolkits on Road Shoulder
+            if (Math.random() < 0.6) {
+                const itemX = (Math.random() > 0.5 ? 1 : -1) * (5.5 + Math.random() * 2);
+                const itemZ = (Math.random() - 0.5) * (CHUNK_SIZE - 10);
+                const item = createCollectibleItem('fuel', itemX, zOffset + itemZ);
+                chunk.add(item);
+                interactiveItems.push(item);
+            }
+
+            scene.add(chunk);
+            chunks.push({ group: chunk, z: zOffset });
+            lastChunkZ = zOffset;
+        }
+
+        function createAutumnTree() {
+            const tree = new THREE.Group();
+
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.45, 4.5, 7);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x24180e, roughness: 0.9 });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 2.25;
+            trunk.castShadow = true;
+            tree.add(trunk);
+
+            // Foliage Palette (Rusty Orange, Deep Red, Dull Yellow)
+            const colors = [0xb85228, 0x8c381d, 0xc47e33, 0x5e381b];
+            const foliageColor = colors[Math.floor(Math.random() * colors.length)];
+
+            const foliageGeo = new THREE.DodecahedronGeometry(2.2 + Math.random() * 0.8, 1);
+            const foliageMat = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 0.85, flatShading: true });
+            const foliage = new THREE.Mesh(foliageGeo, foliageMat);
+            foliage.position.y = 5.0;
+            foliage.castShadow = true;
+            tree.add(foliage);
+
+            const scale = 0.8 + Math.random() * 0.6;
+            tree.scale.set(scale, scale, scale);
+            return tree;
+        }
+
+        function createGasStationRelic(worldZ, posX) {
+            const station = new THREE.Group();
+
+            // Shack / Shed structure
+            const buildingGeo = new THREE.BoxGeometry(7, 4, 6);
+            const buildingMat = new THREE.MeshStandardMaterial({ color: 0x3d352e, roughness: 0.85 });
+            const building = new THREE.Mesh(buildingGeo, buildingMat);
+            building.position.y = 2;
+            building.castShadow = true;
+            station.add(building);
+
+            // Rusty Gas Pump
+            const pumpGeo = new THREE.BoxGeometry(1.2, 2.2, 1.2);
+            const pumpMat = new THREE.MeshStandardMaterial({ color: 0x8a3822, roughness: 0.7 });
+            const pump = new THREE.Mesh(pumpGeo, pumpMat);
+            pump.position.set(posX > 0 ? -4 : 4, 1.1, 2);
+            pump.castShadow = true;
+            station.add(pump);
+
+            return station;
+        }
+
+        function createCollectibleItem(type, x, worldZ) {
+            const group = new THREE.Group();
+            group.position.set(x, 0.4, 0); // Local Z inside chunk
+            group.userData = { type: type, worldZ: worldZ, collected: false };
+
+            if (type === 'fuel') {
+                const canGeo = new THREE.BoxGeometry(0.5, 0.7, 0.3);
+                const canMat = new THREE.MeshStandardMaterial({ color: 0xb52b1d, roughness: 0.5 });
+                const can = new THREE.Mesh(canGeo, canMat);
+                can.castShadow = true;
+                group.add(can);
+            }
+
+            return group;
+        }
+
+        function createWeatherParticles() {
+            // Particle Rain
+            const rainCount = 1200;
+            const rainGeo = new THREE.BufferGeometry();
+            const rainPos = new Float32Array(rainCount * 3);
+
+            for (let i = 0; i < rainCount * 3; i += 3) {
+                rainPos[i] = (Math.random() - 0.5) * 80;
+                rainPos[i + 1] = Math.random() * 30;
+                rainPos[i + 2] = (Math.random() - 0.5) * 120;
+            }
+
+            rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+            const rainMat = new THREE.PointsMaterial({ color: 0x99aab5, size: 0.15, transparent: true, opacity: 0.6 });
+            rainParticles = new THREE.Points(rainGeo, rainMat);
+            scene.add(rainParticles);
+        }
+
+        function setupInputListeners() {
+            window.addEventListener('keydown', (e) => {
+                const k = e.key.toLowerCase();
+                if (k === 'w' || e.key === 'ArrowUp') keys.w = true;
+                if (k === 'a' || e.key === 'ArrowLeft') keys.a = true;
+                if (k === 's' || e.key === 'ArrowDown') keys.s = true;
+                if (k === 'd' || e.key === 'ArrowRight') keys.d = true;
+                if (e.code === 'Space') keys.space = true;
+
+                if (k === 'c') toggleCamera();
+                if (k === 'e') handleInteraction();
+                if (k === 'r') switchRadioStation();
+                if (k === 'p') toggleWipers();
+            });
+
+            window.addEventListener('keyup', (e) => {
+                const k = e.key.toLowerCase();
+                if (k === 'w' || e.key === 'ArrowUp') keys.w = false;
+                if (k === 'a' || e.key === 'ArrowLeft') keys.a = false;
+                if (k === 's' || e.key === 'ArrowDown') keys.s = false;
+                if (k === 'd' || e.key === 'ArrowRight') keys.d = false;
+                if (e.code === 'Space') keys.space = false;
+            });
+
+            // UI Button Handlers
+            document.getElementById('btn-start').addEventListener('click', startGame);
+            document.getElementById('btn-radio-next').addEventListener('click', switchRadioStation);
+            document.getElementById('btn-radio-prev').addEventListener('click', () => {
+                const name = audio.prevStation();
+                document.getElementById('radio-station-name').innerText = name;
+            });
+            document.getElementById('btn-radio-toggle').addEventListener('click', () => {
+                const playing = audio.toggleRadio();
+                document.getElementById('radio-indicator').className = playing ? 'w-2 h-2 rounded-full bg-red-600 animate-pulse' : 'w-2 h-2 rounded-full bg-stone-600';
+            });
+
+            // Mobile Touch Support
+            setupTouchControl('touch-w', 'w');
+            setupTouchControl('touch-a', 'a');
+            setupTouchControl('touch-s', 's');
+            setupTouchControl('touch-d', 'd');
+
+            document.getElementById('touch-cam').addEventListener('touchstart', (e) => { e.preventDefault(); toggleCamera(); });
+            document.getElementById('touch-exit').addEventListener('touchstart', (e) => { e.preventDefault(); handleInteraction(); });
+        }
+
+        function setupTouchControl(id, key) {
+            const btn = document.getElementById(id);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+        }
+
+        function toggleCamera() {
+            if (gameState === 'ON_FOOT') return;
+            cameraMode = (cameraMode === 'FIRST_PERSON') ? 'THIRD_PERSON' : 'FIRST_PERSON';
+        }
+
+        function toggleWipers() {
+            wipersOn = !wipersOn;
+            document.getElementById('hud-wiper-status').innerText = `Wipers: ${wipersOn ? 'ON' : 'OFF'}`;
+            document.getElementById('hud-wiper-status').className = wipersOn ? 'text-[10px] text-amber-300 font-bold' : 'text-[10px] text-amber-500';
+        }
+
+        function switchRadioStation() {
+            const name = audio.nextStation();
+            document.getElementById('radio-station-name').innerText = name;
+        }
+
+        function handleInteraction() {
+            if (gameState === 'DRIVING') {
+                // Exit Car if speed is slow
+                if (Math.abs(carSpeed) < 0.1) {
+                    gameState = 'ON_FOOT';
+                    document.getElementById('hud-mode-badge').innerText = 'ON FOOT';
+                    document.getElementById('hud-mode-badge').className = 'px-1.5 py-0.5 bg-emerald-900/60 rounded text-[10px] border border-emerald-600/40 text-emerald-200';
+                    playerPos = { x: car.position.x - 2.2, y: 1.2, z: car.position.z };
+                    audio.playSound('door');
+                }
+            } else if (gameState === 'ON_FOOT') {
+                // Check if near car to enter
+                const distToCar = Math.hypot(playerPos.x - car.position.x, playerPos.z - car.position.z);
+                if (distToCar < 3.5) {
+                    gameState = 'DRIVING';
+                    document.getElementById('hud-mode-badge').innerText = 'DRIVING';
+                    document.getElementById('hud-mode-badge').className = 'px-1.5 py-0.5 bg-amber-800/50 rounded text-[10px] border border-amber-600/40';
+                    audio.playSound('door');
+                    return;
+                }
+
+                // Check if near collectible item
+                if (nearbyItem && !nearbyItem.userData.collected) {
+                    nearbyItem.userData.collected = true;
+                    nearbyItem.visible = false;
+                    fuel = Math.min(100, fuel + 35);
+                    audio.playSound('pickup');
+                    document.getElementById('hud-fuel-pct').innerText = `${Math.round(fuel)}%`;
+                }
+            }
+        }
+
+        function startGame() {
+            audio.init();
+            document.getElementById('modal-screen').classList.add('hidden');
+            gameState = 'DRIVING';
+            carSpeed = 0;
+            fuel = 100;
+            distanceTraveled = 0;
+        }
+
+        function gameOver(reason) {
+            gameState = 'GAMEOVER';
+            document.getElementById('modal-screen').classList.remove('hidden');
+            document.getElementById('modal-title').innerText = 'TRIP CONCLUDED';
+            document.getElementById('modal-desc').innerText = 'Your journey through the autumn fog has come to a standstill.';
+            document.getElementById('modal-stats').classList.remove('hidden');
+            document.getElementById('stat-dist').innerText = distanceTraveled.toFixed(1);
+            document.getElementById('stat-songs').innerText = audio.songCount;
+            document.getElementById('stat-reason').innerText = reason;
+            document.getElementById('btn-start').innerText = 'RESTART TRIP';
+        }
+
+        function updateVehiclePhysics(delta) {
+            if (gameState !== 'DRIVING') return;
+
+            // Acceleration & Braking
+            if (keys.w && fuel > 0) {
+                carSpeed = Math.min(maxSpeed, carSpeed + acceleration);
+                fuel -= delta * 0.28; // Consume fuel
+            } else if (keys.s) {
+                carSpeed = Math.max(-maxSpeed * 0.3, carSpeed - brakePower);
+            } else {
+                // Friction slowdown
+                if (carSpeed > 0) carSpeed = Math.max(0, carSpeed - friction);
+                if (carSpeed < 0) carSpeed = Math.min(0, carSpeed + friction);
+            }
+
+            if (keys.space) {
+                carSpeed *= 0.92; // Handbrake
+            }
+
+            // Steering Logic
+            if (keys.a) {
+                steerAngle = Math.min(maxSteer, steerAngle + steerSpeed);
+            } else if (keys.d) {
+                steerAngle = Math.max(-maxSteer, steerAngle - steerSpeed);
+            } else {
+                if (steerAngle > 0) steerAngle = Math.max(0, steerAngle - steerDecay);
+                if (steerAngle < 0) steerAngle = Math.min(0, steerAngle + steerDecay);
+            }
+
+            // Move Vehicle Forward/Backward along Z axis and steer on X axis
+            car.rotation.y += steerAngle * (carSpeed / maxSpeed);
+            
+            const forwardX = Math.sin(car.rotation.y) * carSpeed * 40 * delta;
+            const forwardZ = -Math.cos(car.rotation.y) * carSpeed * 40 * delta;
+
+            car.position.x += forwardX;
+            car.position.z += forwardZ;
+
+            // Clamp car within reasonable off-road bounds
+            car.position.x = Math.max(-30, Math.min(30, car.position.x));
+
+            // Track odometer distance
+            if (carSpeed > 0) {
+                distanceTraveled += (carSpeed * delta * 0.08);
+            }
+
+            // Engine Audio pitch update
+            audio.updateEngine(Math.abs(carSpeed) / maxSpeed);
+
+            // Dashboard Steering Wheel Animation
+            const stWheel = car.getObjectByName("steeringWheel");
+            if (stWheel) {
+                stWheel.rotation.z = -steerAngle * 12;
+            }
+
+            // Check Fuel Depletion
+            if (fuel <= 0 && Math.abs(carSpeed) < 0.01) {
+                gameOver('OUT OF FUEL');
+            }
+        }
+
+        function updateOnFootPlayer(delta) {
+            if (gameState !== 'ON_FOOT') return;
+
+            const walkSpeed = 6.0 * delta;
+            if (keys.w) playerPos.z -= walkSpeed;
+            if (keys.s) playerPos.z += walkSpeed;
+            if (keys.a) playerPos.x -= walkSpeed;
+            if (keys.d) playerPos.x += walkSpeed;
+
+            // Check distance to car or collectibles
+            const distToCar = Math.hypot(playerPos.x - car.position.x, playerPos.z - car.position.z);
+            let promptText = "";
+
+            if (distToCar < 3.5) {
+                promptText = "Press E to Enter Vehicle";
+            } else {
+                // Check near item
+                nearbyItem = null;
+                for (let item of interactiveItems) {
+                    if (item.userData.collected) continue;
+                    const itemWorldZ = item.parent.position.z + item.position.z;
+                    const itemWorldX = item.parent.position.x + item.position.x;
+                    const distToItem = Math.hypot(playerPos.x - itemWorldX, playerPos.z - itemWorldZ);
+                    
+                    if (distToItem < 2.5) {
+                        nearbyItem = item;
+                        promptText = "Press E to Pick Up Fuel Can";
+                        break;
+                    }
+                }
+            }
+
+            const promptEl = document.getElementById('interaction-prompt');
+            if (promptText !== "") {
+                promptEl.innerText = promptText;
+                promptEl.classList.remove('hidden');
+            } else {
+                promptEl.classList.add('hidden');
+            }
+        }
+
+        function updateProceduralWorld() {
+            const playerZ = car.position.z;
+
+            // Generate new chunk ahead
+            if (playerZ < lastChunkZ + (CHUNK_SIZE * 2)) {
+                generateChunk(lastChunkZ - CHUNK_SIZE);
+            }
+
+            // Recycle old chunks far behind
+            if (chunks.length > RENDER_DISTANCE + 2) {
+                const oldest = chunks.shift();
+                scene.remove(oldest.group);
+            }
+        }
+
+        function updateCamera() {
+            if (gameState === 'DRIVING') {
+                if (cameraMode === 'FIRST_PERSON') {
+                    // Position camera inside dashboard cabin
+                    const cabinOffset = new THREE.Vector3(-0.45, 1.45, -0.2);
+                    cabinOffset.applyQuaternion(car.quaternion);
+                    camera.position.copy(car.position).add(cabinOffset);
+                    
+                    const lookAtOffset = new THREE.Vector3(-0.45, 1.4, -10);
+                    lookAtOffset.applyQuaternion(car.quaternion);
+                    camera.lookAt(car.position.clone().add(lookAtOffset));
+                } else {
+                    // Third person chase cam
+                    const chaseOffset = new THREE.Vector3(0, 3.2, 8.0);
+                    chaseOffset.applyQuaternion(car.quaternion);
+                    camera.position.lerp(car.position.clone().add(chaseOffset), 0.1);
+                    camera.lookAt(car.position.clone().add(new THREE.Vector3(0, 1.2, 0)));
+                }
+            } else if (gameState === 'ON_FOOT') {
+                // Camera follows player on foot
+                camera.position.set(playerPos.x, playerPos.y, playerPos.z);
+                camera.lookAt(playerPos.x, playerPos.y, playerPos.z - 5);
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-distance').innerText = distanceTraveled.toFixed(1);
+            document.getElementById('speed-display').innerText = Math.round(Math.abs(carSpeed) * 110);
+            document.getElementById('hud-fuel-pct').innerText = `${Math.round(fuel)}%`;
+
+            // Needle Rotations
+            const speedDeg = -120 + (Math.abs(carSpeed) / maxSpeed) * 240;
+            document.getElementById('gauge-speed-needle').style.transform = `rotate(${speedDeg}deg)`;
+
+            const fuelDeg = -45 + (fuel / 100) * 90;
+            document.getElementById('gauge-fuel-needle').style.transform = `rotate(${fuelDeg}deg)`;
+        }
+
+        let rainCanvas, rainCtx;
+        function initRain2DCanvas() {
+            rainCanvas = document.getElementById('rain-overlay');
+            rainCtx = rainCanvas.getContext('2d');
+            rainCanvas.width = window.innerWidth;
+            rainCanvas.height = window.innerHeight;
+        }
+
+        function drawRainOverlay() {
+            if (!rainCtx) return;
+            rainCtx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+
+            // Draw subtle rain streaks
+            rainCtx.strokeStyle = 'rgba(200, 220, 255, 0.2)';
+            rainCtx.lineWidth = 1.2;
+            rainCtx.beginPath();
+            for (let i = 0; i < 40; i++) {
+                const x = (Math.sin(i * 99) * 0.5 + 0.5) * rainCanvas.width;
+                const y = ((Date.now() * 0.4 + i * 170) % rainCanvas.height);
+                rainCtx.moveTo(x, y);
+                rainCtx.lineTo(x - 2, y + 18);
+            }
+            rainCtx.stroke();
+
+            // Animated Windscreen Wiper Sweep Line
+            if (wipersOn && cameraMode === 'FIRST_PERSON') {
+                wiperAngle = Math.sin(Date.now() * 0.005) * 0.8;
+                rainCtx.save();
+                rainCtx.strokeStyle = 'rgba(20, 20, 20, 0.85)';
+                rainCtx.lineWidth = 6;
+                rainCtx.beginPath();
+                const centerX = rainCanvas.width / 2;
+                const bottomY = rainCanvas.height;
+                rainCtx.moveTo(centerX, bottomY);
+                rainCtx.lineTo(centerX + Math.sin(wiperAngle) * (rainCanvas.height * 0.7), bottomY - Math.cos(wiperAngle) * (rainCanvas.height * 0.7));
+                rainCtx.stroke();
+                rainCtx.restore();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+
+            if (gameState === 'DRIVING') {
+                updateVehiclePhysics(delta);
+            } else if (gameState === 'ON_FOOT') {
+                updateOnFootPlayer(delta);
+            }
+
+            updateProceduralWorld();
+            updateCamera();
+            updateHUD();
+            drawRainOverlay();
+
+            // Animate Rain Particles
+            if (rainParticles) {
+                const pos = rainParticles.geometry.attributes.position.array;
+                for (let i = 1; i < pos.length; i += 3) {
+                    pos[i] -= 22 * delta;
+                    if (pos[i] < 0) pos[i] = 30;
+                }
+                rainParticles.geometry.attributes.position.needsUpdate = true;
+                rainParticles.position.z = car.position.z;
+                rainParticles.position.x = car.position.x;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            if (rainCanvas) {
+                rainCanvas.width = window.innerWidth;
+                rainCanvas.height = window.innerHeight;
+            }
+        }
+
+        window.onload = () => {
+            initScene();
+            animate();
+        };
+    </script>
+</body>
+</html>
