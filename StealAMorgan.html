@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Steal a Max Morgan 3D - Deluxe</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="vendor/tailwind.css">
+    <script src="vendor/three.min.js"></script>
+    <link rel="stylesheet" href="vendor/fontawesome/css/all.min.css">
+    <link rel="stylesheet" href="vendor/fonts/fonts.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Outfit:wght@400;600;800&display=swap');
         *{user-select:none;-webkit-user-select:none;touch-action:manipulation}
         body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0b0f19;font-family:'Outfit',sans-serif}
         canvas{display:block;width:100%;height:100%}
@@ -25,7 +24,7 @@
         .s-input{background:rgba(15,23,42,.9);border:1px solid rgba(99,102,241,.4);color:#fff;padding:10px 14px;border-radius:10px;width:100%;font-size:14px;outline:none;font-family:'Outfit',sans-serif;box-sizing:border-box}
         .s-input:focus{border-color:rgba(99,102,241,.8)}
         .s-input::placeholder{color:rgba(148,163,184,.5)}
-        textarea.s-input{resize:vertical;font-size:11px;font-family:monospace;min-height:70px}
+        textarea.s-input{resize:vertical;font-size:11px;font-family:monospace;min-height:70px;user-select:text;-webkit-user-select:text}
     #chat-panel{position:fixed;left:12px;bottom:12px;width:min(300px,80vw);z-index:300}
 @media (pointer:coarse){#chat-panel{bottom:200px}}
 #chat-log{max-height:9.5rem;overflow-y:auto;font-size:12px;text-shadow:0 1px 2px #000}
@@ -66,7 +65,7 @@
     <div class="glass-panel rounded-3xl p-6 w-full max-w-lg border border-indigo-500/30 my-4">
         <div class="flex items-center justify-between mb-5">
             <div>
-                <div class="font-game text-2xl text-white">SERVER BROWSER</div>
+                <div class="font-game text-2xl text-white">LAN LOBBY</div>
                 <div id="lobby-user-display" class="text-indigo-400 text-sm font-semibold"></div>
             </div>
             <button id="btn-logout" class="glass-btn px-3 py-2 rounded-xl text-slate-400 hover:text-white text-sm flex items-center gap-2">
@@ -92,14 +91,20 @@
                 </div>
             </div>
             <div class="glass-panel rounded-2xl p-4 border border-indigo-500/30">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="font-game text-white text-base flex items-center gap-2"><i class="fa-solid fa-users text-indigo-400"></i>Join a Server</div>
-                    <button id="btn-refresh-servers" class="glass-btn px-2 py-1 rounded text-xs text-slate-300 hover:text-white"><i class="fa-solid fa-rotate mr-1"></i>Refresh</button>
+                <div class="font-game text-white text-base flex items-center gap-2 mb-2"><i class="fa-solid fa-users text-indigo-400"></i>Join a Server</div>
+                <p class="text-xs text-slate-400 mb-3">Ask the host for an invite code, paste it here, then send the reply code back to them. Works on the same Wi-Fi / LAN, no internet needed.</p>
+                <textarea id="join-code" class="s-input" spellcheck="false" placeholder="Paste the host's invite code..."></textarea>
+                <div class="flex gap-2 mt-2">
+                    <input id="pw-input" maxlength="4" class="s-input flex-1 uppercase tracking-widest text-center" placeholder="Password (private only)" autocomplete="off">
+                    <button id="btn-join-code" class="px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition">Connect</button>
                 </div>
-                <div id="server-list" class="space-y-2 max-h-56 overflow-y-auto"></div>
-                <div id="pw-row" class="hidden mt-3 flex gap-2">
-                    <input id="pw-input" maxlength="4" class="s-input flex-1 uppercase tracking-widest text-center" placeholder="Server password">
-                    <button id="btn-pw-join" class="px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition">Join</button>
+                <div id="join-reply-box" class="hidden mt-3 space-y-2">
+                    <div class="text-xs text-slate-400">Send this reply code to the host:</div>
+                    <textarea id="join-reply" class="s-input" readonly spellcheck="false"></textarea>
+                    <div class="flex gap-2">
+                        <button id="btn-copy-reply" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500">Copy reply code</button>
+                        <button id="btn-cancel-join" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 glass-btn hover:text-white">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,7 +119,7 @@
 <div id="waiting-screen" class="fixed inset-0 z-[180] bg-slate-950/98 backdrop-blur flex items-center justify-center p-4 hidden overflow-y-auto">
     <div class="glass-panel rounded-3xl p-6 w-full max-w-xl border border-emerald-500/30 my-4">
         <div class="font-game text-2xl text-white mb-1"><span id="waiting-title">Hosting Room</span></div>
-        <div class="text-slate-400 text-xs mb-5">Your server is listed in the browser. Up to 3 players can join you.</div>
+        <div class="text-slate-400 text-xs mb-5">Up to 3 players can join. Press Invite, send the code to the player, then paste their reply code back. Everyone must be on the same Wi-Fi / LAN.</div>
 
         <!-- Host entry -->
         <div class="flex items-center gap-3 p-3 glass-panel rounded-xl border border-emerald-500/30 mb-4">
@@ -338,116 +343,151 @@ function saveData(user,data){
 let curUser='',saveD=null,gameMode='solo';
 
 // ============================================================
-// WEBRTC LAN NETWORKING
+// WEBRTC LAN NETWORKING  (serverless: nothing ever leaves your local network)
 // ============================================================
-// Each RTCPeerConnection has a DataChannel.
-// Host: hostPCs[slotIndex] = {pc, channel, baseIndex, username, connected}
+// Players connect browser-to-browser with WebRTC data channels. There is NO signaling server, NO STUN and NO TURN,
+// so it works from file:// and with no internet at all. To connect: the host makes an invite code for a slot, the
+// player pastes it and gets a reply code, and the host pastes that reply back. Both devices must be on the same LAN.
+// Host: hostPCs[slotIndex] = {pc, channel, baseIndex, username, connected, code, busy, err, draft}
 // Client: clientPC = {pc, channel, baseIndex}
-const PCFG={reliable:true,serialization:'json'};
-const PEER_OPT={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}};
-const DIR_ID='stealamax-directory-v1';
-let hostPCs={};          // host side: keyed by slotIndex (1,2,3): {pc,channel,baseIndex,username,connected}
+const RTC_CFG={iceServers:[]};   // no ICE servers on purpose: local (host) candidates only, never contacts an outside server
+const LAN_HINT='Both devices must be on the same Wi-Fi / LAN (guest networks and "client isolation" block direct connections).';
+let hostPCs={};          // host side: keyed by slotIndex (1,2,3)
 let clientPC=null;       // client side: {pc,channel,baseIndex}
 let gameRunning=false;
 let netBroadcastTimer=0;
-let hostPeer=null,hostInfo=null,hbTimer=null,dirPeer=null,dirStore={};
+let hostInfo=null;
+const slotErr={};        // last error per host slot, shown on its card
 
 function rndPw(){const c='ABCDEFGHJKMNPQRSTUVWXYZ23456789';let r='';for(let i=0;i<4;i++)r+=c[Math.floor(Math.random()*c.length)];return r;}
+const chOpen=ch=>!!ch&&ch.readyState==='open';
 
-// ---- Server directory: first player online claims a well-known peer id and keeps the list ----
-function dirHandle(m){
-    const now=Date.now();
-    Object.keys(dirStore).forEach(k=>{if(now-dirStore[k].t>25000)delete dirStore[k];});
-    if(m.t==='reg')dirStore[m.s.id]={...m.s,t:now};
-    if(m.t==='unreg')delete dirStore[m.id];
-    return m.t==='list'?Object.values(dirStore):null;
+// ---- invite / reply codes: the WebRTC description, compressed and made copy-paste safe ----
+const b64u=u8=>{let s='';for(let i=0;i<u8.length;i+=0x8000)s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000));return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');};
+const unb64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;};
+const pipeBytes=async(u8,ts)=>new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(ts)).arrayBuffer());
+async function packCode(obj){
+    const raw=new TextEncoder().encode(JSON.stringify(obj));
+    if(typeof CompressionStream==='function'){try{return 'SAM1-'+b64u(await pipeBytes(raw,new CompressionStream('deflate-raw')));}catch{}}
+    return 'SAM0-'+b64u(raw);
 }
-function claimDir(){return new Promise(res=>{
-    const p=new Peer(DIR_ID,PEER_OPT);
-    let up=false;p.on('disconnected',()=>{try{p.reconnect()}catch{}});p.on('close',()=>{if(dirPeer===p)dirPeer=null;});
-    p.on('open',()=>{up=true;dirPeer=p;
-        p.on('connection',c=>c.on('data',m=>{const r=dirHandle(m);try{c.send({r})}catch{}}));
-        res(true);});
-    p.on('error',()=>{if(!up){try{p.destroy()}catch{};res(false);}});
+async function unpackCode(text){
+    const m=/SAM([01])-([A-Za-z0-9_\-\s]+)/.exec(String(text||''));
+    if(!m)throw new Error('That is not a valid code. Copy the whole code and paste it again.');
+    try{
+        let u8=unb64u(m[2].replace(/\s+/g,''));
+        if(m[1]==='1'){
+            if(typeof DecompressionStream!=='function')throw new Error('This browser is too old to read that code');
+            u8=await pipeBytes(u8,new DecompressionStream('deflate-raw'));
+        }
+        return JSON.parse(new TextDecoder().decode(u8));
+    }catch(e){throw new Error(/too old/.test(e.message)?e.message:'That code is damaged. Copy the whole code and paste it again.');}
+}
+// resolves once the local candidates have settled (Chrome may never report "complete"), so the code has our addresses in it
+function gatherIce(pc,cap=4000){return new Promise(res=>{
+    let t=0,cp=0;
+    const fin=()=>{clearTimeout(t);clearTimeout(cp);pc.removeEventListener('icecandidate',onc);pc.removeEventListener('icegatheringstatechange',ong);res();};
+    const onc=e=>{if(!e.candidate)return fin();clearTimeout(t);t=setTimeout(fin,500);};
+    const ong=()=>{if(pc.iceGatheringState==='complete')fin();};
+    if(pc.iceGatheringState==='complete')return res();
+    pc.addEventListener('icecandidate',onc);pc.addEventListener('icegatheringstatechange',ong);cp=setTimeout(fin,cap);
 });}
-function dirCall(m,tries=2){
-    return new Promise(res=>{
-        if(dirPeer&&!dirPeer.destroyed)return res(dirHandle(m));
-        const p=new Peer(undefined,PEER_OPT);let done=false;
-        const fin=async(v,fail)=>{
-            if(done)return;done=true;try{p.destroy()}catch{}
-            if(fail&&tries>0){if(await claimDir())return res(dirHandle(m));return res(await dirCall(m,tries-1));}
-            res(v);
-        };
-        p.on('error',()=>fin(null,true));
-        p.on('open',()=>{
-            const c=p.connect(DIR_ID,PCFG);
-            c.on('open',()=>c.send(m));
-            c.on('data',d=>fin(d.r));
-            c.on('error',()=>fin(null,true));
-            setTimeout(()=>fin(null,true),5000);
-        });
-    });
+async function copyText(text,btn){
+    try{await navigator.clipboard.writeText(text);}
+    catch{const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;left:-999px;top:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch{}ta.remove();}
+    if(btn){const o=btn.dataset.label||btn.textContent;btn.dataset.label=o;btn.textContent='Copied!';setTimeout(()=>{btn.textContent=o;},1500);}
 }
 
 // ---- HOST ----
-function registerServer(){
-    if(!hostInfo)return;
-    dirCall({t:'reg',s:{id:hostInfo.id,name:hostInfo.name,priv:hostInfo.priv,n:1+connectedClientCount(),started:gameRunning}});
-}
 async function startHosting(priv){
     cleanupNetwork();
     gameMode='host';hostPCs={};document.getElementById('chat-log').innerHTML='';updateChatVis();
-    hostInfo={id:'sam-'+Math.random().toString(36).slice(2,10),name:curUser+"'s server",priv,pw:priv?rndPw():''};
-    setLobbyStatus('Starting server...','');
-    try{
-        hostPeer=new Peer(hostInfo.id,PEER_OPT);
-        await new Promise((ok,bad)=>{hostPeer.on('open',ok);hostPeer.on('error',bad);});
-    }catch(e){cleanupNetwork();gameMode='solo';setLobbyStatus('Could not start server: '+(e.type||e.message),'error');return;}
-    hostPeer.on('connection',onHostConn);hostPeer.on('disconnected',()=>{try{hostPeer.reconnect()}catch{}});
-    hostPeer.on('error',e=>console.warn('host peer',e));
-    registerServer();hbTimer=setInterval(registerServer,8000);
+    for(const k in slotErr)delete slotErr[k];
+    hostInfo={name:curUser+"'s server",priv,pw:priv?rndPw():''};
     document.getElementById('waiting-title').textContent=priv?'Private Server':'Open Server';
     document.getElementById('server-pw-badge').classList.toggle('hidden',!priv);
     document.getElementById('server-pw').textContent=hostInfo.pw;
     updateWaitingUI();showScreen('waiting');
 }
-function onHostConn(conn){
-    let s=0;
-    const deny=m=>{try{conn.send(JSON.stringify({type:'DENIED',m}))}catch{}setTimeout(()=>{try{conn.close()}catch{}},400);};
-    conn.on('data',raw=>{
-        let d;try{d=typeof raw==='string'?JSON.parse(raw):raw}catch{return}
-        if(!s){
-            if(d.type!=='JOIN'||!hostInfo)return;
+function dropSlot(s){
+    const o=hostPCs[s];if(!o)return;
+    clearTimeout(o.connTimer);delete hostPCs[s];
+    try{o.pc.close()}catch{}
+}
+function slotFail(s,slot,msg){
+    if(hostPCs[s]!==slot)return;
+    dropSlot(s);slotErr[s]=msg;updateWaitingUI();
+}
+// makes the invite code for a slot (a WebRTC offer with our LAN addresses in it)
+async function hostInvite(s){
+    if(!hostInfo||(hostPCs[s]&&hostPCs[s].connected))return;
+    dropSlot(s);delete slotErr[s];
+    const pc=new RTCPeerConnection(RTC_CFG);
+    const slot=hostPCs[s]={pc,channel:null,baseIndex:s,username:'',connected:false,code:'',busy:'Creating invite...',err:'',draft:''};
+    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&!slot.connected)slotFail(s,slot,'Could not connect. '+LAN_HINT);};
+    wireHostChannel(s,slot,pc.createDataChannel('sam',{ordered:true}));
+    updateWaitingUI();
+    try{
+        await pc.setLocalDescription(await pc.createOffer());
+        await gatherIce(pc);
+        if(hostPCs[s]!==slot)return;
+        const sdp=pc.localDescription.sdp;
+        if(!/a=candidate:/.test(sdp))throw new Error('No local network found. Connect this device to Wi-Fi / LAN first.');
+        slot.code=await packCode({t:'o',s:sdp,v:hostInfo.priv?1:0,n:curUser});
+        slot.busy='';
+    }catch(e){slotFail(s,slot,e.message||'Could not create an invite');return;}
+    updateWaitingUI();
+}
+// applies the player's reply code; the connection then opens on its own
+async function hostAcceptReply(s,text){
+    const slot=hostPCs[s];if(!slot||slot.connected||slot.busy||!slot.code)return;
+    slot.busy='Connecting...';slot.err='';updateWaitingUI();
+    try{
+        const d=await unpackCode(text);
+        if(d.t!=='a'||!d.s)throw new Error('That is an invite code, not a reply. Paste the reply code the player sent back.');
+        await slot.pc.setRemoteDescription({type:'answer',sdp:d.s});
+    }catch(e){if(hostPCs[s]===slot){slot.busy='';slot.err=(e&&e.message&&!/setRemoteDescription|SDP/i.test(e.message))?e.message:'That reply code is not valid';updateWaitingUI();}return;}
+    slot.connTimer=setTimeout(()=>slotFail(s,slot,'Timed out connecting. '+LAN_HINT),25000);
+}
+function wireHostChannel(s,slot,ch){
+    slot.channel=ch;let joined=false;
+    const hello=()=>{try{ch.send(JSON.stringify({type:'HELLO'}))}catch{}};   // our end is open: tell the player to send JOIN
+    ch.onopen=hello;if(ch.readyState==='open')hello();
+    const deny=m=>{slot.denied=true;try{ch.send(JSON.stringify({type:'DENIED',m}))}catch{}setTimeout(()=>{if(hostPCs[s]===slot){dropSlot(s);updateWaitingUI();}},400);};
+    ch.onmessage=ev=>{
+        if(hostPCs[s]!==slot)return;
+        let d;try{d=JSON.parse(ev.data)}catch{return}
+        if(!joined){
+            if(d.type!=='JOIN'||!hostInfo||slot.denied)return;
             if(hostInfo.priv&&String(d.pw||'').toUpperCase()!==hostInfo.pw)return deny('Wrong server password');
-            s=[1,2,3].find(i=>!hostPCs[i]||!hostPCs[i].connected);
-            if(!s)return deny('Server is full');
-            const name=String(d.name||'Player '+s).slice(0,16);
-            hostPCs[s]={pc:conn,channel:conn,baseIndex:s,username:name,connected:true};
-            conn.send(JSON.stringify({type:'WELCOME',baseIndex:s}));
+            joined=true;clearTimeout(slot.connTimer);
+            const name=String(d.name||'Player '+(s+1)).slice(0,16);
+            slot.connected=true;slot.busy='';slot.err='';slot.username=name;delete slotErr[s];
+            ch.send(JSON.stringify({type:'WELCOME',baseIndex:s}));
             if(gameRunning){
-                conn.send(JSON.stringify({type:'START'}));
-                conn.send(JSON.stringify({type:'STATE',st:buildSnapshot()}));
+                ch.send(JSON.stringify({type:'START'}));
+                ch.send(JSON.stringify({type:'STATE',st:buildSnapshot()}));
                 const jb=bots.find(b=>b.baseIndex===s);if(jb){jb.isNetPlayer=true;jb.frozen=0;jb.slowT=0;}
                 updateBaseName(s,name);broadcastAll(namesMsg());
             }
-            relayChat('',name+' joined',-1);updateWaitingUI();registerServer();return;
+            relayChat('',name+' joined',-1);updateWaitingUI();return;
         }
         if(d.type==='CHAT'){
-            const now=Date.now();if(now-(hostPCs[s].lastChat||0)<400)return;hostPCs[s].lastChat=now;
-            const m=String(d.m||'').slice(0,120).trim();if(m)relayChat(hostPCs[s].username,m,s);return;
+            const now=Date.now();if(now-(slot.lastChat||0)<400)return;slot.lastChat=now;
+            const m=String(d.m||'').slice(0,120).trim();if(m)relayChat(slot.username,m,s);return;
         }
         handleClientMsg(s,d);
-    });
-    conn.on('close',()=>{
-        if(!s)return;
-        if(hostPCs[s]&&hostPCs[s].channel===conn){
-            hostPCs[s].connected=false;
+    };
+    ch.onclose=()=>{
+        if(hostPCs[s]!==slot)return;
+        if(joined){
+            slot.connected=false;
             if(gameRunning){makeBotForSlot(s);broadcastAll({type:'PLAYER_LEFT',bi:s});}
-        }
-        if(hostPCs[s])relayChat('',hostPCs[s].username+' left',-1);
-        updateWaitingUI();registerServer();
-    });
+            relayChat('',slot.username+' left',-1);
+            dropSlot(s);updateWaitingUI();
+        }else if(slot.denied){dropSlot(s);updateWaitingUI();}
+        else slotFail(s,slot,'The player disconnected before joining.');
+    };
 }
 
 function namesMsg(){return{type:'NAMES',n:[0,1,2,3].map(i=>i===0?curUser:(hostPCs[i]&&hostPCs[i].connected?hostPCs[i].username:'Bot '+(i+1)))};}
@@ -458,37 +498,58 @@ function handleClientMsg(s,d){
 }
 
 function broadcastAll(data){
-    const str=JSON.stringify(data);
+    const str=JSON.stringify(data),snap=data.type==='STATE';
     Object.values(hostPCs).forEach(slot=>{
-        if(slot.connected&&slot.channel&&slot.channel.open){
+        if(slot.connected&&chOpen(slot.channel)){
+            if(snap&&slot.channel.bufferedAmount>262144)return;   // slow link: skip this snapshot, the next one replaces it
             try{slot.channel.send(str)}catch{}
         }
     });
 }
 
 // ---- CLIENT ----
-function joinServer(id,pw){
-    return new Promise((ok,bad)=>{
-        cleanupNetwork();
-        const peer=new Peer(undefined,PEER_OPT);
-        const t=setTimeout(()=>{cleanupNetwork();bad(new Error('Could not reach server'));},15000);
-        peer.on('error',e=>{clearTimeout(t);bad(new Error(e.type==='peer-unavailable'?'Server is no longer available':(e.type||'Connection error')));});
-        peer.on('open',()=>{
-            const conn=peer.connect(id,PCFG);
-            clientPC={pc:{close(){try{peer.destroy()}catch{}}},channel:conn,baseIndex:1};conn.on('error',()=>{clearTimeout(t);bad(new Error('Connection failed'));});
-            conn.on('open',()=>{conn.send(JSON.stringify({type:'JOIN',name:curUser,pw}));document.getElementById('chat-log').innerHTML='';});
-            conn.on('data',raw=>{
-                let d;try{d=JSON.parse(raw)}catch{return}
-                if(d.type==='DENIED'){clearTimeout(t);cleanupNetwork();bad(new Error(d.m));return;}
-                if(d.type==='WELCOME'){clearTimeout(t);gameMode='client';updateChatVis();ok();}
-                handleHostMsg(d);
-            });
-            conn.on('close',()=>{
-                if(gameRunning){showToast('Disconnected from host','error');returnToLobby();}
-                else if(clientPC){cleanupNetwork();gameMode='solo';setLobbyStatus('The server closed','error');refreshServers();}
-            });
-        });
-    });
+// Turns the host's invite code into a reply code. Resolves {reply,done,...}: send `reply` to the host; `done` settles once the host accepted it and we joined.
+async function joinWithCode(codeText,pw){
+    cleanupNetwork();
+    const d=await unpackCode(codeText);
+    if(d.t!=='o'||!d.s)throw new Error('That is a reply code, not an invite. Paste the invite code from the host.');
+    if(d.v&&!pw)throw new Error('This server is private. Enter its 4-character password first.');
+    const pc=new RTCPeerConnection(RTC_CFG),conn=clientPC={pc,channel:null,baseIndex:1};
+    let settle,welcomed=false,timer=0;
+    const done=new Promise((ok,bad)=>{settle={ok,bad};});done.catch(()=>{});
+    const fail=m=>{if(clientPC!==conn)return;clearTimeout(timer);cleanupNetwork();settle.bad(new Error(m));};
+    timer=setTimeout(()=>fail('Timed out waiting for the host. Ask them to paste your reply code. '+LAN_HINT),150000);
+    pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&!welcomed)fail('Could not connect to the host. '+LAN_HINT);};
+    pc.ondatachannel=ev=>{
+        const ch=ev.channel;conn.channel=ch;document.getElementById('chat-log').innerHTML='';
+        // The host talks first (HELLO) and we answer with JOIN: a message sent the instant the channel is handed to us
+        // can arrive before the host has finished opening its end and get dropped. Retry in case anything is lost.
+        const sendJoin=()=>{if(clientPC===conn&&!welcomed&&chOpen(ch))try{ch.send(JSON.stringify({type:'JOIN',name:curUser,pw}))}catch{}};
+        const retry=setInterval(()=>{if(clientPC!==conn||welcomed)clearInterval(retry);else sendJoin();},2500);
+        ch.onmessage=e=>{
+            if(clientPC!==conn)return;
+            let d;try{d=JSON.parse(e.data)}catch{return}
+            if(d.type==='HELLO'){sendJoin();return;}
+            if(d.type==='DENIED'){fail(d.m);return;}
+            if(d.type==='WELCOME'){welcomed=true;clearTimeout(timer);gameMode='client';updateChatVis();settle.ok();}
+            handleHostMsg(d);
+        };
+        ch.onclose=()=>{
+            if(clientPC!==conn)return;
+            if(!welcomed)fail('The host closed the connection.');
+            else if(gameRunning){showToast('Disconnected from host','error');returnToLobby();}
+            else{cleanupNetwork();gameMode='solo';setLobbyStatus('The server closed','error');resetJoinUI();}
+        };
+    };
+    try{
+        try{await pc.setRemoteDescription({type:'offer',sdp:d.s});}catch{throw new Error('That invite code is not valid. Copy the whole code again.');}
+        await pc.setLocalDescription(await pc.createAnswer());
+        await gatherIce(pc);
+        if(clientPC!==conn)throw new Error('Cancelled');
+        const sdp=pc.localDescription.sdp;
+        if(!/a=candidate:/.test(sdp))throw new Error('No local network found. Connect this device to Wi-Fi / LAN first.');
+        return{reply:await packCode({t:'a',s:sdp}),done,host:d.n};
+    }catch(e){clearTimeout(timer);if(clientPC===conn)cleanupNetwork();throw e;}
 }
 
 function handleHostMsg(d){
@@ -511,8 +572,10 @@ function handleHostMsg(d){
 }
 
 function sendToHost(data){
-    if(clientPC&&clientPC.channel&&clientPC.channel.open){
-        try{clientPC.channel.send(JSON.stringify(data))}catch{}
+    const ch=clientPC&&clientPC.channel;
+    if(chOpen(ch)){
+        if(data.type==='INPUT'&&ch.bufferedAmount>65536)return;   // slow link: the next input replaces this one
+        try{ch.send(JSON.stringify(data))}catch{}
     }
 }
 
@@ -622,12 +685,9 @@ function applySnapshot(st){
 }
 
 function cleanupNetwork(){
-    Object.values(hostPCs).forEach(s=>{try{s.pc.close()}catch{}});
-    hostPCs={};
+    Object.values(hostPCs).forEach(o=>{clearTimeout(o.connTimer);try{o.pc.close()}catch{}});
+    hostPCs={};hostInfo=null;
     setTimeout(updateChatVis,0);
-    if(hbTimer){clearInterval(hbTimer);hbTimer=null;}
-    if(hostInfo){dirCall({t:'unreg',id:hostInfo.id});hostInfo=null;}
-    if(hostPeer){try{hostPeer.destroy()}catch{};hostPeer=null;}
     if(clientPC){const c=clientPC;clientPC=null;try{c.pc.close()}catch{}}
 }
 
@@ -704,48 +764,68 @@ function refreshLobby(){
         ).join('');
     }
     document.getElementById('lobby-status').classList.add('hidden');
-    refreshServers();
+    resetJoinUI();
 }
 
 function updateWaitingUI(){
     document.getElementById('waiting-host-name').textContent=curUser;
     const container=document.getElementById('client-slots');
     container.innerHTML=[1,2,3].map(s=>{
-        const slot=hostPCs[s],c=slot&&slot.connected;
-        return `<div class="glass-panel p-3 rounded-xl border ${c?'border-emerald-500/40':'border-slate-700/40'} flex items-center gap-2">
+        const slot=hostPCs[s],c=slot&&slot.connected,err=slotErr[s]||(slot&&slot.err)||'';
+        const status=c?'Connected':(slot&&slot.busy)||(slot&&slot.code?'Invite ready':'Empty');
+        const btn=c?'':(slot&&slot.code?`<button data-act="cancel" data-s="${s}" class="px-3 py-1 rounded-lg text-xs font-semibold text-slate-300 glass-btn hover:text-white">Cancel</button>`
+            :slot&&slot.busy?'':`<button data-act="invite" data-s="${s}" class="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500">Invite</button>`);
+        const panel=(!c&&slot&&slot.code)?`<div class="mt-3 space-y-2">
+            <div class="text-xs text-slate-400">1. Send this invite code to the player:</div>
+            <textarea readonly class="s-input" spellcheck="false">${esc(slot.code)}</textarea>
+            <button data-act="copy" data-s="${s}" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500">Copy invite code</button>
+            <div class="text-xs text-slate-400 pt-1">2. Paste the reply code they send back:</div>
+            <textarea data-reply="${s}" id="reply-${s}" class="s-input" spellcheck="false" placeholder="Paste reply code..." ${slot.busy?'disabled':''}>${esc(slot.draft||'')}</textarea>
+            <button data-act="accept" data-s="${s}" ${slot.busy?'disabled':''} class="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500">Connect</button></div>`:'';
+        return `<div class="glass-panel p-3 rounded-xl border ${c?'border-emerald-500/40':'border-slate-700/40'}">
+            <div class="flex items-center gap-2">
             <div class="w-3 h-3 rounded-full ${c?'bg-emerald-400':'bg-slate-600'}"></div>
             <span class="text-sm font-semibold text-white">${c?esc(slot.username):'Slot '+(s+1)}</span>
-            <span class="text-xs ${c?'text-emerald-400':'text-slate-500'}">${c?'Connected':'Waiting for player...'}</span></div>`;
+            <span class="text-xs flex-1 ${c?'text-emerald-400':'text-slate-500'}">${esc(status)}</span>${btn}</div>${panel}
+            ${err?`<div class="mt-2 text-xs text-rose-400">${esc(err)}</div>`:''}</div>`;
     }).join('');
 }
-
-// ---- Server browser ----
-let pendingServer=null;
-async function refreshServers(){
-    const list=document.getElementById('server-list');if(!list)return;
-    list.innerHTML='<div class="text-xs text-slate-500 text-center py-3">Searching for servers...</div>';
-    document.getElementById('pw-row').classList.add('hidden');pendingServer=null;
-    const res=await dirCall({t:'list'});
-    const servers=(res||[]).filter(x=>!hostInfo||x.id!==hostInfo.id);
-    if(!servers.length){list.innerHTML='<div class="text-xs text-slate-500 text-center py-3">No servers found. Host one!</div>';return;}
-    list.innerHTML=servers.map(x=>{
-        const full=x.n>=4;
-        return `<div class="glass-panel rounded-xl p-2.5 border border-slate-700/50 flex items-center gap-3">
-            <i class="fa-solid ${x.priv?'fa-lock text-amber-400':'fa-lock-open text-emerald-400'}"></i>
-            <div class="flex-1 min-w-0"><div class="text-sm text-white font-semibold truncate"></div>
-            <div class="text-xs text-slate-400">${x.priv?'Private':'Open'} · ${x.n}/4${x.started?' · In game':''}</div></div>
-            <button data-id="${x.id}" data-priv="${x.priv?1:0}" ${full?'disabled':''} class="srv-join px-3 py-1.5 rounded-lg text-xs font-semibold text-white ${full?'bg-slate-700':'bg-indigo-600 hover:bg-indigo-500'}">${full?'Full':'Join'}</button></div>`;
-    }).join('');
-    [...list.children].forEach((el,i)=>el.querySelector('.truncate').textContent=servers[i].name);
-    list.querySelectorAll('.srv-join').forEach(b=>b.onclick=()=>{
-        if(b.dataset.priv==='1'){pendingServer=b.dataset.id;document.getElementById('pw-row').classList.remove('hidden');document.getElementById('pw-input').value='';document.getElementById('pw-input').focus();}
-        else attemptJoin(b.dataset.id,'');
+(()=>{
+    const box=document.getElementById('client-slots');
+    box.addEventListener('click',e=>{
+        const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+        const s=+b.dataset.s,slot=hostPCs[s];
+        if(b.dataset.act==='invite')hostInvite(s);
+        else if(b.dataset.act==='cancel'){dropSlot(s);delete slotErr[s];updateWaitingUI();}
+        else if(b.dataset.act==='copy'&&slot)copyText(slot.code,b);
+        else if(b.dataset.act==='accept'&&slot){const t=document.getElementById('reply-'+s);hostAcceptReply(s,t?t.value:'');}
     });
+    box.addEventListener('input',e=>{const t=e.target,slot=t.dataset&&t.dataset.reply&&hostPCs[t.dataset.reply];if(slot)slot.draft=t.value;});   // keep what the host typed across re-renders
+})();
+
+// ---- Join (paste the host's invite code, send the reply code back) ----
+function resetJoinUI(){
+    document.getElementById('join-reply-box').classList.add('hidden');
+    document.getElementById('join-reply').value='';
+    document.getElementById('join-code').value='';document.getElementById('pw-input').value='';
 }
-async function attemptJoin(id,pw){
-    setLobbyStatus('Connecting...','');
-    try{await joinServer(id,pw);setLobbyStatus('Joined! Waiting for the host to start the game...','success');}
-    catch(e){gameMode='solo';setLobbyStatus(e.message,'error');}
+let joinSeq=0;   // bumped on every attempt / cancel so a stale attempt can never touch the screen
+function cancelJoin(){
+    joinSeq++;cleanupNetwork();gameMode='solo';resetJoinUI();
+    document.getElementById('lobby-status').classList.add('hidden');
+}
+async function attemptJoin(){
+    const box=document.getElementById('join-reply-box'),my=++joinSeq;
+    const code=document.getElementById('join-code').value,pw=document.getElementById('pw-input').value.trim().toUpperCase();
+    box.classList.add('hidden');setLobbyStatus('Creating your reply code...','');
+    let r;
+    try{r=await joinWithCode(code,pw);}
+    catch(e){if(my!==joinSeq)return;gameMode='solo';setLobbyStatus(e.message,'error');return;}
+    if(my!==joinSeq)return;
+    document.getElementById('join-reply').value=r.reply;box.classList.remove('hidden');
+    setLobbyStatus(`Send the reply code above to ${r.host||'the host'}, then wait for them to accept it...`,'');
+    try{await r.done;if(my!==joinSeq)return;box.classList.add('hidden');setLobbyStatus('Joined! Waiting for the host to start the game...','success');}
+    catch(e){if(my!==joinSeq)return;gameMode='solo';box.classList.add('hidden');setLobbyStatus(e.message,'error');}
 }
 
 // ============================================================
@@ -1364,7 +1444,7 @@ function triggerDropItem(ent){
     if(ent===player){updateCarriedUI();showToast('Item Dropped!','info');}
 }
 
-function sendSlot(sl,obj){const h=hostPCs[sl];if(h&&h.connected&&h.channel&&h.channel.open)try{h.channel.send(JSON.stringify(obj))}catch{}}
+function sendSlot(sl,obj){const h=hostPCs[sl];if(h&&h.connected&&chOpen(h.channel))try{h.channel.send(JSON.stringify(obj))}catch{}}
 function notify(ent,msg,k){
     if(ent===player)showToast(msg,k);
     else if(gameMode==='host'&&ent.isNetPlayer)sendSlot(ent.baseIndex,{type:'TOAST',m:msg,k});
@@ -1698,7 +1778,7 @@ function buyLuck(k){const q=LUCKS[k];if(player.cash<q.c)return showToast('Not en
     player.cash-=q.c;if(gameMode==='client')sendToHost({type:'ACTION',a:'LUCK',g:k});else applyLuck(k);}
 function applyLuck(k){const q=LUCKS[k];if(!q)return;luck=Math.max(luck,q.m);evLeft=Math.max(evLeft,q.t);evName=q.n;announce(q.n+'! Luck x'+luck);}
 function announce(m){showToast(m,'warning');if(gameMode==='host'){broadcastAll({type:'TOAST',m,k:'warning'});broadcastAll({type:'EV',n:evName,l:evLeft,sp:evSpeed});}}
-function paySlot(s,v){const h=hostPCs[s];if(h&&h.connected&&h.channel&&h.channel.open)try{h.channel.send(JSON.stringify({type:'CASH',v}))}catch{}}
+function paySlot(s,v){const h=hostPCs[s];if(h&&h.connected&&chOpen(h.channel))try{h.channel.send(JSON.stringify({type:'CASH',v}))}catch{}}
 function aimTarget(ent,rng){let best=null,bd=1e9;[player,...bots].forEach(t=>{if(t===ent)return;const d=Math.hypot(t.x-ent.x,t.z-ent.z);if(d>rng)return;
     let df=Math.atan2(t.x-ent.x,t.z-ent.z)-ent.angle;df=Math.atan2(Math.sin(df),Math.cos(df));if(Math.abs(df)<1&&d<bd){bd=d;best=t;}});return best;}
 function useGear(ent,id){
@@ -1881,12 +1961,9 @@ document.getElementById('btn-solo').onclick=()=>{gameMode='solo';startGame();};
 
 document.getElementById('btn-host-open').onclick=()=>startHosting(false);
 document.getElementById('btn-host-private').onclick=()=>startHosting(true);
-document.getElementById('btn-refresh-servers').onclick=refreshServers;
-document.getElementById('btn-pw-join').onclick=()=>{
-    const pw=document.getElementById('pw-input').value.trim();
-    if(pw.length<4){setLobbyStatus('Enter the 4-character password','error');return;}
-    if(pendingServer)attemptJoin(pendingServer,pw);
-};
+document.getElementById('btn-join-code').onclick=attemptJoin;
+document.getElementById('btn-cancel-join').onclick=cancelJoin;
+document.getElementById('btn-copy-reply').onclick=e=>copyText(document.getElementById('join-reply').value,e.currentTarget);
 
 document.getElementById('btn-start-game').onclick=()=>{
     broadcastAll({type:'START'});
