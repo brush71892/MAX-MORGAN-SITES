@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Dull Autumn Trip - 3D Endless Driving Game</title>
-    <!-- Tailwind CSS for UI layout -->
+    <title>A Dull Autumn Trip - Survival & Driving</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Google Font for Nostalgic Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&family=Courier+Prime&display=swap" rel="stylesheet">
     <style>
         body, html {
@@ -31,14 +28,13 @@
             z-index: 1;
         }
 
-        /* Retro Overlay Filters */
         .vignette {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            box-shadow: inset 0 0 100px rgba(15, 10, 5, 0.7);
+            box-shadow: inset 0 0 120px rgba(10, 5, 2, 0.85);
             pointer-events: none;
             z-index: 2;
         }
@@ -49,14 +45,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(rgba(18, 16, 14, 0) 50%, rgba(0, 0, 0, 0.15) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background: linear-gradient(rgba(18, 16, 14, 0) 50%, rgba(0, 0, 0, 0.2) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
             background-size: 100% 3px, 6px 100%;
             pointer-events: none;
             z-index: 3;
-            opacity: 0.6;
+            opacity: 0.55;
         }
 
-        /* Rain Glass Effect Overlay */
         #rain-overlay {
             position: absolute;
             top: 0;
@@ -65,27 +60,77 @@
             height: 100%;
             pointer-events: none;
             z-index: 4;
-            opacity: 0.4;
+            opacity: 0.45;
         }
 
         .retro-text {
             font-family: 'VT323', monospace;
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.8);
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.9);
         }
 
         .typewriter-text {
             font-family: 'Special Elite', cursive;
         }
 
-        /* Custom Scrollbar for Retro UI */
-        ::-webkit-scrollbar {
-            width: 6px;
+        /* FPS Crosshair */
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            pointer-events: none;
+            z-index: 10;
         }
-        ::-webkit-scrollbar-track {
-            background: #2a221b;
+        #crosshair::before, #crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 235, 200, 0.85);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #8c6d46;
+        #crosshair::before {
+            left: 5px; top: 0; width: 2px; height: 12px;
+        }
+        #crosshair::after {
+            left: 0; top: 5px; width: 12px; height: 2px;
+        }
+
+        .hotbar-slot {
+            width: 52px;
+            height: 52px;
+            background: rgba(24, 18, 12, 0.85);
+            border: 2px solid rgba(140, 100, 60, 0.5);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .hotbar-slot.active {
+            border-color: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+            background: rgba(45, 30, 15, 0.95);
+        }
+
+        #damage-flash {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 50%, rgba(180, 20, 20, 0.55) 100%);
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        /* Minimap Radar */
+        #minimap-canvas {
+            border: 2px solid rgba(180, 120, 60, 0.6);
+            border-radius: 50%;
+            background: rgba(15, 12, 8, 0.85);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
         }
     </style>
 </head>
@@ -94,185 +139,225 @@
     <div id="canvas-container"></div>
     <div class="vignette"></div>
     <div class="crt-grain"></div>
+    <div id="damage-flash"></div>
     <canvas id="rain-overlay"></canvas>
 
-    <!-- Top HUD Banner -->
+    <div id="crosshair" class="hidden"></div>
+
+    <!-- HUD Header -->
     <div class="relative z-10 flex justify-between items-start p-4 md:p-6 pointer-events-none">
-        <div class="bg-amber-950/80 border-2 border-amber-800/60 p-3 rounded-lg shadow-xl backdrop-blur-sm pointer-events-auto">
-            <h1 class="typewriter-text text-xl md:text-2xl font-bold text-amber-200 tracking-wider">A Dull Autumn Trip</h1>
-            <p class="text-xs text-amber-400/80 italic">Desolate Route 84 • Route Endless</p>
-            <div class="mt-2 text-xs flex gap-4 text-amber-300">
-                <span>ODOMETER: <strong id="hud-distance" class="text-amber-100 font-mono text-sm">0.0</strong> km</span>
-                <span>TEMP: <strong id="hud-temp" class="text-amber-100 font-mono text-sm">85</strong>°C</span>
+        <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 rounded-xl shadow-2xl backdrop-blur-md pointer-events-auto max-w-xs">
+            <h1 class="typewriter-text text-lg md:text-xl font-bold text-amber-200 tracking-wider">A Dull Autumn Trip</h1>
+            <p class="text-[11px] text-amber-400/80 italic">Route 84 • Endless Fog & Rust</p>
+            <div class="mt-2 text-xs flex flex-col gap-1 text-amber-300 font-mono">
+                <div>TARGET: <strong class="text-amber-100">100,000 m</strong></div>
+                <div>DIST: <strong id="hud-distance" class="text-amber-100">0.0</strong> m</div>
+                <div>POS: <strong id="hud-coords" class="text-amber-100">0, 0</strong></div>
+                <div>GOLD: <strong id="hud-gold" class="text-yellow-400">$0</strong></div>
             </div>
         </div>
 
-        <!-- Weather & Status Indicator -->
-        <div class="bg-amber-950/80 border-2 border-amber-800/60 p-3 rounded-lg shadow-xl backdrop-blur-sm text-right pointer-events-auto min-w-[140px]">
-            <div class="text-xs text-amber-400/70 uppercase tracking-widest">Environment</div>
-            <div id="hud-weather" class="text-sm font-semibold text-amber-200">Overcast Fog</div>
-            <div class="mt-1 text-xs text-amber-400/90 flex items-center justify-end gap-1">
-                <span id="hud-mode-badge" class="px-1.5 py-0.5 bg-amber-800/50 rounded text-[10px] border border-amber-600/40">DRIVING</span>
-                <span id="hud-wiper-status" class="text-[10px] text-amber-500">Wipers: OFF</span>
+        <!-- Radar & Threat Panel -->
+        <div class="flex gap-3 pointer-events-auto items-start">
+            <canvas id="minimap-canvas" width="100" height="100"></canvas>
+
+            <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 rounded-xl shadow-2xl backdrop-blur-md text-right min-w-[150px]">
+                <div class="text-[10px] text-amber-400/70 uppercase tracking-widest font-bold">MODE STATUS</div>
+                <div id="hud-mode-badge" class="text-sm font-bold text-amber-200">DRIVING</div>
+                
+                <div class="mt-2 text-xs space-y-1.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[10px] text-amber-400/80">HEALTH:</span>
+                        <div class="w-20 bg-stone-900 rounded-full h-2 border border-amber-700/50 overflow-hidden">
+                            <div id="hud-health-bar" class="bg-red-600 h-full w-full transition-all duration-300"></div>
+                        </div>
+                    </div>
+                    <div id="threat-container" class="flex items-center justify-between gap-2">
+                        <span class="text-[10px] text-red-400 font-bold">RADAR DETECT:</span>
+                        <span id="hud-threat-level" class="text-xs font-mono text-red-300 font-bold">SAFE</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Center Interaction Prompt -->
-    <div id="interaction-prompt" class="relative z-10 self-center bg-black/75 text-amber-200 px-6 py-2 rounded-full border border-amber-600/50 hidden text-sm md:text-base font-mono animate-pulse shadow-2xl pointer-events-none">
-        Press <span class="bg-amber-700/60 px-2 py-0.5 rounded text-white border border-amber-400">E</span> to Action
+    <!-- Interactive Prompt -->
+    <div id="interaction-prompt" class="relative z-10 self-center bg-stone-950/90 text-amber-200 px-6 py-2.5 rounded-full border border-amber-600/70 hidden text-sm font-mono shadow-2xl pointer-events-none animate-bounce">
+        Press <span class="bg-amber-700 px-2 py-0.5 rounded text-white font-bold border border-amber-400">E</span> to Action
     </div>
 
-    <!-- Bottom Dashboard UI Controls & Cassette Radio Player -->
+    <!-- Sack & Storage Modal Container -->
+    <div id="storage-modal" class="fixed inset-0 z-20 bg-black/70 flex items-center justify-center p-4 hidden pointer-events-auto">
+        <div class="bg-amber-950/95 border-2 border-amber-700 rounded-2xl p-5 max-w-md w-full space-y-4 text-amber-100 font-mono shadow-2xl">
+            <div class="flex justify-between items-center border-b border-amber-800/60 pb-2">
+                <h3 id="storage-title" class="typewriter-text text-xl font-bold text-amber-200">SACK CONTAINERS</h3>
+                <button onclick="toggleStorageModal(false)" class="text-xs bg-red-900/80 hover:bg-red-700 px-2 py-1 rounded text-amber-100 font-bold">CLOSE [ESC]</button>
+            </div>
+            <div id="storage-grid" class="grid grid-cols-4 gap-2 min-h-[160px] p-2 bg-stone-900/80 rounded-xl border border-amber-900">
+                <!-- Items populated dynamically -->
+            </div>
+            <div id="storage-actions" class="flex justify-between text-xs pt-2">
+                <button id="btn-convert-biofuel" onclick="convertZombieBiofuel()" class="bg-emerald-900/90 hover:bg-emerald-800 border border-emerald-600 px-3 py-1.5 rounded text-emerald-200 font-bold hidden">
+                    ♻️ Convert Zombie Corpse to Biofuel (+25% Fuel)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Dashboard UI -->
     <div class="relative z-10 p-4 md:p-6 flex flex-col md:flex-row justify-between items-end gap-4 pointer-events-none">
         
-        <!-- Retro Controls & Instructions Legend -->
-        <div class="bg-amber-950/85 border-2 border-amber-800/60 p-3.5 rounded-lg shadow-2xl backdrop-blur-sm pointer-events-auto text-xs text-amber-300/80 space-y-1 hidden sm:block max-w-xs">
-            <div class="font-bold text-amber-200 mb-1 border-b border-amber-800/50 pb-1">VEHICLE CONTROLS</div>
-            <div><span class="text-amber-100 font-bold">W / A / S / D</span> - Accelerate / Steer / Brake</div>
-            <div><span class="text-amber-100 font-bold">SPACE</span> - Handbrake &nbsp;|&nbsp; <span class="text-amber-100 font-bold">C</span> - Camera View</div>
-            <div><span class="text-amber-100 font-bold">F</span> - Headlights &nbsp;|&nbsp; <span class="text-amber-100 font-bold">E</span> - Enter/Exit Car</div>
-            <div><span class="text-amber-100 font-bold">R</span> - Change Radio &nbsp;|&nbsp; <span class="text-amber-100 font-bold">P</span> - Toggle Wipers</div>
+        <!-- Controls Legend -->
+        <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 rounded-xl shadow-2xl backdrop-blur-md pointer-events-auto text-[11px] text-amber-300/90 space-y-1 hidden lg:block max-w-xs">
+            <div class="font-bold text-amber-200 mb-1 border-b border-amber-800/50 pb-1">CONTROLS GUIDE</div>
+            <div><span class="text-amber-100 font-bold">W / S</span> - Drive Forward / Reverse</div>
+            <div><span class="text-amber-100 font-bold">A / D</span> - Steer Left / Right</div>
+            <div><span class="text-amber-100 font-bold">E</span> - Enter / Exit Car / Open Chest & Trunk</div>
+            <div><span class="text-amber-100 font-bold">F / I</span> - Open Sack Inventory</div>
+            <div><span class="text-amber-100 font-bold">L-Click</span> - Swing Sword / Fire Gun / Refuel</div>
         </div>
 
-        <!-- Dashboard Instrument Display -->
-        <div class="bg-stone-900/90 border-4 border-amber-900/80 p-3 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-4 self-center md:self-auto">
-            
-            <!-- Speedometer -->
+        <!-- Hotbar Inventory -->
+        <div class="bg-stone-950/90 border-2 border-amber-800/80 p-2.5 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-2 self-center">
+            <div class="hotbar-slot active" id="slot-0" onclick="selectSlot(0)">
+                <span class="text-[9px] text-amber-500 absolute top-1 left-1.5 font-bold">1</span>
+                <span id="icon-0" class="text-lg">🗡️</span>
+                <span id="label-0" class="text-[8px] text-amber-300 truncate w-full text-center px-1">Sword</span>
+            </div>
+            <div class="hotbar-slot" id="slot-1" onclick="selectSlot(1)">
+                <span class="text-[9px] text-amber-500 absolute top-1 left-1.5 font-bold">2</span>
+                <span id="icon-1" class="text-lg">🔦</span>
+                <span id="label-1" class="text-[8px] text-amber-300 truncate w-full text-center px-1">Flashlight</span>
+            </div>
+            <div class="hotbar-slot" id="slot-2" onclick="selectSlot(2)">
+                <span class="text-[9px] text-amber-500 absolute top-1 left-1.5 font-bold">3</span>
+                <span id="icon-2" class="text-lg">⛽</span>
+                <span id="label-2" class="text-[8px] text-amber-300 truncate w-full text-center px-1">Fuel Can</span>
+            </div>
+            <div class="hotbar-slot" id="slot-3" onclick="selectSlot(3)">
+                <span class="text-[9px] text-amber-500 absolute top-1 left-1.5 font-bold">4</span>
+                <span id="icon-3" class="text-lg">🎒</span>
+                <span id="label-3" class="text-[8px] text-amber-300 truncate w-full text-center px-1">Sack</span>
+            </div>
+        </div>
+
+        <!-- Vehicle Instrument Cluster -->
+        <div id="car-dashboard-ui" class="bg-stone-950/90 border-4 border-amber-900/80 p-3 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-3 self-center md:self-auto">
             <div class="flex flex-col items-center">
-                <div class="relative w-20 h-20 bg-stone-950 rounded-full border-2 border-amber-800/80 flex items-center justify-center shadow-inner">
-                    <div id="gauge-speed-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-8 bg-red-600 origin-bottom transform -rotate-120 transition-transform duration-75"></div>
-                    <span id="speed-display" class="retro-text text-xl text-amber-400 mt-5">0</span>
-                    <span class="text-[9px] text-amber-600 absolute bottom-2">KM/H</span>
+                <div class="relative w-16 h-16 bg-stone-900 rounded-full border-2 border-amber-800 flex items-center justify-center">
+                    <div id="gauge-speed-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-6 bg-red-600 origin-bottom transform -rotate-120 transition-transform duration-75"></div>
+                    <span id="speed-display" class="retro-text text-lg text-amber-400 mt-4">0</span>
+                    <span class="text-[8px] text-amber-600 absolute bottom-1">KM/H</span>
                 </div>
             </div>
-
-            <!-- Fuel Gauge -->
             <div class="flex flex-col items-center">
-                <div class="relative w-16 h-16 bg-stone-950 rounded-full border-2 border-amber-800/80 flex items-center justify-center shadow-inner">
-                    <div id="gauge-fuel-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-6 bg-amber-500 origin-bottom transform rotate-45 transition-transform duration-300"></div>
-                    <span class="text-[9px] text-amber-600 absolute bottom-2 font-bold">FUEL</span>
+                <div class="relative w-14 h-14 bg-stone-900 rounded-full border-2 border-amber-800 flex items-center justify-center">
+                    <div id="gauge-fuel-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-5 bg-amber-500 origin-bottom transform rotate-45 transition-transform duration-300"></div>
+                    <span class="text-[8px] text-amber-600 absolute bottom-1 font-bold">FUEL</span>
                 </div>
-                <span id="hud-fuel-pct" class="text-[10px] text-amber-300 font-mono mt-1">100%</span>
+                <span id="hud-fuel-pct" class="text-[9px] text-amber-300 font-mono mt-1">100%</span>
             </div>
-
-            <!-- Radio Player Panel -->
-            <div class="bg-amber-950/60 p-2.5 rounded-lg border border-amber-800/40 flex flex-col gap-1 text-xs w-36">
-                <div class="flex justify-between items-center">
-                    <span class="text-[10px] text-amber-400/80 uppercase tracking-wider">AM RADIO</span>
-                    <span id="radio-indicator" class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-                </div>
-                <div id="radio-station-name" class="retro-text text-sm text-amber-200 truncate">Station 91.4 AM</div>
-                <div class="flex justify-between gap-1 mt-1">
-                    <button id="btn-radio-prev" class="bg-amber-900/80 hover:bg-amber-800 px-2 py-1 rounded text-[10px] text-amber-100 border border-amber-700/50">◄</button>
-                    <button id="btn-radio-toggle" class="bg-amber-900/80 hover:bg-amber-800 px-2.5 py-1 rounded text-[10px] text-amber-100 border border-amber-700/50 font-bold">ON/OFF</button>
-                    <button id="btn-radio-next" class="bg-amber-900/80 hover:bg-amber-800 px-2 py-1 rounded text-[10px] text-amber-100 border border-amber-700/50">►</button>
-                </div>
-            </div>
-
         </div>
 
     </div>
 
-    <!-- Onscreen Touch Controls for Mobile -->
-    <div class="md:hidden fixed bottom-24 left-4 right-4 z-20 flex justify-between pointer-events-auto">
-        <div class="grid grid-cols-3 gap-1 w-32">
-            <div></div>
-            <button id="touch-w" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">▲</button>
-            <div></div>
-            <button id="touch-a" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">◄</button>
-            <button id="touch-s" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">▼</button>
-            <button id="touch-d" class="bg-amber-900/70 border border-amber-600/50 rounded p-3 text-center active:bg-amber-700 text-white font-bold">►</button>
-        </div>
-        <div class="flex flex-col gap-2">
-            <button id="touch-cam" class="bg-stone-800/80 border border-amber-600/50 rounded px-4 py-2 text-xs text-amber-200">CAM</button>
-            <button id="touch-exit" class="bg-amber-800/80 border border-amber-600/50 rounded px-4 py-3 text-xs text-amber-100 font-bold">EXIT/ENTER</button>
-        </div>
-    </div>
-
-    <!-- Start / Game Over Overlay Modal -->
+    <!-- Start / Game Over Modal -->
     <div id="modal-screen" class="fixed inset-0 z-30 bg-stone-950/95 flex items-center justify-center p-4">
-        <div class="bg-amber-950/90 border-4 border-amber-800/80 rounded-2xl max-w-lg w-full p-6 md:p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
-            <!-- Vintage Polaroid Banner -->
-            <div class="inline-block p-3 bg-stone-200 rounded shadow-md transform -rotate-2">
-                <div class="w-full h-32 bg-amber-900/30 rounded flex items-center justify-center overflow-hidden relative">
-                    <div class="absolute inset-0 bg-gradient-to-t from-amber-950/80 to-transparent"></div>
-                    <span class="typewriter-text text-amber-900 text-2xl font-bold tracking-widest uppercase">AUTUMN 1994</span>
+        <div class="bg-amber-950/90 border-4 border-amber-800/80 rounded-2xl max-w-md w-full p-6 text-center space-y-5 relative shadow-2xl">
+            <div class="inline-block p-2 bg-stone-200 rounded shadow-md transform -rotate-1">
+                <div class="w-full h-28 bg-amber-900/40 rounded flex items-center justify-center overflow-hidden">
+                    <span class="typewriter-text text-amber-950 text-xl font-bold tracking-widest uppercase">DESOLATE ROUTE 84</span>
                 </div>
             </div>
 
             <div>
-                <h2 id="modal-title" class="typewriter-text text-3xl md:text-4xl font-bold text-amber-100 tracking-wide">A Dull Autumn Trip</h2>
-                <p id="modal-desc" class="text-sm text-amber-300/90 mt-2 leading-relaxed">
-                    An infinite journey down desolate foggy highways. Collect roadside fuel, keep your engine from overheating, and embrace the melancholic lo-fi tunes.
+                <h2 id="modal-title" class="typewriter-text text-3xl font-bold text-amber-100">A Dull Autumn Trip</h2>
+                <p id="modal-desc" class="text-xs text-amber-300/90 mt-2 leading-relaxed">
+                    Drive forward along Highway 84 towards the 100,000 meter outpost challenge. Explore roadside towns, loot bank vaults, store items in your Portable Sack, convert zombie corpses to biofuel, and survive raider buggies!
                 </p>
             </div>
 
-            <div id="modal-stats" class="hidden bg-stone-900/80 p-4 rounded-lg border border-amber-800/50 text-left space-y-1.5 text-xs text-amber-200 font-mono">
-                <div>DISTANCE TRAVELED: <span id="stat-dist" class="text-amber-400 font-bold">0</span> KM</div>
-                <div>RADIO SONGS LISTENED: <span id="stat-songs" class="text-amber-400 font-bold">0</span></div>
-                <div>REASON: <span id="stat-reason" class="text-red-400 font-bold">OUT OF FUEL</span></div>
+            <div id="modal-stats" class="hidden bg-stone-900/90 p-3 rounded-lg border border-amber-800/50 text-left space-y-1 text-xs text-amber-200 font-mono">
+                <div>DISTANCE REACHED: <span id="stat-dist" class="text-amber-400 font-bold">0</span> M</div>
+                <div>ENEMIES DEFEATED: <span id="stat-kills" class="text-amber-400 font-bold">0</span></div>
+                <div>OUTCOME: <span id="stat-reason" class="text-red-400 font-bold">OVERTAKEN BY MIST</span></div>
             </div>
 
-            <button id="btn-start" class="w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-lg rounded-xl border-2 border-amber-600 transition shadow-lg transform active:scale-98">
-                BEGIN JOURNEY
+            <button id="btn-start" class="w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-base rounded-xl border-2 border-amber-600 transition shadow-lg active:scale-98">
+                START EXPEDITION
             </button>
-            <p class="text-[11px] text-amber-400/60 italic">Audio enabled on start • WASD to drive or walk</p>
         </div>
     </div>
 
     <script>
         let scene, camera, renderer, clock;
-        let car, carSpeed = 0, maxSpeed = 1.1, acceleration = 0.008, friction = 0.002, brakePower = 0.02;
-        let steerAngle = 0, maxSteer = 0.035, steerSpeed = 0.002, steerDecay = 0.003;
-        let carPos = { x: 0, z: 0 };
+        let car, carSpeed = 0, maxSpeed = 1.2, acceleration = 0.01, friction = 0.003, brakePower = 0.025;
+        let steerAngle = 0, maxSteer = 0.035, steerSpeed = 0.0025, steerDecay = 0.004;
         
         let gameState = 'START'; // 'START', 'DRIVING', 'ON_FOOT', 'GAMEOVER'
-        let cameraMode = 'FIRST_PERSON'; // 'FIRST_PERSON', 'THIRD_PERSON'
-        let headlightsOn = true;
-        let wipersOn = false;
 
-        // Player Foot Controls State
-        let playerPos = { x: 0, y: 1.2, z: 0 };
+        // Player Stats & Navigation
+        let playerHealth = 100;
+        let playerGold = 0;
+        let playerPos = new THREE.Vector3(0, 1.6, 0);
         let playerYaw = 0, playerPitch = 0;
+        let outdoorTimer = 0;
+        let zombieKills = 0;
 
-        // Mechanics Metrics
-        let fuel = 100; // percent
-        let engineTemp = 85; // Celsius
-        let distanceTraveled = 0; // km
-        let wiperAngle = 0;
+        // Hotbar & Sack Storage Inventory
+        let activeSlot = 0;
+        const inventory = [
+            { id: 'sword', name: 'Rust Sword', icon: '🗡️' },
+            { id: 'flashlight', name: 'Flashlight', icon: '🔦' },
+            { id: 'fuel', name: 'Fuel Can', icon: '⛽' },
+            { id: 'sack', name: 'Loot Sack', icon: '🎒' }
+        ];
 
-        // Key states
+        let sackContents = [
+            { id: 'medkit', name: 'Medkit', icon: '🩹' }
+        ];
+        let carTrunkContents = [];
+
+        // Core Game Metrics
+        let fuel = 100;
+        let distanceTraveled = 0;
+        const BOSS_TARGET = 100000;
+
         const keys = { w: false, a: false, s: false, d: false, space: false };
 
-        // Procedural World Chunks
-        const chunks = [];
+        // Terrain & Structure Chunks
+        const terrainChunks = new Map();
         const CHUNK_SIZE = 120;
-        const RENDER_DISTANCE = 4;
-        let lastChunkZ = 0;
-
-        // Interactive Objects
+        const VIEW_DISTANCE = 2;
+        
         const interactiveItems = [];
-        let nearbyItem = null;
+        const zombies = [];
+        const raiderBuggies = [];
+        const towns = [];
+        const outposts = [];
+        let flashlightSpot;
+        let playerSwordMesh;
+        let rainParticles;
 
-        // Particle Systems
-        let rainParticles, leafParticles;
+        function noise2D(x, z) {
+            const nx = x * 0.015;
+            const nz = z * 0.015;
+            return Math.sin(nx) * Math.cos(nz) * 6.5 + Math.sin(nx * 2.5 + nz * 1.5) * 2.5;
+        }
 
-        class AudioEngine {
+        function getTerrainHeight(x, z) {
+            const distFromRoad = Math.abs(x);
+            const roadBlend = Math.min(1.0, Math.max(0.0, (distFromRoad - 7.0) / 12.0));
+            const rawH = noise2D(x, z);
+            return rawH * roadBlend;
+        }
+
+        /* Sound Audio Engine */
+        class SoundEngine {
             constructor() {
                 this.ctx = null;
                 this.engineGain = null;
                 this.engineOsc = null;
-                this.radioGain = null;
-                this.currentStation = 0;
-                this.radioPlaying = true;
-                this.stations = [
-                    { name: '91.4 AM - Autumn Memories', type: 'lofi' },
-                    { name: '98.1 AM - Muted Rain', type: 'ambient' },
-                    { name: '104.5 AM - Static Drift', type: 'static' }
-                ];
-                this.synthTrackNote = 0;
-                this.songCount = 0;
             }
 
             init() {
@@ -280,92 +365,27 @@
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 this.ctx = new AudioCtx();
 
-                // Engine Sound Synthesizer
                 this.engineOsc = this.ctx.createOscillator();
                 const engineFilter = this.ctx.createBiquadFilter();
                 this.engineGain = this.ctx.createGain();
 
                 this.engineOsc.type = 'sawtooth';
-                this.engineOsc.frequency.setValueAtTime(45, this.ctx.currentTime);
-                
+                this.engineOsc.frequency.setValueAtTime(40, this.ctx.currentTime);
                 engineFilter.type = 'lowpass';
-                engineFilter.frequency.setValueAtTime(250, this.ctx.currentTime);
+                engineFilter.frequency.setValueAtTime(220, this.ctx.currentTime);
 
-                this.engineGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                this.engineGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
 
                 this.engineOsc.connect(engineFilter);
                 engineFilter.connect(this.engineGain);
                 this.engineGain.connect(this.ctx.destination);
                 this.engineOsc.start();
-
-                // Radio System Setup
-                this.radioGain = this.ctx.createGain();
-                this.radioGain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                this.radioGain.connect(this.ctx.destination);
-
-                this.startRadioScheduler();
             }
 
             updateEngine(speedRatio) {
                 if (!this.ctx || !this.engineOsc) return;
-                const pitch = 40 + (speedRatio * 120);
+                const pitch = 35 + (speedRatio * 120);
                 this.engineOsc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.1);
-            }
-
-            startRadioScheduler() {
-                const notes = [220, 261.63, 293.66, 329.63, 392.00, 440]; // A Minor Pentatonic
-                setInterval(() => {
-                    if (!this.ctx || !this.radioPlaying) return;
-
-                    const station = this.stations[this.currentStation];
-                    if (station.type === 'lofi') {
-                        // Play relaxing ambient chord sequence
-                        const osc = this.ctx.createOscillator();
-                        const g = this.ctx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(notes[Math.floor(Math.random() * notes.length)] * 0.5, this.ctx.currentTime);
-                        
-                        g.gain.setValueAtTime(0.05, this.ctx.currentTime);
-                        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 2.5);
-
-                        osc.connect(g);
-                        g.connect(this.radioGain);
-                        osc.start();
-                        osc.stop(this.ctx.currentTime + 2.5);
-                    } else if (station.type === 'ambient') {
-                        const osc = this.ctx.createOscillator();
-                        const g = this.ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(110 + Math.random() * 40, this.ctx.currentTime);
-                        
-                        g.gain.setValueAtTime(0.03, this.ctx.currentTime);
-                        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 4.0);
-
-                        osc.connect(g);
-                        g.connect(this.radioGain);
-                        osc.start();
-                        osc.stop(this.ctx.currentTime + 4.0);
-                    }
-                }, 1200);
-            }
-
-            nextStation() {
-                this.currentStation = (this.currentStation + 1) % this.stations.length;
-                this.songCount++;
-                return this.stations[this.currentStation].name;
-            }
-
-            prevStation() {
-                this.currentStation = (this.currentStation - 1 + this.stations.length) % this.stations.length;
-                return this.stations[this.currentStation].name;
-            }
-
-            toggleRadio() {
-                this.radioPlaying = !this.radioPlaying;
-                if (this.radioGain) {
-                    this.radioGain.gain.setValueAtTime(this.radioPlaying ? 0.2 : 0, this.ctx.currentTime);
-                }
-                return this.radioPlaying;
             }
 
             playSound(type) {
@@ -375,39 +395,46 @@
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
 
-                if (type === 'pickup') {
+                if (type === 'swing') {
                     osc.type = 'sine';
+                    osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.15);
+                } else if (type === 'zombie_hit') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(40, this.ctx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.2);
+                } else if (type === 'pickup') {
+                    osc.type = 'triangle';
                     osc.frequency.setValueAtTime(440, this.ctx.currentTime);
                     osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.2);
                     gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
                     gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
                     osc.start();
                     osc.stop(this.ctx.currentTime + 0.2);
-                } else if (type === 'door') {
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-                    osc.frequency.linearRampToValueAtTime(60, this.ctx.currentTime + 0.15);
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-                    osc.start();
-                    osc.stop(this.ctx.currentTime + 0.15);
                 }
             }
         }
 
-        const audio = new AudioEngine();
+        const audio = new SoundEngine();
 
         function initScene() {
             const container = document.getElementById('canvas-container');
 
             scene = new THREE.Scene();
-            // Melancholic amber/gray atmospheric fog
-            scene.background = new THREE.Color(0x2d251e);
-            scene.fog = new THREE.FogExp2(0x2d251e, 0.012);
+            scene.background = new THREE.Color(0x28201a);
+            scene.fog = new THREE.FogExp2(0x28201a, 0.013);
 
             camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 500);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             renderer.shadowMap.enabled = true;
@@ -418,71 +445,59 @@
 
             clock = new THREE.Clock();
 
-            // Lights
-            const ambientLight = new THREE.AmbientLight(0x8c735d, 0.6);
-            scene.add(ambientLight);
+            const ambient = new THREE.AmbientLight(0x7a6350, 0.55);
+            scene.add(ambient);
 
-            const sunLight = new THREE.DirectionalLight(0xd99b66, 1.2);
-            sunLight.position.set(-60, 40, -50);
+            const sunLight = new THREE.DirectionalLight(0xd99059, 1.1);
+            sunLight.position.set(-80, 50, -60);
             sunLight.castShadow = true;
             sunLight.shadow.mapSize.width = 1024;
             sunLight.shadow.mapSize.height = 1024;
-            sunLight.shadow.camera.near = 0.5;
-            sunLight.shadow.camera.far = 250;
-            const d = 60;
-            sunLight.shadow.camera.left = -d;
-            sunLight.shadow.camera.right = d;
-            sunLight.shadow.camera.top = d;
-            sunLight.shadow.camera.bottom = -d;
             scene.add(sunLight);
 
-            // Build Low-Poly Vehicle
-            createCar();
+            flashlightSpot = new THREE.SpotLight(0xfff3cc, 0, 35, Math.PI / 5, 0.3);
+            scene.add(flashlightSpot);
+            scene.add(flashlightSpot.target);
 
-            // Weather Rain Particles
+            createCar();
+            createPlayerFPSItems();
             createWeatherParticles();
 
-            // Initial World Chunks
-            for (let i = 0; i < RENDER_DISTANCE; i++) {
-                generateChunk(i * -CHUNK_SIZE);
-            }
-
-            window.addEventListener('resize', onWindowResize);
+            setupPointerLock();
             setupInputListeners();
             initRain2DCanvas();
+
+            updateChunks(0, 0);
         }
 
         function createCar() {
             car = new THREE.Group();
 
-            // Main Car Body Shell
-            const bodyGeo = new THREE.BoxGeometry(2.0, 0.9, 4.2);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x5a3d28, roughness: 0.6, metalness: 0.2 }); // Rustic Brown
+            const bodyGeo = new THREE.BoxGeometry(2.1, 0.9, 4.3);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x543723, roughness: 0.65 });
             const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
             bodyMesh.position.y = 0.75;
             bodyMesh.castShadow = true;
             car.add(bodyMesh);
 
-            // Car Cabin Top
-            const cabinGeo = new THREE.BoxGeometry(1.8, 0.75, 2.2);
-            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x221e1a, roughness: 0.4 });
+            const cabinGeo = new THREE.BoxGeometry(1.85, 0.75, 2.2);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x1f1b18, roughness: 0.5 });
             const cabinMesh = new THREE.Mesh(cabinGeo, cabinMat);
             cabinMesh.position.set(0, 1.5, -0.2);
             cabinMesh.castShadow = true;
             car.add(cabinMesh);
 
-            // Wheels
-            const wheelGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 12);
+            const trunkGeo = new THREE.BoxGeometry(1.7, 0.4, 0.9);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2719, roughness: 0.7 });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.set(0, 1.05, -1.6);
+            trunk.castShadow = true;
+            car.add(trunk);
+
+            const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.32, 12);
             const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
 
-            const wheelPositions = [
-                [-1.0, 0.4, 1.3],
-                [1.0, 0.4, 1.3],
-                [-1.0, 0.4, -1.3],
-                [1.0, 0.4, -1.3]
-            ];
-
-            wheelPositions.forEach(pos => {
+            [[-1.05, 0.42, 1.3], [1.05, 0.42, 1.3], [-1.05, 0.42, -1.3], [1.05, 0.42, -1.3]].forEach(pos => {
                 const wheel = new THREE.Mesh(wheelGeo, wheelMat);
                 wheel.rotation.z = Math.PI / 2;
                 wheel.position.set(...pos);
@@ -490,210 +505,428 @@
                 car.add(wheel);
             });
 
-            // Headlights
-            const headlightGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.1, 12);
-            const headlightMat = new THREE.MeshBasicMaterial({ color: 0xfff3d1 });
-            
-            const hlLeft = new THREE.Mesh(headlightGeo, headlightMat);
-            hlLeft.rotation.x = Math.PI / 2;
-            hlLeft.position.set(-0.7, 0.8, -2.11);
-            car.add(hlLeft);
+            // Bright Front Headlights (+Z direction)
+            const hlGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.1, 12);
+            const hlMat = new THREE.MeshBasicMaterial({ color: 0xfff3d1 });
+            const hlL = new THREE.Mesh(hlGeo, hlMat);
+            hlL.rotation.x = Math.PI / 2;
+            hlL.position.set(-0.7, 0.8, 2.16);
+            car.add(hlL);
 
-            const hlRight = hlLeft.clone();
-            hlRight.position.x = 0.7;
-            car.add(hlRight);
+            const hlR = hlL.clone();
+            hlR.position.x = 0.7;
+            car.add(hlR);
 
-            // Spotlights for Night/Fog Headlight Beams
-            const spotLightLeft = new THREE.SpotLight(0xfff5cc, 3, 40, Math.PI / 6, 0.4);
-            spotLightLeft.position.set(-0.7, 0.8, -2.1);
-            spotLightLeft.target.position.set(-0.7, 0.5, -15);
-            car.add(spotLightLeft);
-            car.add(spotLightLeft.target);
+            const spotL = new THREE.SpotLight(0xfff5cc, 4.5, 60, Math.PI / 4, 0.3);
+            spotL.position.set(-0.7, 0.8, 2.15);
+            spotL.target.position.set(-0.7, 0.5, 25);
+            car.add(spotL);
+            car.add(spotL.target);
 
-            const spotLightRight = spotLightLeft.clone();
-            spotLightRight.position.x = 0.7;
-            spotLightRight.target.position.x = 0.7;
-            car.add(spotLightRight);
-            car.add(spotLightRight.target);
+            const spotR = spotL.clone();
+            spotR.position.x = 0.7;
+            spotR.target.position.x = 0.7;
+            car.add(spotR);
+            car.add(spotR.target);
 
-            // Dashboard Steering Wheel (Inside Cabin)
-            const wheelRingGeo = new THREE.TorusGeometry(0.22, 0.03, 8, 16);
-            const wheelRingMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-            const steeringWheel = new THREE.Mesh(wheelRingGeo, wheelRingMat);
-            steeringWheel.name = "steeringWheel";
-            steeringWheel.position.set(-0.45, 1.35, -0.4);
-            steeringWheel.rotation.x = -Math.PI / 6;
-            car.add(steeringWheel);
-
+            car.position.set(0, getTerrainHeight(0, 0), 0);
             scene.add(car);
         }
 
-        function generateChunk(zOffset) {
+        function createPlayerFPSItems() {
+            playerSwordMesh = new THREE.Group();
+            
+            const bladeGeo = new THREE.BoxGeometry(0.08, 1.1, 0.02);
+            const bladeMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, metalness: 0.8, roughness: 0.3 });
+            const blade = new THREE.Mesh(bladeGeo, bladeMat);
+            blade.position.y = 0.55;
+            playerSwordMesh.add(blade);
+
+            const hiltGeo = new THREE.BoxGeometry(0.3, 0.05, 0.05);
+            const hiltMat = new THREE.MeshStandardMaterial({ color: 0x442211 });
+            const hilt = new THREE.Mesh(hiltGeo, hiltMat);
+            playerSwordMesh.add(hilt);
+
+            playerSwordMesh.position.set(0.4, -0.3, -0.6);
+            playerSwordMesh.rotation.set(0.2, -0.2, 0);
+            camera.add(playerSwordMesh);
+            scene.add(camera);
+        }
+
+        function generateChunk(cx, cz) {
+            const key = `${cx},${cz}`;
+            if (terrainChunks.has(key)) return;
+
             const chunk = new THREE.Group();
-            chunk.position.z = zOffset;
+            const startX = cx * CHUNK_SIZE;
+            const startZ = cz * CHUNK_SIZE;
+            chunk.position.set(startX, 0, startZ);
 
-            // Road Segment
-            const roadGeo = new THREE.PlaneGeometry(12, CHUNK_SIZE);
-            const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
-            const road = new THREE.Mesh(roadGeo, roadMat);
-            road.rotation.x = -Math.PI / 2;
-            road.position.y = 0.01;
-            road.receiveShadow = true;
-            chunk.add(road);
+            const segments = 24;
+            const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, segments, segments);
+            geo.rotateX(-Math.PI / 2);
 
-            // Dashed Center Road Markings
-            for (let i = -CHUNK_SIZE / 2; i < CHUNK_SIZE / 2; i += 8) {
-                const stripeGeo = new THREE.PlaneGeometry(0.3, 4);
-                const stripeMat = new THREE.MeshBasicMaterial({ color: 0xd4a359 });
-                const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-                stripe.rotation.x = -Math.PI / 2;
-                stripe.position.set(0, 0.02, i);
-                chunk.add(stripe);
-            }
-
-            // Terrain Shoulders
-            const terrainGeo = new THREE.PlaneGeometry(150, CHUNK_SIZE, 12, 12);
-            // Add subtle elevation roughness
-            const pos = terrainGeo.attributes.position;
+            const pos = geo.attributes.position;
             for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i);
-                if (Math.abs(vx) > 8) {
-                    pos.setZ(i, Math.sin(vx * 0.1) * Math.cos(pos.getY(i) * 0.1) * 2.5);
-                }
+                const vx = pos.getX(i) + startX;
+                const vz = pos.getZ(i) + startZ;
+                pos.setY(i, getTerrainHeight(vx, vz));
             }
-            terrainGeo.computeVertexNormals();
+            geo.computeVertexNormals();
 
-            const terrainMat = new THREE.MeshStandardMaterial({ color: 0x3d2e1e, roughness: 0.95 }); // Autumn mud brown
-            const terrain = new THREE.Mesh(terrainGeo, terrainMat);
-            terrain.rotation.x = -Math.PI / 2;
+            const mat = new THREE.MeshStandardMaterial({ color: 0x3d2e1e, roughness: 0.95 });
+            const terrain = new THREE.Mesh(geo, mat);
             terrain.receiveShadow = true;
             chunk.add(terrain);
 
-            // Powerlines & Utility Poles along the roadside
-            const poleGeo = new THREE.CylinderGeometry(0.12, 0.18, 8, 8);
-            const poleMat = new THREE.MeshStandardMaterial({ color: 0x2a1c10, roughness: 0.9 });
-            
-            for (let i = -CHUNK_SIZE / 2; i < CHUNK_SIZE / 2; i += 30) {
-                const pole = new THREE.Mesh(poleGeo, poleMat);
-                pole.position.set(-8.5, 4, i);
-                pole.castShadow = true;
-                chunk.add(pole);
+            // Highway Segment
+            if (Math.abs(cx) === 0) {
+                const roadGeo = new THREE.PlaneGeometry(12, CHUNK_SIZE);
+                roadGeo.rotateX(-Math.PI / 2);
+                const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+                const road = new THREE.Mesh(roadGeo, roadMat);
+                road.position.y = 0.02;
+                road.receiveShadow = true;
+                chunk.add(road);
+
+                for (let i = -CHUNK_SIZE / 2; i < CHUNK_SIZE / 2; i += 8) {
+                    const stripeGeo = new THREE.PlaneGeometry(0.3, 4);
+                    stripeGeo.rotateX(-Math.PI / 2);
+                    const stripeMat = new THREE.MeshBasicMaterial({ color: 0xd4a359 });
+                    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+                    stripe.position.set(0, 0.04, i);
+                    chunk.add(stripe);
+                }
             }
 
-            // Scatter Low-Poly Autumn Trees & Fallen Logs
-            for (let i = 0; i < 28; i++) {
-                const x = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 55);
-                const z = (Math.random() - 0.5) * CHUNK_SIZE;
-                const tree = createAutumnTree();
-                tree.position.set(x, 0, z);
-                chunk.add(tree);
+            // Trees
+            for (let i = 0; i < 10; i++) {
+                const rx = (Math.random() - 0.5) * CHUNK_SIZE;
+                const rz = (Math.random() - 0.5) * CHUNK_SIZE;
+                const worldX = startX + rx;
+                const worldZ = startZ + rz;
+
+                if (Math.abs(worldX) > 8) {
+                    const tree = createAutumnTree();
+                    tree.position.set(rx, getTerrainHeight(worldX, worldZ), rz);
+                    chunk.add(tree);
+                }
             }
 
-            // Occasional Abandoned Roadside Relic (e.g. Gas Station / Shack)
-            if (Math.random() < 0.45) {
-                const isRight = Math.random() > 0.5;
-                const relicX = isRight ? 14 : -14;
-                const relicZ = (Math.random() - 0.5) * (CHUNK_SIZE - 20);
-                
-                const gasStation = createGasStationRelic(zOffset + relicZ, relicX);
-                gasStation.position.set(relicX, 0, relicZ);
-                chunk.add(gasStation);
+            // Roadside Towns (every ~10 chunks / 1,200m)
+            if (cx === 0 && cz > 0 && cz % 10 === 0) {
+                createRoadsideTown(chunk, startX, startZ);
             }
 
-            // Spawn Collectible Gas Cans or Toolkits on Road Shoulder
+            // Outposts with Guard Towers every 10,000m (~83 chunks)
+            if (cx === 0 && cz > 0 && Math.floor((cz * CHUNK_SIZE) / 10000) > Math.floor(((cz - 1) * CHUNK_SIZE) / 10000)) {
+                createOutpostBuilding(chunk, startX, startZ);
+            }
+
+            // Raider Buggy Chase Encounter Chance
+            if (cz > 5 && Math.random() < 0.25 && raiderBuggies.length < 2) {
+                spawnRaiderBuggy(startX + 15, startZ + 20);
+            }
+
+            // Items & Collectibles
             if (Math.random() < 0.6) {
-                const itemX = (Math.random() > 0.5 ? 1 : -1) * (5.5 + Math.random() * 2);
-                const itemZ = (Math.random() - 0.5) * (CHUNK_SIZE - 10);
-                const item = createCollectibleItem('fuel', itemX, zOffset + itemZ);
+                const rx = (Math.random() - 0.5) * (CHUNK_SIZE - 20);
+                const rz = (Math.random() - 0.5) * (CHUNK_SIZE - 20);
+                const worldX = startX + rx;
+                const worldZ = startZ + rz;
+                
+                const types = ['fuel', 'medkit', 'sword', 'corpse', 'gold'];
+                const selectedType = types[Math.floor(Math.random() * types.length)];
+                
+                const item = createCollectibleMesh(selectedType, worldX, worldZ);
+                item.position.set(rx, getTerrainHeight(worldX, worldZ) + 0.3, rz);
                 chunk.add(item);
                 interactiveItems.push(item);
             }
 
             scene.add(chunk);
-            chunks.push({ group: chunk, z: zOffset });
-            lastChunkZ = zOffset;
+            terrainChunks.set(key, { group: chunk, cx, cz });
         }
 
         function createAutumnTree() {
             const tree = new THREE.Group();
-
-            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.45, 4.5, 7);
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.4, 4, 6);
             const trunkMat = new THREE.MeshStandardMaterial({ color: 0x24180e, roughness: 0.9 });
             const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.y = 2.25;
-            trunk.castShadow = true;
+            trunk.position.y = 2;
             tree.add(trunk);
 
-            // Foliage Palette (Rusty Orange, Deep Red, Dull Yellow)
             const colors = [0xb85228, 0x8c381d, 0xc47e33, 0x5e381b];
-            const foliageColor = colors[Math.floor(Math.random() * colors.length)];
-
-            const foliageGeo = new THREE.DodecahedronGeometry(2.2 + Math.random() * 0.8, 1);
-            const foliageMat = new THREE.MeshStandardMaterial({ color: foliageColor, roughness: 0.85, flatShading: true });
+            const foliageGeo = new THREE.DodecahedronGeometry(2.0 + Math.random() * 0.6, 1);
+            const foliageMat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * colors.length)], roughness: 0.85 });
             const foliage = new THREE.Mesh(foliageGeo, foliageMat);
-            foliage.position.y = 5.0;
-            foliage.castShadow = true;
+            foliage.position.y = 4.5;
             tree.add(foliage);
 
-            const scale = 0.8 + Math.random() * 0.6;
-            tree.scale.set(scale, scale, scale);
             return tree;
         }
 
-        function createGasStationRelic(worldZ, posX) {
-            const station = new THREE.Group();
+        /* Towns with Multi-building structures, banks with loot gold chests */
+        function createRoadsideTown(chunk, startX, startZ) {
+            const town = new THREE.Group();
+            
+            // Houses & Shops on roadside
+            const buildingTypes = [
+                { name: 'Bank & Vault', color: 0x3d352e, width: 14, depth: 14, height: 7 },
+                { name: 'General Store', color: 0x524132, width: 10, depth: 10, height: 5 },
+                { name: 'Abandoned Diner', color: 0x4a3222, width: 12, depth: 8, height: 4.5 }
+            ];
 
-            // Shack / Shed structure
-            const buildingGeo = new THREE.BoxGeometry(7, 4, 6);
-            const buildingMat = new THREE.MeshStandardMaterial({ color: 0x3d352e, roughness: 0.85 });
-            const building = new THREE.Mesh(buildingGeo, buildingMat);
-            building.position.y = 2;
-            building.castShadow = true;
-            station.add(building);
+            buildingTypes.forEach((b, idx) => {
+                const offsetX = (idx % 2 === 0 ? 18 : -18);
+                const offsetZ = (idx - 1) * 22;
 
-            // Rusty Gas Pump
-            const pumpGeo = new THREE.BoxGeometry(1.2, 2.2, 1.2);
-            const pumpMat = new THREE.MeshStandardMaterial({ color: 0x8a3822, roughness: 0.7 });
-            const pump = new THREE.Mesh(pumpGeo, pumpMat);
-            pump.position.set(posX > 0 ? -4 : 4, 1.1, 2);
-            pump.castShadow = true;
-            station.add(pump);
+                const wallMat = new THREE.MeshStandardMaterial({ color: b.color, roughness: 0.8 });
+                const houseGeo = new THREE.BoxGeometry(b.width, b.height, b.depth);
+                const house = new THREE.Mesh(houseGeo, wallMat);
+                house.position.set(offsetX, b.height / 2, offsetZ);
+                house.castShadow = true;
+                town.add(house);
 
-            return station;
+                // Roof
+                const roofGeo = new THREE.ConeGeometry(b.width * 0.75, 4, 4);
+                roofGeo.rotateY(Math.PI / 4);
+                const roofMat = new THREE.MeshStandardMaterial({ color: 0x1f1710 });
+                const roof = new THREE.Mesh(roofGeo, roofMat);
+                roof.position.set(offsetX, b.height + 2, offsetZ);
+                town.add(roof);
+
+                // Bank Vault Loot Chest
+                if (b.name.includes('Bank')) {
+                    const chestGeo = new THREE.BoxGeometry(1.2, 0.8, 0.8);
+                    const chestMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8 });
+                    const chest = new THREE.Mesh(chestGeo, chestMat);
+                    chest.position.set(offsetX, 0.4, offsetZ);
+                    chest.userData = { type: 'chest', gold: 250, collected: false, wx: startX + offsetX, wz: startZ + offsetZ };
+                    town.add(chest);
+                    interactiveItems.push(chest);
+                }
+            });
+
+            chunk.add(town);
+            towns.push({ x: startX, z: startZ });
         }
 
-        function createCollectibleItem(type, x, worldZ) {
-            const group = new THREE.Group();
-            group.position.set(x, 0.4, 0); // Local Z inside chunk
-            group.userData = { type: type, worldZ: worldZ, collected: false };
+        function createOutpostBuilding(chunk, startX, startZ) {
+            const outpost = new THREE.Group();
+            
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x4a3b2c, roughness: 0.7 });
+            const houseGeo = new THREE.BoxGeometry(16, 7, 14);
+            const house = new THREE.Mesh(houseGeo, wallMat);
+            house.position.set(20, 3.5, 0);
+            outpost.add(house);
 
+            // Guard Tower
+            const towerGeo = new THREE.BoxGeometry(4, 12, 4);
+            const towerMat = new THREE.MeshStandardMaterial({ color: 0x2e2318 });
+            const tower = new THREE.Mesh(towerGeo, towerMat);
+            tower.position.set(20, 6, -12);
+            outpost.add(tower);
+
+            chunk.add(outpost);
+            outposts.push({ x: startX + 20, z: startZ });
+        }
+
+        function createCollectibleMesh(type, wx, wz) {
+            const group = new THREE.Group();
+            group.userData = { type: type, wx: wx, wz: wz, collected: false };
+
+            let mesh;
             if (type === 'fuel') {
-                const canGeo = new THREE.BoxGeometry(0.5, 0.7, 0.3);
-                const canMat = new THREE.MeshStandardMaterial({ color: 0xb52b1d, roughness: 0.5 });
-                const can = new THREE.Mesh(canGeo, canMat);
-                can.castShadow = true;
-                group.add(can);
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.3), new THREE.MeshStandardMaterial({ color: 0xb52b1d }));
+            } else if (type === 'medkit') {
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+            } else if (type === 'sword') {
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 0.1), new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 }));
+            } else if (type === 'corpse') {
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 1.4), new THREE.MeshStandardMaterial({ color: 0x384a2d }));
+            } else {
+                mesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9 }));
             }
 
+            group.add(mesh);
             return group;
         }
 
-        function createWeatherParticles() {
-            // Particle Rain
-            const rainCount = 1200;
-            const rainGeo = new THREE.BufferGeometry();
-            const rainPos = new Float32Array(rainCount * 3);
+        /* Raider Buggy Chase Vehicle Mechanic */
+        function spawnRaiderBuggy(x, z) {
+            const buggy = new THREE.Group();
+            const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 3.2);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.5 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.6;
+            buggy.add(body);
 
-            for (let i = 0; i < rainCount * 3; i += 3) {
-                rainPos[i] = (Math.random() - 0.5) * 80;
-                rainPos[i + 1] = Math.random() * 30;
-                rainPos[i + 2] = (Math.random() - 0.5) * 120;
+            buggy.position.set(x, getTerrainHeight(x, z), z);
+            buggy.userData = { speed: 0.8, health: 60 };
+
+            scene.add(buggy);
+            raiderBuggies.push(buggy);
+        }
+
+        function updateRaiderBuggies(delta) {
+            for (let i = raiderBuggies.length - 1; i >= 0; i--) {
+                const b = raiderBuggies[i];
+                const targetPos = (gameState === 'DRIVING') ? car.position : playerPos;
+                
+                const dx = targetPos.x - b.position.x;
+                const dz = targetPos.z - b.position.z;
+                const dist = Math.hypot(dx, dz);
+
+                b.rotation.y = Math.atan2(dx, dz);
+
+                if (dist > 3.0) {
+                    b.position.x += Math.sin(b.rotation.y) * 12.0 * delta;
+                    b.position.z += Math.cos(b.rotation.y) * 12.0 * delta;
+                    b.position.y = getTerrainHeight(b.position.x, b.position.z);
+                } else {
+                    damagePlayer(25 * delta);
+                }
+            }
+        }
+
+        function spawnZombieNearPlayer() {
+            const zombie = new THREE.Group();
+            
+            const bodyGeo = new THREE.BoxGeometry(0.7, 1.6, 0.4);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2d3a28, roughness: 0.8 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.8;
+            zombie.add(body);
+
+            const headGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+            const headMat = new THREE.MeshStandardMaterial({ color: 0x4a5d43 });
+            const head = new THREE.Mesh(headGeo, headMat);
+            head.position.y = 1.8;
+            zombie.add(head);
+
+            const eyeGeo = new THREE.SphereGeometry(0.05, 6, 6);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+            eyeL.position.set(-0.1, 1.85, 0.21);
+            const eyeR = eyeL.clone();
+            eyeR.position.x = 0.1;
+            zombie.add(eyeL);
+            zombie.add(eyeR);
+
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 35 + Math.random() * 15;
+            const spawnX = playerPos.x + Math.sin(angle) * dist;
+            const spawnZ = playerPos.z + Math.cos(angle) * dist;
+
+            zombie.position.set(spawnX, getTerrainHeight(spawnX, spawnZ), spawnZ);
+            zombie.userData = { health: 40, speed: 2.8 + Math.random() * 1.2 };
+
+            scene.add(zombie);
+            zombies.push(zombie);
+        }
+
+        function updateZombies(delta) {
+            const targetPos = (gameState === 'DRIVING') ? car.position : playerPos;
+
+            for (let i = zombies.length - 1; i >= 0; i--) {
+                const z = zombies[i];
+                const dx = targetPos.x - z.position.x;
+                const dz = targetPos.z - z.position.z;
+                const dist = Math.hypot(dx, dz);
+
+                z.rotation.y = Math.atan2(dx, dz);
+
+                if (dist > 1.2) {
+                    z.position.x += Math.sin(z.rotation.y) * z.userData.speed * delta;
+                    z.position.z += Math.cos(z.rotation.y) * z.userData.speed * delta;
+                    z.position.y = getTerrainHeight(z.position.x, z.position.z);
+                } else if (gameState === 'ON_FOOT') {
+                    damagePlayer(18 * delta);
+                }
+
+                if (dist > 120) {
+                    scene.remove(z);
+                    zombies.splice(i, 1);
+                }
+            }
+        }
+
+        function swingSword() {
+            audio.playSound('swing');
+            
+            playerSwordMesh.rotation.z = -1.2;
+            setTimeout(() => { playerSwordMesh.rotation.z = 0; }, 200);
+
+            zombies.forEach((z, idx) => {
+                const dist = playerPos.distanceTo(z.position);
+                if (dist < 2.8) {
+                    z.userData.health -= 25;
+                    audio.playSound('zombie_hit');
+                    if (z.userData.health <= 0) {
+                        scene.remove(z);
+                        zombies.splice(idx, 1);
+                        zombieKills++;
+                        
+                        // Add dead zombie corpse loot to floor
+                        const corpse = createCollectibleMesh('corpse', z.position.x, z.position.z);
+                        corpse.position.set(z.position.x, getTerrainHeight(z.position.x, z.position.z) + 0.2, z.position.z);
+                        scene.add(corpse);
+                        interactiveItems.push(corpse);
+                    }
+                }
+            });
+        }
+
+        function createWeatherParticles() {
+            const count = 1200;
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(count * 3);
+
+            for (let i = 0; i < count * 3; i += 3) {
+                pos[i] = (Math.random() - 0.5) * 120;
+                pos[i + 1] = Math.random() * 30;
+                pos[i + 2] = (Math.random() - 0.5) * 120;
             }
 
-            rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
-            const rainMat = new THREE.PointsMaterial({ color: 0x99aab5, size: 0.15, transparent: true, opacity: 0.6 });
-            rainParticles = new THREE.Points(rainGeo, rainMat);
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            const mat = new THREE.PointsMaterial({ color: 0x99aab5, size: 0.15, transparent: true, opacity: 0.5 });
+            rainParticles = new THREE.Points(geo, mat);
             scene.add(rainParticles);
+        }
+
+        function setupPointerLock() {
+            const container = document.getElementById('canvas-container');
+            container.addEventListener('click', () => {
+                if ((gameState === 'ON_FOOT' || gameState === 'DRIVING') && document.getElementById('storage-modal').classList.contains('hidden')) {
+                    container.requestPointerLock();
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (document.pointerLockElement === container) {
+                    playerYaw -= e.movementX * 0.0022;
+                    playerPitch -= e.movementY * 0.0022;
+                    playerPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch));
+                }
+            });
+
+            document.addEventListener('mousedown', (e) => {
+                if (gameState === 'ON_FOOT' && e.button === 0) {
+                    if (inventory[activeSlot].id === 'sword') {
+                        swingSword();
+                    } else if (inventory[activeSlot].id === 'fuel') {
+                        const distToCar = playerPos.distanceTo(car.position);
+                        if (distToCar < 3.5) {
+                            fuel = Math.min(100, fuel + 35);
+                            audio.playSound('pickup');
+                            updateHUD();
+                        }
+                    } else if (inventory[activeSlot].id === 'sack') {
+                        toggleStorageModal(true, 'Loot Sack Container', sackContents);
+                    }
+                }
+            });
         }
 
         function setupInputListeners() {
@@ -705,10 +938,14 @@
                 if (k === 'd' || e.key === 'ArrowRight') keys.d = true;
                 if (e.code === 'Space') keys.space = true;
 
-                if (k === 'c') toggleCamera();
                 if (k === 'e') handleInteraction();
-                if (k === 'r') switchRadioStation();
-                if (k === 'p') toggleWipers();
+                if (k === 'f' || k === 'i') toggleStorageModal(true, 'Loot Sack Container', sackContents);
+                if (k === 'escape') toggleStorageModal(false);
+
+                if (k === '1') selectSlot(0);
+                if (k === '2') selectSlot(1);
+                if (k === '3') selectSlot(2);
+                if (k === '4') selectSlot(3);
             });
 
             window.addEventListener('keyup', (e) => {
@@ -720,79 +957,133 @@
                 if (e.code === 'Space') keys.space = false;
             });
 
-            // UI Button Handlers
             document.getElementById('btn-start').addEventListener('click', startGame);
-            document.getElementById('btn-radio-next').addEventListener('click', switchRadioStation);
-            document.getElementById('btn-radio-prev').addEventListener('click', () => {
-                const name = audio.prevStation();
-                document.getElementById('radio-station-name').innerText = name;
+        }
+
+        function selectSlot(idx) {
+            activeSlot = idx;
+            document.querySelectorAll('.hotbar-slot').forEach((el, i) => {
+                if (i === idx) el.classList.add('active');
+                else el.classList.remove('active');
             });
-            document.getElementById('btn-radio-toggle').addEventListener('click', () => {
-                const playing = audio.toggleRadio();
-                document.getElementById('radio-indicator').className = playing ? 'w-2 h-2 rounded-full bg-red-600 animate-pulse' : 'w-2 h-2 rounded-full bg-stone-600';
+
+            flashlightSpot.intensity = (inventory[activeSlot].id === 'flashlight') ? 4.5 : 0;
+            playerSwordMesh.visible = (inventory[activeSlot].id === 'sword');
+        }
+
+        function toggleStorageModal(show, title = '', itemsList = []) {
+            const modal = document.getElementById('storage-modal');
+            if (show) {
+                document.exitPointerLock();
+                modal.classList.remove('hidden');
+                document.getElementById('storage-title').innerText = title;
+                renderStorageGrid(itemsList);
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderStorageGrid(itemsList) {
+            const grid = document.getElementById('storage-grid');
+            grid.innerHTML = '';
+
+            let hasCorpse = false;
+            itemsList.forEach((item, idx) => {
+                if (item.id === 'corpse') hasCorpse = true;
+                const slot = document.createElement('div');
+                slot.className = 'bg-stone-800 border border-amber-700/60 rounded-lg p-2 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-stone-700';
+                slot.innerHTML = `<span class="text-2xl">${item.icon}</span><span class="text-[10px] mt-1 text-amber-300 font-bold">${item.name}</span>`;
+                slot.onclick = () => useOrExtractItem(itemsList, idx);
+                grid.appendChild(slot);
             });
 
-            // Mobile Touch Support
-            setupTouchControl('touch-w', 'w');
-            setupTouchControl('touch-a', 'a');
-            setupTouchControl('touch-s', 's');
-            setupTouchControl('touch-d', 'd');
-
-            document.getElementById('touch-cam').addEventListener('touchstart', (e) => { e.preventDefault(); toggleCamera(); });
-            document.getElementById('touch-exit').addEventListener('touchstart', (e) => { e.preventDefault(); handleInteraction(); });
+            const btnBiofuel = document.getElementById('btn-convert-biofuel');
+            btnBiofuel.className = hasCorpse ? 'bg-emerald-900/90 hover:bg-emerald-800 border border-emerald-600 px-3 py-1.5 rounded text-emerald-200 font-bold block' : 'hidden';
         }
 
-        function setupTouchControl(id, key) {
-            const btn = document.getElementById(id);
-            btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; });
-            btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+        function useOrExtractItem(list, idx) {
+            const item = list[idx];
+            if (item.id === 'medkit') {
+                playerHealth = Math.min(100, playerHealth + 40);
+                list.splice(idx, 1);
+                audio.playSound('pickup');
+            } else if (item.id === 'fuel') {
+                fuel = Math.min(100, fuel + 35);
+                list.splice(idx, 1);
+                audio.playSound('pickup');
+            }
+            updateHUD();
+            renderStorageGrid(list);
         }
 
-        function toggleCamera() {
-            if (gameState === 'ON_FOOT') return;
-            cameraMode = (cameraMode === 'FIRST_PERSON') ? 'THIRD_PERSON' : 'FIRST_PERSON';
-        }
-
-        function toggleWipers() {
-            wipersOn = !wipersOn;
-            document.getElementById('hud-wiper-status').innerText = `Wipers: ${wipersOn ? 'ON' : 'OFF'}`;
-            document.getElementById('hud-wiper-status').className = wipersOn ? 'text-[10px] text-amber-300 font-bold' : 'text-[10px] text-amber-500';
-        }
-
-        function switchRadioStation() {
-            const name = audio.nextStation();
-            document.getElementById('radio-station-name').innerText = name;
+        function convertZombieBiofuel() {
+            const idx = sackContents.findIndex(i => i.id === 'corpse');
+            if (idx !== -1) {
+                sackContents.splice(idx, 1);
+                fuel = Math.min(100, fuel + 25);
+                audio.playSound('pickup');
+                updateHUD();
+                renderStorageGrid(sackContents);
+            }
         }
 
         function handleInteraction() {
             if (gameState === 'DRIVING') {
-                // Exit Car if speed is slow
-                if (Math.abs(carSpeed) < 0.1) {
+                if (Math.abs(carSpeed) < 0.15) {
                     gameState = 'ON_FOOT';
+                    playerPos.set(car.position.x - 2.5, getTerrainHeight(car.position.x - 2.5, car.position.z) + 1.6, car.position.z);
+                    document.getElementById('crosshair').classList.remove('hidden');
                     document.getElementById('hud-mode-badge').innerText = 'ON FOOT';
-                    document.getElementById('hud-mode-badge').className = 'px-1.5 py-0.5 bg-emerald-900/60 rounded text-[10px] border border-emerald-600/40 text-emerald-200';
-                    playerPos = { x: car.position.x - 2.2, y: 1.2, z: car.position.z };
-                    audio.playSound('door');
+                    document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-emerald-400';
                 }
             } else if (gameState === 'ON_FOOT') {
-                // Check if near car to enter
-                const distToCar = Math.hypot(playerPos.x - car.position.x, playerPos.z - car.position.z);
-                if (distToCar < 3.5) {
+                const distToCar = playerPos.distanceTo(car.position);
+                if (distToCar < 3.8) {
                     gameState = 'DRIVING';
+                    document.getElementById('crosshair').classList.add('hidden');
                     document.getElementById('hud-mode-badge').innerText = 'DRIVING';
-                    document.getElementById('hud-mode-badge').className = 'px-1.5 py-0.5 bg-amber-800/50 rounded text-[10px] border border-amber-600/40';
-                    audio.playSound('door');
+                    document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-amber-200';
+                    outdoorTimer = 0;
                     return;
                 }
 
-                // Check if near collectible item
-                if (nearbyItem && !nearbyItem.userData.collected) {
-                    nearbyItem.userData.collected = true;
-                    nearbyItem.visible = false;
-                    fuel = Math.min(100, fuel + 35);
-                    audio.playSound('pickup');
-                    document.getElementById('hud-fuel-pct').innerText = `${Math.round(fuel)}%`;
+                // Check Item Interactions & Gold Chests
+                for (let i = 0; i < interactiveItems.length; i++) {
+                    const item = interactiveItems[i];
+                    if (item.userData.collected) continue;
+
+                    const itemPos = new THREE.Vector3(item.userData.wx, item.position.y, item.userData.wz);
+                    if (playerPos.distanceTo(itemPos) < 3.0) {
+                        item.userData.collected = true;
+                        item.visible = false;
+                        audio.playSound('pickup');
+
+                        if (item.userData.type === 'chest') {
+                            playerGold += item.userData.gold;
+                        } else if (item.userData.type === 'fuel') {
+                            sackContents.push({ id: 'fuel', name: 'Fuel Can', icon: '⛽' });
+                        } else if (item.userData.type === 'medkit') {
+                            sackContents.push({ id: 'medkit', name: 'Medkit', icon: '🩹' });
+                        } else if (item.userData.type === 'corpse') {
+                            sackContents.push({ id: 'corpse', name: 'Zombie Corpse', icon: '🧟' });
+                        } else if (item.userData.type === 'gold') {
+                            playerGold += 100;
+                        }
+                        updateHUD();
+                        break;
+                    }
                 }
+            }
+        }
+
+        function damagePlayer(amount) {
+            playerHealth = Math.max(0, playerHealth - amount);
+            document.getElementById('damage-flash').style.opacity = '0.8';
+            setTimeout(() => { document.getElementById('damage-flash').style.opacity = '0'; }, 150);
+            updateHUD();
+
+            if (playerHealth <= 0) {
+                gameOver('OVERTAKEN BY MIST ZOMBIES');
             }
         }
 
@@ -802,174 +1093,201 @@
             gameState = 'DRIVING';
             carSpeed = 0;
             fuel = 100;
+            playerHealth = 100;
+            playerGold = 0;
+            zombieKills = 0;
             distanceTraveled = 0;
+            car.position.set(0, getTerrainHeight(0, 0), 0);
+            car.rotation.set(0, 0, 0);
+            selectSlot(0);
         }
 
         function gameOver(reason) {
             gameState = 'GAMEOVER';
+            document.exitPointerLock();
             document.getElementById('modal-screen').classList.remove('hidden');
             document.getElementById('modal-title').innerText = 'TRIP CONCLUDED';
-            document.getElementById('modal-desc').innerText = 'Your journey through the autumn fog has come to a standstill.';
+            document.getElementById('modal-desc').innerText = 'The dull autumn mist claimed another traveler.';
             document.getElementById('modal-stats').classList.remove('hidden');
-            document.getElementById('stat-dist').innerText = distanceTraveled.toFixed(1);
-            document.getElementById('stat-songs').innerText = audio.songCount;
+            document.getElementById('stat-dist').innerText = Math.round(distanceTraveled);
+            document.getElementById('stat-kills').innerText = zombieKills;
             document.getElementById('stat-reason').innerText = reason;
-            document.getElementById('btn-start').innerText = 'RESTART TRIP';
+            document.getElementById('btn-start').innerText = 'RESTART JOURNEY';
         }
 
+        /* Fixed Vehicle Steering Physics Mechanics (A turns Left, D turns Right) */
         function updateVehiclePhysics(delta) {
             if (gameState !== 'DRIVING') return;
 
-            // Acceleration & Braking
             if (keys.w && fuel > 0) {
                 carSpeed = Math.min(maxSpeed, carSpeed + acceleration);
-                fuel -= delta * 0.28; // Consume fuel
+                fuel -= delta * 0.22;
             } else if (keys.s) {
-                carSpeed = Math.max(-maxSpeed * 0.3, carSpeed - brakePower);
+                carSpeed = Math.max(-maxSpeed * 0.35, carSpeed - brakePower);
             } else {
-                // Friction slowdown
                 if (carSpeed > 0) carSpeed = Math.max(0, carSpeed - friction);
                 if (carSpeed < 0) carSpeed = Math.min(0, carSpeed + friction);
             }
 
-            if (keys.space) {
-                carSpeed *= 0.92; // Handbrake
-            }
+            if (keys.space) carSpeed *= 0.92;
 
-            // Steering Logic
-            if (keys.a) {
-                steerAngle = Math.min(maxSteer, steerAngle + steerSpeed);
-            } else if (keys.d) {
-                steerAngle = Math.max(-maxSteer, steerAngle - steerSpeed);
-            } else {
+            // CORRECTED: A turns Left (+Y yaw rotation), D turns Right (-Y yaw rotation)
+            if (keys.a) steerAngle = Math.min(maxSteer, steerAngle + steerSpeed);
+            else if (keys.d) steerAngle = Math.max(-maxSteer, steerAngle - steerSpeed);
+            else {
                 if (steerAngle > 0) steerAngle = Math.max(0, steerAngle - steerDecay);
                 if (steerAngle < 0) steerAngle = Math.min(0, steerAngle + steerDecay);
             }
 
-            // Move Vehicle Forward/Backward along Z axis and steer on X axis
             car.rotation.y += steerAngle * (carSpeed / maxSpeed);
-            
-            const forwardX = Math.sin(car.rotation.y) * carSpeed * 40 * delta;
-            const forwardZ = -Math.cos(car.rotation.y) * carSpeed * 40 * delta;
 
-            car.position.x += forwardX;
-            car.position.z += forwardZ;
+            const moveDist = carSpeed * 40 * delta;
+            car.position.x += Math.sin(car.rotation.y) * moveDist;
+            car.position.z += Math.cos(car.rotation.y) * moveDist;
 
-            // Clamp car within reasonable off-road bounds
-            car.position.x = Math.max(-30, Math.min(30, car.position.x));
+            const currentH = getTerrainHeight(car.position.x, car.position.z);
+            car.position.y = currentH;
 
-            // Track odometer distance
-            if (carSpeed > 0) {
-                distanceTraveled += (carSpeed * delta * 0.08);
-            }
-
-            // Engine Audio pitch update
+            distanceTraveled = car.position.z;
             audio.updateEngine(Math.abs(carSpeed) / maxSpeed);
 
-            // Dashboard Steering Wheel Animation
-            const stWheel = car.getObjectByName("steeringWheel");
-            if (stWheel) {
-                stWheel.rotation.z = -steerAngle * 12;
+            if (distanceTraveled >= BOSS_TARGET) {
+                gameOver('100,000M OUTPOST REACHED - VICTORY!');
             }
 
-            // Check Fuel Depletion
             if (fuel <= 0 && Math.abs(carSpeed) < 0.01) {
-                gameOver('OUT OF FUEL');
+                gameOver('OUT OF FUEL ON DESOLATE ROAD');
             }
         }
 
         function updateOnFootPlayer(delta) {
             if (gameState !== 'ON_FOOT') return;
 
-            const walkSpeed = 6.0 * delta;
-            if (keys.w) playerPos.z -= walkSpeed;
-            if (keys.s) playerPos.z += walkSpeed;
-            if (keys.a) playerPos.x -= walkSpeed;
-            if (keys.d) playerPos.x += walkSpeed;
+            outdoorTimer += delta;
 
-            // Check distance to car or collectibles
-            const distToCar = Math.hypot(playerPos.x - car.position.x, playerPos.z - car.position.z);
-            let promptText = "";
-
-            if (distToCar < 3.5) {
-                promptText = "Press E to Enter Vehicle";
-            } else {
-                // Check near item
-                nearbyItem = null;
-                for (let item of interactiveItems) {
-                    if (item.userData.collected) continue;
-                    const itemWorldZ = item.parent.position.z + item.position.z;
-                    const itemWorldX = item.parent.position.x + item.position.x;
-                    const distToItem = Math.hypot(playerPos.x - itemWorldX, playerPos.z - itemWorldZ);
-                    
-                    if (distToItem < 2.5) {
-                        nearbyItem = item;
-                        promptText = "Press E to Pick Up Fuel Can";
-                        break;
-                    }
-                }
+            if (outdoorTimer > 8.0 && zombies.length < 5) {
+                spawnZombieNearPlayer();
+                outdoorTimer = 0;
             }
 
+            const moveSpeed = 7.0 * delta;
+            const forward = new THREE.Vector3(Math.sin(playerYaw), 0, Math.cos(playerYaw)).normalize();
+            const side = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+
+            if (keys.w) playerPos.addScaledVector(forward, moveSpeed);
+            if (keys.s) playerPos.addScaledVector(forward, -moveSpeed);
+            if (keys.a) playerPos.addScaledVector(side, moveSpeed);
+            if (keys.d) playerPos.addScaledVector(side, -moveSpeed);
+
+            const groundY = getTerrainHeight(playerPos.x, playerPos.z);
+            playerPos.y = groundY + 1.6;
+
+            const distToCar = playerPos.distanceTo(car.position);
             const promptEl = document.getElementById('interaction-prompt');
-            if (promptText !== "") {
-                promptEl.innerText = promptText;
+
+            if (distToCar < 3.8) {
+                promptEl.innerText = "Press E to Enter Car / Trunk";
                 promptEl.classList.remove('hidden');
             } else {
                 promptEl.classList.add('hidden');
             }
         }
 
-        function updateProceduralWorld() {
-            const playerZ = car.position.z;
+        function updateChunks(playerX, playerZ) {
+            const currentCX = Math.floor((playerX + CHUNK_SIZE / 2) / CHUNK_SIZE);
+            const currentCZ = Math.floor((playerZ + CHUNK_SIZE / 2) / CHUNK_SIZE);
 
-            // Generate new chunk ahead
-            if (playerZ < lastChunkZ + (CHUNK_SIZE * 2)) {
-                generateChunk(lastChunkZ - CHUNK_SIZE);
-            }
-
-            // Recycle old chunks far behind
-            if (chunks.length > RENDER_DISTANCE + 2) {
-                const oldest = chunks.shift();
-                scene.remove(oldest.group);
+            for (let x = -VIEW_DISTANCE; x <= VIEW_DISTANCE; x++) {
+                for (let z = -VIEW_DISTANCE; z <= VIEW_DISTANCE; z++) {
+                    generateChunk(currentCX + x, currentCZ + z);
+                }
             }
         }
 
         function updateCamera() {
             if (gameState === 'DRIVING') {
-                if (cameraMode === 'FIRST_PERSON') {
-                    // Position camera inside dashboard cabin
-                    const cabinOffset = new THREE.Vector3(-0.45, 1.45, -0.2);
-                    cabinOffset.applyQuaternion(car.quaternion);
-                    camera.position.copy(car.position).add(cabinOffset);
-                    
-                    const lookAtOffset = new THREE.Vector3(-0.45, 1.4, -10);
-                    lookAtOffset.applyQuaternion(car.quaternion);
-                    camera.lookAt(car.position.clone().add(lookAtOffset));
-                } else {
-                    // Third person chase cam
-                    const chaseOffset = new THREE.Vector3(0, 3.2, 8.0);
-                    chaseOffset.applyQuaternion(car.quaternion);
-                    camera.position.lerp(car.position.clone().add(chaseOffset), 0.1);
-                    camera.lookAt(car.position.clone().add(new THREE.Vector3(0, 1.2, 0)));
-                }
+                const cabinOffset = new THREE.Vector3(-0.45, 1.45, -0.2);
+                cabinOffset.applyQuaternion(car.quaternion);
+                camera.position.copy(car.position).add(cabinOffset);
+
+                const lookDir = new THREE.Vector3(
+                    Math.sin(playerYaw) * Math.cos(playerPitch),
+                    Math.sin(playerPitch),
+                    Math.cos(playerYaw) * Math.cos(playerPitch)
+                );
+                lookDir.applyQuaternion(car.quaternion);
+                camera.lookAt(camera.position.clone().add(lookDir));
+
             } else if (gameState === 'ON_FOOT') {
-                // Camera follows player on foot
-                camera.position.set(playerPos.x, playerPos.y, playerPos.z);
-                camera.lookAt(playerPos.x, playerPos.y, playerPos.z - 5);
+                camera.position.copy(playerPos);
+
+                const lookDir = new THREE.Vector3(
+                    Math.sin(playerYaw) * Math.cos(playerPitch),
+                    Math.sin(playerPitch),
+                    Math.cos(playerYaw) * Math.cos(playerPitch)
+                );
+                camera.lookAt(playerPos.clone().add(lookDir));
+
+                flashlightSpot.position.copy(playerPos);
+                flashlightSpot.target.position.copy(playerPos.clone().add(lookDir));
             }
         }
 
+        /* Minimap Radar Rendering */
+        function drawMinimap() {
+            const canvas = document.getElementById('minimap-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const scale = 0.6;
+
+            const focalPos = (gameState === 'DRIVING') ? car.position : playerPos;
+
+            // Highway line
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(centerX - focalPos.x * scale, 0);
+            ctx.lineTo(centerX - focalPos.x * scale, canvas.height);
+            ctx.stroke();
+
+            // Zombies
+            ctx.fillStyle = '#ef4444';
+            zombies.forEach(z => {
+                const rx = centerX + (z.position.x - focalPos.x) * scale;
+                const ry = centerY - (z.position.z - focalPos.z) * scale;
+                ctx.beginPath();
+                ctx.arc(rx, ry, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Player / Car indicator
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
         function updateHUD() {
-            document.getElementById('hud-distance').innerText = distanceTraveled.toFixed(1);
+            document.getElementById('hud-distance').innerText = Math.max(0, Math.round(distanceTraveled));
+            const focalPos = (gameState === 'DRIVING') ? car.position : playerPos;
+            document.getElementById('hud-coords').innerText = `${Math.round(focalPos.x)}, ${Math.round(focalPos.z)}`;
+            document.getElementById('hud-gold').innerText = `$${playerGold}`;
             document.getElementById('speed-display').innerText = Math.round(Math.abs(carSpeed) * 110);
             document.getElementById('hud-fuel-pct').innerText = `${Math.round(fuel)}%`;
+            document.getElementById('hud-health-bar').style.width = `${playerHealth}%`;
 
-            // Needle Rotations
+            const threatText = zombies.length > 0 ? `${zombies.length} NEARBY` : 'SAFE';
+            document.getElementById('hud-threat-level').innerText = threatText;
+
             const speedDeg = -120 + (Math.abs(carSpeed) / maxSpeed) * 240;
             document.getElementById('gauge-speed-needle').style.transform = `rotate(${speedDeg}deg)`;
-
             const fuelDeg = -45 + (fuel / 100) * 90;
             document.getElementById('gauge-fuel-needle').style.transform = `rotate(${fuelDeg}deg)`;
+
+            drawMinimap();
         }
 
         let rainCanvas, rainCtx;
@@ -984,32 +1302,16 @@
             if (!rainCtx) return;
             rainCtx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
 
-            // Draw subtle rain streaks
             rainCtx.strokeStyle = 'rgba(200, 220, 255, 0.2)';
             rainCtx.lineWidth = 1.2;
             rainCtx.beginPath();
-            for (let i = 0; i < 40; i++) {
+            for (let i = 0; i < 35; i++) {
                 const x = (Math.sin(i * 99) * 0.5 + 0.5) * rainCanvas.width;
                 const y = ((Date.now() * 0.4 + i * 170) % rainCanvas.height);
                 rainCtx.moveTo(x, y);
-                rainCtx.lineTo(x - 2, y + 18);
+                rainCtx.lineTo(x - 2, y + 16);
             }
             rainCtx.stroke();
-
-            // Animated Windscreen Wiper Sweep Line
-            if (wipersOn && cameraMode === 'FIRST_PERSON') {
-                wiperAngle = Math.sin(Date.now() * 0.005) * 0.8;
-                rainCtx.save();
-                rainCtx.strokeStyle = 'rgba(20, 20, 20, 0.85)';
-                rainCtx.lineWidth = 6;
-                rainCtx.beginPath();
-                const centerX = rainCanvas.width / 2;
-                const bottomY = rainCanvas.height;
-                rainCtx.moveTo(centerX, bottomY);
-                rainCtx.lineTo(centerX + Math.sin(wiperAngle) * (rainCanvas.height * 0.7), bottomY - Math.cos(wiperAngle) * (rainCanvas.height * 0.7));
-                rainCtx.stroke();
-                rainCtx.restore();
-            }
         }
 
         function animate() {
@@ -1019,31 +1321,32 @@
 
             if (gameState === 'DRIVING') {
                 updateVehiclePhysics(delta);
+                updateChunks(car.position.x, car.position.z);
             } else if (gameState === 'ON_FOOT') {
                 updateOnFootPlayer(delta);
+                updateChunks(playerPos.x, playerPos.z);
             }
 
-            updateProceduralWorld();
+            updateZombies(delta);
+            updateRaiderBuggies(delta);
             updateCamera();
             updateHUD();
             drawRainOverlay();
 
-            // Animate Rain Particles
             if (rainParticles) {
-                const pos = rainParticles.geometry.attributes.position.array;
-                for (let i = 1; i < pos.length; i += 3) {
-                    pos[i] -= 22 * delta;
-                    if (pos[i] < 0) pos[i] = 30;
-                }
-                rainParticles.geometry.attributes.position.needsUpdate = true;
-                rainParticles.position.z = car.position.z;
-                rainParticles.position.x = car.position.x;
+                const focus = (gameState === 'DRIVING') ? car.position : playerPos;
+                rainParticles.position.copy(focus);
             }
 
             renderer.render(scene, camera);
         }
 
-        function onWindowResize() {
+        window.onload = () => {
+            initScene();
+            animate();
+        };
+
+        window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1051,12 +1354,7 @@
                 rainCanvas.width = window.innerWidth;
                 rainCanvas.height = window.innerHeight;
             }
-        }
-
-        window.onload = () => {
-            initScene();
-            animate();
-        };
+        });
     </script>
 </body>
 </html>
