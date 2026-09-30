@@ -98,6 +98,7 @@
                     <input id="pw-input" maxlength="4" class="s-input flex-1 uppercase tracking-widest text-center" placeholder="Password (private only)" autocomplete="off">
                     <button id="btn-join-code" class="px-4 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition">Connect</button>
                 </div>
+                <input id="my-ip-join" class="s-input mt-2" placeholder="My IP (only if connecting fails), e.g. 192.168.1.23" autocomplete="off" inputmode="decimal">
                 <div id="join-reply-box" class="hidden mt-3 space-y-2">
                     <div class="text-xs text-slate-400">Send this reply code to the host:</div>
                     <textarea id="join-reply" class="s-input" readonly spellcheck="false"></textarea>
@@ -127,6 +128,7 @@
             <div><div class="text-white text-sm font-semibold" id="waiting-host-name"></div><div class="text-xs text-emerald-400">Host · Ready</div></div>
         </div>
 
+        <div class="mb-4"><input id="my-ip-host" class="s-input" placeholder="My IP (only if connecting fails), e.g. 192.168.1.23" autocomplete="off" inputmode="decimal"></div>
         <div id="server-pw-badge" class="hidden text-center mb-4 glass-panel rounded-xl p-3 border border-amber-500/40"><div class="text-xs text-slate-400">Server password</div><div id="server-pw" class="font-game text-3xl text-amber-400 tracking-[0.4em]"></div></div>
         <!-- 3 client slots -->
         <div id="client-slots" class="space-y-3 mb-5"></div>
@@ -351,7 +353,19 @@ let curUser='',saveD=null,gameMode='solo';
 // Host: hostPCs[slotIndex] = {pc, channel, baseIndex, username, connected, code, busy, err, draft}
 // Client: clientPC = {pc, channel, baseIndex}
 const RTC_CFG={iceServers:[]};   // no ICE servers on purpose: local (host) candidates only, never contacts an outside server
-const LAN_HINT='Both devices must be on the same Wi-Fi / LAN (guest networks and "client isolation" block direct connections).';
+const LAN_HINT='Both devices must be on the same Wi-Fi / LAN (guest networks and "client isolation" block direct connections). If they are, type each device\'s own LAN IP into the "My IP" box and make new codes.';
+// Chrome hides this device's IP behind a random "xxxx.local" name that the OTHER device must resolve over multicast (mDNS).
+// Many Wi-Fi routers / firewalls block that, so connecting across devices fails. Typing this device's LAN IP into the
+// "My IP" box swaps the name for the real address in our code, which needs no multicast at all.
+const IPV4=/^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+function myIp(id){
+    const v=(document.getElementById(id)||{}).value||'';const ip=v.trim();
+    try{localStorage.setItem('sam_lan_ip',ip);}catch{}
+    if(!ip)return '';
+    if(!IPV4.test(ip))throw new Error('"My IP" must look like 192.168.1.23 (see your Wi-Fi / network settings).');
+    return ip;
+}
+const useIp=(sdp,ip)=>ip?sdp.replace(/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}\.local/gi,ip):sdp;
 let hostPCs={};          // host side: keyed by slotIndex (1,2,3)
 let clientPC=null;       // client side: {pc,channel,baseIndex}
 let gameRunning=false;
@@ -422,6 +436,7 @@ function slotFail(s,slot,msg){
 async function hostInvite(s){
     if(!hostInfo||(hostPCs[s]&&hostPCs[s].connected))return;
     dropSlot(s);delete slotErr[s];
+    let ip='';try{ip=myIp('my-ip-host');}catch(e){slotErr[s]=e.message;updateWaitingUI();return;}
     const pc=new RTCPeerConnection(RTC_CFG);
     const slot=hostPCs[s]={pc,channel:null,baseIndex:s,username:'',connected:false,code:'',busy:'Creating invite...',err:'',draft:''};
     pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'&&!slot.connected)slotFail(s,slot,'Could not connect. '+LAN_HINT);};
@@ -433,7 +448,7 @@ async function hostInvite(s){
         if(hostPCs[s]!==slot)return;
         const sdp=pc.localDescription.sdp;
         if(!/a=candidate:/.test(sdp))throw new Error('No local network found. Connect this device to Wi-Fi / LAN first.');
-        slot.code=await packCode({t:'o',s:sdp,v:hostInfo.priv?1:0,n:curUser});
+        slot.code=await packCode({t:'o',s:useIp(sdp,ip),v:hostInfo.priv?1:0,n:curUser});
         slot.busy='';
     }catch(e){slotFail(s,slot,e.message||'Could not create an invite');return;}
     updateWaitingUI();
@@ -511,6 +526,7 @@ function broadcastAll(data){
 // Turns the host's invite code into a reply code. Resolves {reply,done,...}: send `reply` to the host; `done` settles once the host accepted it and we joined.
 async function joinWithCode(codeText,pw){
     cleanupNetwork();
+    const ip=myIp('my-ip-join');
     const d=await unpackCode(codeText);
     if(d.t!=='o'||!d.s)throw new Error('That is a reply code, not an invite. Paste the invite code from the host.');
     if(d.v&&!pw)throw new Error('This server is private. Enter its 4-character password first.');
@@ -548,7 +564,7 @@ async function joinWithCode(codeText,pw){
         if(clientPC!==conn)throw new Error('Cancelled');
         const sdp=pc.localDescription.sdp;
         if(!/a=candidate:/.test(sdp))throw new Error('No local network found. Connect this device to Wi-Fi / LAN first.');
-        return{reply:await packCode({t:'a',s:sdp}),done,host:d.n};
+        return{reply:await packCode({t:'a',s:useIp(sdp,ip)}),done,host:d.n};
     }catch(e){clearTimeout(timer);if(clientPC===conn)cleanupNetwork();throw e;}
 }
 
@@ -1982,7 +1998,7 @@ function setLobbyStatus(msg,type){
     el.className='text-center text-sm mt-3 '+(type==='error'?'text-rose-400':type==='success'?'text-emerald-400':'text-slate-400');
 }
 
-window.onload=()=>showScreen('login');
+window.onload=()=>{try{const v=localStorage.getItem('sam_lan_ip')||'';['my-ip-host','my-ip-join'].forEach(i=>document.getElementById(i).value=v);}catch{}showScreen('login');};
 </script>
 </body>
 </html>
