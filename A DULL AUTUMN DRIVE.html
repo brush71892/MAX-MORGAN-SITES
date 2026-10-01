@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Dull Autumn Trip - Expanded Castle & Fixed Sack Edition</title>
+    <title>A Dull Autumn Trip</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&family=Courier+Prime&display=swap" rel="stylesheet">
@@ -68,7 +68,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 12%;
+            height: 4%;
             background: linear-gradient(to bottom, #090807 0%, rgba(23, 19, 16, 0.8) 70%, rgba(23, 19, 16, 0) 100%);
             border-bottom: 3px solid #2d2218;
             pointer-events: none;
@@ -202,11 +202,19 @@
             z-index: 20;
             display: none;
         }
+    
+        #keybinds { position: absolute; right: 16px; top: 235px; z-index: 12; display: none; background: rgba(15,12,8,0.85); border: 2px solid #8c643c; padding: 8px 12px; font-size: 12px; color: #fef3c7; pointer-events: none; }
+        .kb { margin: 3px 0; } .kb b { display: inline-block; min-width: 92px; color: #f59e0b; }
+        #ui-panel { position: fixed; z-index: 40; left: 50%; top: 50%; transform: translate(-50%,-50%); display: none; background: rgba(20,14,8,0.97); border: 3px solid #b45309; padding: 16px; color: #fef3c7; min-width: 360px; max-height: 80vh; overflow: auto; font-size: 13px; }
+        .pb { display: block; width: 100%; text-align: left; margin: 3px 0; padding: 6px 10px; background: #78350f; border: 1px solid #d97706; color: #fef3c7; cursor: pointer; font-family: inherit; }
+        .pb:hover { background: #92400e; }
+        #toast { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); z-index: 25; background: rgba(15,12,8,0.92); border: 2px solid #f59e0b; color: #fef3c7; padding: 6px 14px; font-size: 13px; opacity: 0; transition: opacity .3s; pointer-events: none; }
     </style>
 </head>
 <body class="text-amber-100 flex flex-col justify-between h-screen relative select-none">
 
     <div id="canvas-container"></div>
+    <div id="keybinds"></div><div id="ui-panel"></div><div id="toast"></div>
     <div class="vignette"></div>
     <div class="crt-grain"></div>
     <div id="damage-flash"></div>
@@ -232,7 +240,8 @@
                 <div>TARGET: <strong class="text-amber-100">100,000 m</strong></div>
                 <div>DIST: <strong id="hud-distance" class="text-amber-100">0.0</strong> m</div>
                 <div>POS: <strong id="hud-coords" class="text-amber-100">0, 0</strong></div>
-                <div>GOLD: <strong id="hud-gold" class="text-yellow-400">$0</strong></div>
+                <div>CASH: <strong id="hud-gold" class="text-yellow-400">$0</strong></div>
+                <div>TIME: <strong id="hud-time" class="text-amber-100">--:--</strong></div>
             </div>
         </div>
 
@@ -250,6 +259,12 @@
                             <div id="hud-health-bar" class="bg-red-600 h-full w-full transition-all duration-300"></div>
                         </div>
                     </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-[10px] text-sky-300">ARMOR:</span>
+                        <div class="w-20 bg-stone-900 h-2 border border-amber-700/50 overflow-hidden">
+                            <div id="hud-armor-bar" class="bg-sky-400 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
                     <div id="threat-container" class="flex items-center justify-between gap-2">
                         <span class="text-[10px] text-red-400 font-bold">RADAR:</span>
                         <span id="hud-threat-level" class="text-xs font-mono text-red-300 font-bold">SAFE</span>
@@ -262,15 +277,7 @@
     <!-- HUD Bottom Controls & Speed Testing -->
     <div class="relative z-10 p-4 md:p-6 flex flex-row justify-between items-end gap-4 pointer-events-none w-full">
         
-        <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 shadow-2xl backdrop-blur-md pointer-events-auto text-[11px] text-amber-300/90 space-y-1 hidden lg:block max-w-xs">
-            <div class="font-bold text-amber-200 mb-1 border-b border-amber-800/50 pb-1">CONTROLS GUIDE</div>
-            <div><span class="text-amber-100 font-bold">W / S</span> - Accelerate / Reverse</div>
-            <div><span class="text-amber-100 font-bold">A / D</span> - Steer Left / Right</div>
-            <div><span class="text-amber-100 font-bold">E</span> - Enter Vehicle / Open Doors</div>
-            <div><span class="text-amber-100 font-bold">SHIFT</span> - Exit Vehicle</div>
-            <div><span class="text-amber-100 font-bold">Hold L-Click</span> - Drag Items</div>
-            <div><span class="text-amber-100 font-bold">F</span> - Put Item in Sack / Drop Sack Item</div>
-        </div>
+        <div></div>
 
         <div class="bg-stone-950/90 border-2 border-amber-800/80 p-2 shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-2">
             <div class="hotbar-slot active" id="slot-0" onclick="selectSlot(0)">
@@ -292,6 +299,11 @@
                 <span class="text-[9px] text-amber-500 absolute top-1 left-1.5 font-bold">4</span>
                 <span id="icon-3" class="text-lg">🎒</span>
                 <span id="label-3" class="text-[8px] text-amber-300 truncate w-full text-center px-1">Sack</span>
+            </div>
+            <div class="hotbar-slot" id="slot-4" onclick="selectSlot(4)">
+                <span class="text-[9px] text-amber-500 absolute top-1 left-1.5 font-bold">5</span>
+                <span id="icon-4" class="text-lg">🔫</span>
+                <span id="label-4" class="text-[8px] text-amber-300 truncate w-full text-center px-1">No Gun</span>
             </div>
         </div>
 
@@ -337,7 +349,7 @@
             <div>
                 <h2 id="modal-title" class="typewriter-text text-3xl font-bold text-amber-100">A Dull Autumn Trip</h2>
                 <p id="modal-desc" class="text-xs text-amber-300/90 mt-2 leading-relaxed">
-                    Survive to 100,000m! Drive capped at 94 MPH, clear rare enemy castles, rob red banks, trade loot at the 10,000m selling station, and manage your sack!
+                    Reach 100,000m. Loot towns, crack the banks, sell at the 10,000m outposts and arm up. Night is deadly.
                 </p>
             </div>
 
@@ -381,7 +393,8 @@
             { id: 'sword', name: 'Iron Sword', icon: '⚔' },
             { id: 'flashlight', name: 'Flashlight', icon: '🔦' },
             { id: 'fuel', name: 'Fuel Can', icon: '⛽' },
-            { id: 'sack', name: 'Loot Sack', icon: '🎒' }
+            { id: 'sack', name: 'Loot Sack', icon: '🎒' },
+            { id: 'gun', name: 'Gun', icon: '🔫' }
         ];
 
         let sackItems = [];
@@ -412,21 +425,7 @@
 
         const chunkBuildQueue = [];
 
-        function getTerrainHeight(x, z) {
-            const distFromRoad = Math.abs(x);
-            if (distFromRoad < 14) return 0;
-
-            const cz = Math.floor((z + CHUNK_SIZE / 2) / CHUNK_SIZE);
-            if (cz > 0 && cz % 6 === 0 && distFromRoad < 50) {
-                return 0;
-            }
-
-            const nx = x * 0.015;
-            const nz = z * 0.015;
-            const rawH = Math.sin(nx) * Math.cos(nz) * 6.5 + Math.sin(nx * 2.5 + nz * 1.5) * 2.5;
-            const roadBlend = Math.min(1.0, Math.max(0.0, (distFromRoad - 14.0) / 12.0));
-            return rawH * roadBlend;
-        }
+        
 
         class SoundEngine {
             constructor() {
@@ -498,6 +497,11 @@
                     gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
                     gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
                     osc.start(); osc.stop(this.ctx.currentTime + 0.3);
+                } else if (type === 'shot') {
+                    const b = this.ctx.createBuffer(1, 4410, 44100), dd = b.getChannelData(0);
+                    for (let i = 0; i < dd.length; i++) dd[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / dd.length, 3);
+                    const sr = this.ctx.createBufferSource(); sr.buffer = b; const gn = this.ctx.createGain(); gn.gain.value = 0.5;
+                    sr.connect(gn); gn.connect(this.ctx.destination); sr.start();
                 } else if (type === 'door') {
                     osc.type = 'square';
                     osc.frequency.setValueAtTime(120, this.ctx.currentTime);
@@ -510,6 +514,738 @@
         }
 
         const audio = new SoundEngine();
+// ================= HELPERS =================
+const MC = {};
+function mat(c, o) { const k = c + JSON.stringify(o || 0); return MC[k] || (MC[k] = new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.85 }, o || {}))); }
+function bx(p, w, h, d, c, x, y, z, col) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), typeof c === 'number' ? mat(c) : c);
+    m.position.set(x, y, z); p.add(m); if (col) colliders.push(m); return m;
+}
+const winMat = new THREE.MeshStandardMaterial({ color: 0x223344, emissive: 0xffcc66, emissiveIntensity: 0, roughness: 0.2 });
+const bulbMat = new THREE.MeshStandardMaterial({ color: 0xffeeaa, emissive: 0xffdd88, emissiveIntensity: 0 });
+const GUNS = {
+    revolver: { n: 'Revolver', dmg: 45, cd: 450, pack: 12, pAmmo: 25, price: 200, col: 0x888888, len: 0.3, pel: 1 },
+    shotgun: { n: 'Shotgun', dmg: 28, cd: 900, pack: 8, pAmmo: 45, price: 450, col: 0x553322, len: 0.6, pel: 6 },
+    rifle: { n: 'Rifle', dmg: 75, cd: 650, pack: 10, pAmmo: 50, price: 800, col: 0x334455, len: 0.85, pel: 1 }
+};
+const churches = [];
+let daylight = 1, dayT = 0.1, sunLight, ambientLight, sunDisc, moonDisc, playerLight, stars;
+let ownedGuns = [], gunIdx = 0, ammo = { revolver: 0, shotgun: 0, rifle: 0 }, armor = 0;
+let hasTrailer = false, trailer = null, lastShot = 0, uiOpen = false, pendingItems = [];
+let playerGunMesh, gunBarrel, panelKind = '', panelObj = null, flashT = 0, lastKb = '', toastT;
+const skyC = new THREE.Color(), NIGHT = new THREE.Color(0x03050c), DAY = new THREE.Color(0x9a8468), DUSK = new THREE.Color(0xc2582c);
+const _b = new THREE.Box3(), _s = new THREE.Vector3(0.5, 0.5, 0.5);
+const pick = a => a[Math.random() * a.length | 0];
+
+function foc() { return gameState === 'ON_FOOT' ? playerPos : car.position; }
+function lookDir() { return new THREE.Vector3(Math.sin(playerYaw) * Math.cos(playerPitch), Math.sin(playerPitch), Math.cos(playerYaw) * Math.cos(playerPitch)); }
+function note(t) { const e = document.getElementById('toast'); e.innerText = t; e.style.opacity = 1; clearTimeout(toastT); toastT = setTimeout(() => e.style.opacity = 0, 2400); }
+
+function textSign(txt, w, h, bg, fg) {
+    const c = document.createElement('canvas'); c.width = 256; c.height = Math.round(256 * h / w);
+    const x = c.getContext('2d'); x.fillStyle = bg; x.fillRect(0, 0, c.width, c.height);
+    x.fillStyle = fg; x.font = 'bold ' + Math.round(c.height * 0.6) + 'px monospace'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(txt, c.width / 2, c.height / 2 + 2);
+    return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c) }));
+}
+function makeDoor(g, w, hgt, z, color, name, extra) {
+    const pv = new THREE.Group(); pv.position.set(-w / 2, 0, z);
+    const m = bx(pv, w, hgt, 0.2, color, w / 2, hgt / 2, 0);
+    m.userData = Object.assign({ type: 'door', name, open: false, pivot: pv }, extra || {});
+    g.add(pv); interactiveDoors.push(m); colliders.push(m); return m;
+}
+function addRoof(g, w, h, d, rm, gm) {
+    const rise = 2.4, th = Math.atan2(rise, w / 2), Ls = Math.hypot(w / 2, rise) + 0.5;
+    [-1, 1].forEach(s => { const m = bx(g, Ls, 0.25, d, rm, s * w / 4, h + rise / 2 + 0.12, 0); m.rotation.z = -s * th; });
+    [-d / 2, d / 2].forEach(z => {
+        const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(0, rise); sh.closePath();
+        const e = new THREE.Mesh(new THREE.ExtrudeGeometry(sh, { depth: 0.3, bevelEnabled: false }), gm);
+        e.position.set(0, h, z - 0.15); g.add(e);
+    });
+}
+function humanoid(skin, shirt, pants, zomb) {
+    const g = new THREE.Group();
+    bx(g, 0.52, 0.72, 0.3, shirt, 0, 1.16, 0); bx(g, 0.4, 0.4, 0.4, skin, 0, 1.72, 0);
+    if (zomb) { bx(g, 0.08, 0.06, 0.02, 0xaa0000, -0.1, 1.74, 0.2); bx(g, 0.08, 0.06, 0.02, 0xaa0000, 0.1, 1.74, 0.2); bx(g, 0.2, 0.05, 0.02, 0x220000, 0, 1.62, 0.2); }
+    else bx(g, 0.46, 0.12, 0.46, 0x333333, 0, 1.95, 0);
+    const limb = (w, h, c, x, y) => { const p = new THREE.Group(); p.position.set(x, y, 0); bx(p, w, h, w, c, 0, -h / 2, 0); g.add(p); return p; };
+    const legL = limb(0.22, 0.8, pants, -0.14, 0.8), legR = limb(0.22, 0.8, pants, 0.14, 0.8);
+    const armL = limb(0.17, 0.72, zomb ? skin : shirt, -0.36, 1.48), armR = limb(0.17, 0.72, zomb ? skin : shirt, 0.36, 1.48);
+    if (zomb) armL.rotation.x = armR.rotation.x = -1.35;
+    return { g, legL, legR, armL, armR };
+}
+
+// ================= TERRAIN =================
+function isZoneChunk(cz) { return cz > 0 && (cz % 6 === 0 || (cz * CHUNK_SIZE) % 10000 < CHUNK_SIZE); }
+function zoneFactor(x, z) {
+    const c0 = Math.round(z / CHUNK_SIZE); let f = 0;
+    for (let c = c0 - 1; c <= c0 + 1; c++) {
+        if (!isZoneChunk(c)) continue;
+        const fz = 1 - THREE.MathUtils.smoothstep(Math.abs(z - c * CHUNK_SIZE), 62, 95);
+        const fx = 1 - THREE.MathUtils.smoothstep(Math.abs(x), 70, 100);
+        f = Math.max(f, Math.min(fx, fz));
+    }
+    return f;
+}
+function getTerrainHeight(x, z) {
+    const d = Math.abs(x); if (d < 14) return 0;
+    const nx = x * 0.015, nz = z * 0.015;
+    const raw = Math.sin(nx) * Math.cos(nz) * 6.5 + Math.sin(nx * 2.5 + nz * 1.5) * 2.5;
+    return raw * Math.min(1, (d - 14) / 12) * (1 - zoneFactor(x, z));
+}
+function groundAt(x, z) {
+    for (const p of sellingStationPads) if (Math.abs(x - p.wx) < p.hx && Math.abs(z - p.wz) < p.hz) return p.y;
+    return getTerrainHeight(x, z);
+}
+
+// ================= SCENE =================
+function initScene() {
+    const container = document.getElementById('canvas-container');
+    scene = new THREE.Scene(); scene.background = new THREE.Color(0x9a8468); scene.fog = new THREE.FogExp2(0x9a8468, 0.012);
+    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 700);
+    renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.9;
+    container.appendChild(renderer.domElement);
+    clock = new THREE.Clock();
+    ambientLight = new THREE.AmbientLight(0x7a6350, 0.6); scene.add(ambientLight);
+    sunLight = new THREE.DirectionalLight(0xffc080, 1.1); scene.add(sunLight); scene.add(sunLight.target);
+    sunDisc = new THREE.Mesh(new THREE.SphereGeometry(18, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffd9a0, fog: false }));
+    moonDisc = new THREE.Mesh(new THREE.SphereGeometry(12, 16, 12), new THREE.MeshBasicMaterial({ color: 0xdde6ff, fog: false }));
+    scene.add(sunDisc); scene.add(moonDisc);
+    const sp = new Float32Array(900);
+    for (let i = 0; i < 300; i++) { const a = Math.random() * 6.28, e = Math.random() * 1.4 + 0.1; sp[i * 3] = Math.cos(a) * Math.cos(e) * 450; sp[i * 3 + 1] = Math.sin(e) * 450; sp[i * 3 + 2] = Math.sin(a) * Math.cos(e) * 450; }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 2, fog: false, transparent: true, opacity: 0, sizeAttenuation: false })); scene.add(stars);
+    flashlightSpot = new THREE.SpotLight(0xfff3cc, 0, 35, Math.PI / 5, 0.3); scene.add(flashlightSpot); scene.add(flashlightSpot.target);
+    playerLight = new THREE.PointLight(0xffb060, 0, 22, 2); scene.add(playerLight);
+    createDetailedVehicleWithCoalHatch(); createPlayerFPSItems(); createWeatherParticles();
+    setupPointerLock(); setupInputListeners(); initRain2DCanvas();
+    updateChunks(0, 0);
+}
+
+function updateDayNight(dt) {
+    dayT += dt / 210; // 210 s = 3.5 minute full cycle
+    const a = dayT * Math.PI * 2, k = Math.sin(a), d = THREE.MathUtils.smoothstep(k, -0.18, 0.35);
+    daylight = d;
+    skyC.copy(NIGHT).lerp(DAY, d).lerp(DUSK, Math.max(0, 1 - Math.abs(k) / 0.3) * 0.55);
+    scene.background.copy(skyC); scene.fog.color.copy(skyC); scene.fog.density = 0.012 + 0.01 * (1 - d);
+    ambientLight.intensity = 0.14 + 0.55 * d; sunLight.intensity = 1.15 * d;
+    const f = foc(), dir = new THREE.Vector3(Math.cos(a), k, -0.4).normalize();
+    sunLight.position.copy(f).addScaledVector(dir, 100); sunLight.target.position.copy(f);
+    sunDisc.position.copy(camera.position).addScaledVector(dir, 420); moonDisc.position.copy(camera.position).addScaledVector(dir, -420);
+    sunDisc.visible = k > -0.05; moonDisc.visible = k < 0.05;
+    stars.position.copy(camera.position); stars.material.opacity = Math.max(0, 1 - d * 1.6);
+    const n = 1 - d; winMat.emissiveIntensity = n * 1.6; bulbMat.emissiveIntensity = n * 2.2;
+    playerLight.intensity = n * 1.8; playerLight.position.copy(camera.position);
+    const hr = (6 + (dayT % 1) * 24) % 24, hh = Math.floor(hr), mm = Math.floor((hr - hh) * 60);
+    document.getElementById('hud-time').innerText = (d > 0.4 ? '☀ ' : '☾ ') + String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+}
+
+// ================= CAR =================
+function createDetailedVehicleWithCoalHatch() {
+    car = new THREE.Group();
+    const paint = mat(0x5a2412, { roughness: 0.35, metalness: 0.5 }), dk = mat(0x15110e), ch = mat(0xc0c4c8, { metalness: 0.9, roughness: 0.2 });
+    const gl = new THREE.MeshStandardMaterial({ color: 0x9fb8c8, transparent: true, opacity: 0.25, roughness: 0.1 });
+    bx(car, 2.1, 0.5, 4.3, paint, 0, 0.6, 0); bx(car, 1.95, 0.16, 1.5, paint, 0, 0.92, 1.4); bx(car, 1.95, 0.16, 1.1, paint, 0, 0.92, -1.6);
+    bx(car, 1.9, 0.1, 1.9, dk, 0, 0.9, -0.1);
+    [[-0.92, 0.65], [0.92, 0.65], [-0.92, -1.0], [0.92, -1.0]].forEach(p => bx(car, 0.08, 0.95, 0.08, paint, p[0], 1.4, p[1]));
+    bx(car, 2.0, 0.08, 1.6, paint, 0, 1.9, -0.2);
+    bx(car, 1.84, 0.9, 0.03, gl, 0, 1.4, 0.7); bx(car, 1.84, 0.9, 0.03, gl, 0, 1.4, -1.05);
+    [-1, 1].forEach(s => { bx(car, 0.03, 0.8, 1.6, gl, s * 0.94, 1.4, -0.2); bx(car, 0.2, 0.12, 0.08, dk, s * 1.15, 1.2, 0.5); });
+    [-0.45, 0.45].forEach(x => { bx(car, 0.55, 0.12, 0.55, dk, x, 0.98, -0.3); bx(car, 0.5, 0.6, 0.1, dk, x, 1.3, -0.62); });
+    bx(car, 1.8, 0.25, 0.35, dk, 0, 1.05, 0.55);
+    const sw = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.025, 8, 16), dk); sw.position.set(-0.45, 1.25, 0.35); sw.rotation.x = 0.9; car.add(sw);
+    const tire = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 18), rim = new THREE.CylinderGeometry(0.22, 0.22, 0.32, 10);
+    [[-1.1, 1.4], [1.1, 1.4], [-1.1, -1.4], [1.1, -1.4]].forEach(p => {
+        const w = new THREE.Mesh(tire, mat(0x0f0f0f, { roughness: 0.95 })), r = new THREE.Mesh(rim, ch);
+        w.rotation.z = r.rotation.z = Math.PI / 2; w.position.set(p[0], 0.4, p[1]); r.position.copy(w.position); car.add(w); car.add(r);
+        bx(car, 0.35, 0.08, 1.0, paint, p[0], 0.88, p[1]);
+    });
+    bx(car, 2.2, 0.18, 0.18, ch, 0, 0.42, 2.2); bx(car, 2.2, 0.18, 0.18, ch, 0, 0.42, -2.2); bx(car, 1.1, 0.3, 0.05, dk, 0, 0.68, 2.16);
+    const lg = new THREE.MeshStandardMaterial({ color: 0xfffcdb, emissive: 0xffe885, emissiveIntensity: 2.0 });
+    const tl = new THREE.MeshStandardMaterial({ color: 0xaa0000, emissive: 0xff0000, emissiveIntensity: 1.2 });
+    [-0.75, 0.75].forEach(x => { bx(car, 0.35, 0.18, 0.1, lg, x, 0.62, 2.18); bx(car, 0.35, 0.16, 0.08, tl, x, 0.65, -2.17); });
+    const spotL = new THREE.SpotLight(0xfff5cc, 6.0, 85, Math.PI / 4, 0.3);
+    spotL.position.set(-0.75, 0.6, 2.05); spotL.target.position.set(-0.75, 0.2, 35); car.add(spotL); car.add(spotL.target);
+    const spotR = spotL.clone(); spotR.position.x = 0.75; spotR.target.position.x = 0.75; car.add(spotR); car.add(spotR.target);
+    car.position.set(0, getTerrainHeight(0, 0), 0); scene.add(car);
+}
+function addTrailer() {
+    hasTrailer = true; trailer = new THREE.Group();
+    const wood = mat(0x6b4a2b), st = mat(0x2a2a2e, { metalness: 0.7 });
+    bx(trailer, 2.4, 0.14, 4.4, st, 0, 0.75, -5.4);
+    [-1.16, 1.16].forEach(x => bx(trailer, 0.08, 0.4, 4.4, wood, x, 1.0, -5.4));
+    bx(trailer, 2.4, 0.4, 0.08, wood, 0, 1.0, -3.24); bx(trailer, 2.4, 0.4, 0.08, wood, 0, 1.0, -7.56);
+    const tire = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+    [[-1.2, -4.6], [1.2, -4.6], [-1.2, -6.2], [1.2, -6.2]].forEach(p => { const w = new THREE.Mesh(tire, mat(0x0f0f0f)); w.rotation.z = Math.PI / 2; w.position.set(p[0], 0.4, p[1]); trailer.add(w); });
+    bx(trailer, 0.15, 0.15, 1.2, st, 0, 0.6, -2.7);
+    car.add(trailer);
+}
+function carRects() { return hasTrailer ? [[1.25, 2.3, 0, 1.9], [1.3, 2.4, -5.4, 0.9]] : [[1.25, 2.3, 0, 1.9]]; }
+function carDist(p) {
+    car.updateMatrixWorld(); const l = car.worldToLocal(p.clone()); let d = 1e9, inside = false;
+    for (const [hx, hz, cz, my] of carRects()) {
+        const ax = Math.abs(l.x), az = Math.abs(l.z - cz);
+        d = Math.min(d, Math.hypot(Math.max(ax - hx, 0), Math.max(az - hz, 0)));
+        if (ax < hx - 0.05 && az < hz - 0.05 && l.y < my) inside = true;
+    }
+    return { d, inside, l };
+}
+function carPush(it, vel) {
+    car.updateMatrixWorld(); const l = car.worldToLocal(it.position.clone());
+    for (const [hx, hz, cz, my] of carRects()) {
+        const dx = hx - Math.abs(l.x), dz = hz - Math.abs(l.z - cz);
+        if (dx > 0 && dz > 0 && l.y < my) {
+            const o = dx < dz ? new THREE.Vector3(Math.sign(l.x || 1) * dx, 0, 0) : new THREE.Vector3(0, 0, Math.sign(l.z - cz || 1) * dz);
+            o.applyQuaternion(car.quaternion); it.position.add(o);
+            if (vel) vel.addScaledVector(o.clone().normalize(), Math.abs(carSpeed) * 30 + 1.5);
+            return;
+        }
+    }
+}
+
+// ================= ITEMS & PHYSICS =================
+function createDetailedCollectibleMesh(type) {
+    const g = new THREE.Group(); let n = 'Gold Ingot', h = 0.12, v = 100;
+    if (type === 'fuel') { n = 'Red Fuel Canister'; h = 0.3; v = 15; bx(g, 0.5, 0.6, 0.3, 0xb52b1d, 0, 0, 0); bx(g, 0.15, 0.1, 0.15, 0xddddcc, 0.12, 0.35, 0); bx(g, 0.3, 0.06, 0.06, 0x333333, -0.05, 0.33, 0); }
+    else if (type === 'coal') { n = 'Coal Bucket'; h = 0.25; v = 10; const b = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.4, 10), mat(0x444444, { metalness: 0.6 })); g.add(b); for (let i = 0; i < 5; i++) bx(g, 0.18, 0.14, 0.16, 0x0a0a0a, (Math.random() - 0.5) * 0.25, 0.22, (Math.random() - 0.5) * 0.25).rotation.y = i; }
+    else if (type === 'medkit') { n = 'First Aid Kit'; h = 0.15; v = 40; bx(g, 0.5, 0.3, 0.4, 0xe2e8f0, 0, 0, 0); bx(g, 0.3, 0.32, 0.08, 0xdc2626, 0, 0, 0); bx(g, 0.08, 0.32, 0.3, 0xdc2626, 0, 0, 0); }
+    else if (type === 'sword') { n = 'Iron Broadsword'; h = 0.12; v = 75; bx(g, 0.08, 0.9, 0.02, mat(0x94a3b8, { metalness: 0.9 }), 0, 0, 0).rotation.z = Math.PI / 2; bx(g, 0.08, 0.08, 0.3, 0x1f2937, -0.4, 0, 0); }
+    else if (type === 'holy') { n = 'Holy Water'; h = 0.18; v = 120; bx(g, 0.2, 0.3, 0.2, mat(0x66ccff, { emissive: 0x3388ff, emissiveIntensity: 0.8, transparent: true, opacity: 0.85 }), 0, 0, 0); bx(g, 0.08, 0.1, 0.08, 0x8b5a2b, 0, 0.2, 0); }
+    else if (type === 'note') { n = 'Torn Note'; h = 0.03; v = 5; bx(g, 0.4, 0.02, 0.3, 0xe8dcb5, 0, 0, 0); }
+    else { const gm = mat(0xf5b50b, { metalness: 0.9, roughness: 0.25 }); bx(g, 0.45, 0.2, 0.28, gm, 0, 0, 0); bx(g, 0.3, 0.1, 0.2, gm, 0, 0.14, 0); type = 'gold'; }
+    g.userData = { type, name: n, h, value: v, collected: false, glued: false };
+    return g;
+}
+function spawnItem(type, x, y, z, extra) {
+    const m = createDetailedCollectibleMesh(type); m.position.set(x, y, z); m.rotation.y = Math.random() * 6;
+    if (extra) Object.assign(m.userData, extra); scene.add(m); interactiveItems.push(m); return m;
+}
+function addItem(type, parent, x, y, z, extra) { pendingItems.push({ type, parent, x, y, z, extra }); }
+function colBox(c) {
+    if (c.userData.type === 'door') return new THREE.Box3().setFromObject(c);
+    return c.userData._b || (c.userData._b = new THREE.Box3().setFromObject(c));
+}
+function hitsWall(p, hs) {
+    _b.setFromCenterAndSize(p, hs);
+    for (const c of colliders) { if (c.userData.open) continue; if (_b.intersectsBox(colBox(c))) return true; }
+    return false;
+}
+function removeItem(it) { it.userData.collected = true; it.visible = false; if (it.parent) it.parent.remove(it); }
+function checkSell(it) {
+    const u = it.userData;
+    for (const p of sellingStationPads) {
+        if (Math.hypot(it.position.x - p.wx, it.position.z - p.wz) < 1.2 && Math.abs(it.position.y - (p.y + u.h)) < 0.2 && (!u.vel || u.vel.lengthSq() < 1)) {
+            playerGold += u.value; removeItem(it); audio.playSound('sell'); note(`Sold ${u.name} for $${u.value}`); updateHUD(); return;
+        }
+    }
+}
+function physicsItems(dt) {
+    const f = foc();
+    for (const it of interactiveItems) {
+        const u = it.userData;
+        if (u.collected || u.glued || it === draggedObject || it.parent !== scene) continue;
+        if (Math.abs(it.position.x - f.x) > 70 || Math.abs(it.position.z - f.z) > 70) continue;
+        const v = u.vel || (u.vel = new THREE.Vector3());
+        carPush(it, v); v.y -= 22 * dt;
+        const np = it.position.clone().addScaledVector(v, dt);
+        if (hitsWall(np, _s) && !hitsWall(it.position, _s)) { v.x *= -0.3; v.z *= -0.3; np.x = it.position.x; np.z = it.position.z; }
+        let g = groundAt(np.x, np.z) + u.h;
+        if (hasTrailer) { const l = car.worldToLocal(np.clone()); if (Math.abs(l.x) < 1.1 && Math.abs(l.z + 5.4) < 2.1 && l.y > 0.7) g = Math.max(g, car.position.y + 0.83 + u.h); }
+        if (np.y <= g) { np.y = g; if (v.y < 0) v.y = 0; const fr = Math.pow(0.02, dt); v.x *= fr; v.z *= fr; }
+        it.position.copy(np); checkSell(it);
+    }
+}
+function updateItemDragging() {
+    if (!draggedObject) return;
+    const it = draggedObject, old = it.position.clone();
+    const np = old.clone().lerp(camera.position.clone().addScaledVector(lookDir(), dragDistance), 0.3);
+    const minY = groundAt(np.x, np.z) + it.userData.h; if (np.y < minY) np.y = minY;
+    if (!hitsWall(np, _s) || hitsWall(old, _s)) it.position.copy(np);
+    carPush(it, null); if (it.userData.vel) it.userData.vel.set(0, 0, 0);
+}
+function tryGlue() {
+    const it = draggedObject || hoveredObject;
+    if (!it || it.userData.type === 'door' || it.userData.type === 'shop') return;
+    if (it.userData.glued) { scene.attach(it); it.userData.glued = false; note('Unglued'); return; }
+    const c = carDist(it.position);
+    if (c.inside) note('The item is inside the car - move it out first');
+    else if (c.d < 0.7) { car.attach(it); it.userData.glued = true; if (draggedObject === it) draggedObject = null; audio.playSound('door'); note('Glued to vehicle'); }
+    else note('Hold the item against your car first');
+}
+function fuelDrop(it) {
+    const u = it.userData;
+    if ((u.type === 'fuel' || u.type === 'coal') && carDist(it.position).d < 3) {
+        fuel = Math.min(100, fuel + (u.type === 'coal' ? 30 : 25)); removeItem(it); audio.playSound('pickup'); note('Refueled'); updateHUD();
+    }
+}
+function useConsumable() {
+    const i = sackItems.findIndex(s => s.type === 'holy' || s.type === 'medkit'); if (i < 0) return;
+    const s = sackItems.splice(i, 1)[0];
+    if (s.type === 'medkit') { playerHealth = Math.min(100, playerHealth + 50); note('Used first aid kit (+50 HP)'); }
+    else { playerHealth = Math.min(100, playerHealth + 30); for (let j = zombies.length - 1; j >= 0; j--) if (zombies[j].position.distanceTo(playerPos) < 14) killZombie(zombies[j]); note('Holy water! The undead nearby are purged'); }
+    audio.playSound('sell'); updateSack3DDisplay(); updateHUD();
+}
+
+// ================= WORLD GEN =================
+function createStreetLight() {
+    const g = new THREE.Group(); bx(g, 0.25, 6, 0.25, 0x292524, 0, 3, 0); bx(g, 1.6, 0.1, 0.1, 0x292524, 0.8, 5.8, 0); bx(g, 0.4, 0.25, 0.4, bulbMat, 1.5, 5.65, 0); return g;
+}
+function createAutumnTreeHighPoly() {
+    const t = new THREE.Group(), tr = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.45, 4.5, 10), mat(0x24180e)); tr.position.y = 2.25; t.add(tr);
+    const col = pick([0xb85228, 0x8c381d, 0xc47e33]);
+    [[0, 4.8, 0, 2.2], [1.2, 4.2, 0.5, 1.5], [-1, 4.0, -0.6, 1.4], [0.2, 6.0, 0.1, 1.3]].forEach(a => { const f = new THREE.Mesh(new THREE.IcosahedronGeometry(a[3], 1), mat(col)); f.position.set(a[0], a[1], a[2]); t.add(f); });
+    const br = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.14, 2, 6), mat(0x24180e)); br.position.set(0.9, 3.4, 0); br.rotation.z = -1; t.add(br);
+    return t;
+}
+function ownArrays() { return [colliders, interactiveDoors, friendlyGuardNPCs, castleHostileNPCs, sellingStationPads, churches]; }
+
+function buildChunk(cx, cz) {
+    const key = `${cx},${cz}`; if (terrainChunks.has(key)) return;
+    const chunk = new THREE.Group(), startX = cx * CHUNK_SIZE, startZ = cz * CHUNK_SIZE;
+    chunk.position.set(startX, 0, startZ);
+    const marks = ownArrays().map(a => a.length); pendingItems = [];
+    const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, 24, 24); geo.rotateX(-Math.PI / 2);
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) pos.setY(i, getTerrainHeight(pos.getX(i) + startX, pos.getZ(i) + startZ));
+    geo.computeVertexNormals();
+    chunk.add(new THREE.Mesh(geo, mat(0x3d2e1e, { roughness: 0.95 })));
+    const ms = cx === 0 && cz > 0 && (cz * CHUNK_SIZE) % 10000 < CHUNK_SIZE, town = cx === 0 && !ms && isZoneChunk(cz);
+    if (cx === 0) {
+        const road = new THREE.Mesh(new THREE.PlaneGeometry(12, CHUNK_SIZE, 2, 8), mat(0x1c1917, { roughness: 0.8 }));
+        road.geometry.rotateX(-Math.PI / 2); road.position.y = 0.02; chunk.add(road);
+        for (let l = -CHUNK_SIZE / 2; l < CHUNK_SIZE / 2; l += 8) {
+            const lm = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 4), new THREE.MeshBasicMaterial({ color: 0xf59e0b })); lm.rotateX(-Math.PI / 2); lm.position.set(0, 0.03, l); chunk.add(lm);
+        }
+        if (ms || town) { const pad = new THREE.Mesh(new THREE.PlaneGeometry(100, 118), mat(0x4a3b2a)); pad.rotation.x = -Math.PI / 2; pad.position.set(5, 0.012, 0); chunk.add(pad); }
+        if (cz % 8 === 0 && !ms && !town) { const a = createStreetLight(); a.position.set(-7.5, 0, 0); chunk.add(a); const b = createStreetLight(); b.position.set(7.5, 0, 0); b.rotation.y = Math.PI; chunk.add(b); }
+    }
+    for (let i = 0; i < 7; i++) {
+        const rx = (Math.random() - 0.5) * CHUNK_SIZE, rz = (Math.random() - 0.5) * CHUNK_SIZE, wx = startX + rx, wz = startZ + rz;
+        if (Math.abs(wx) > 14 && zoneFactor(wx, wz) < 0.01) { const t = createAutumnTreeHighPoly(); t.position.set(rx, getTerrainHeight(wx, wz), rz); t.rotation.y = Math.random() * 6; chunk.add(t); }
+    }
+    if (Math.random() < 0.6) addItem('fuel', chunk, (Math.random() - 0.5) * 8, 0.4, (Math.random() - 0.5) * (CHUNK_SIZE - 20));
+    if (ms) createExpanded10kOutpostGasStation(chunk, startX, startZ);
+    else if (town) createTownWithRedBankAndZombies(chunk, startX, startZ);
+    if (Math.abs(cx) === 1 && cz > 0 && cz % 9 === 0) createCastleStructure(chunk, startX, startZ);
+    for (let i = 0; i < (ms || town ? 1 : 4); i++) spawnZombieAt(startX + (Math.random() - 0.5) * CHUNK_SIZE, startZ + (Math.random() - 0.5) * CHUNK_SIZE);
+    scene.add(chunk); chunk.updateMatrixWorld(true);
+    const items = pendingItems.map(p => { const w = p.parent.localToWorld(new THREE.Vector3(p.x, p.y, p.z)); return spawnItem(p.type, w.x, w.y, w.z, p.extra); });
+    pendingItems = [];
+    terrainChunks.set(key, { group: chunk, cx, cz, items, owned: ownArrays().map((a, i) => a.slice(marks[i])) });
+}
+function updateChunks(px, pz) {
+    const ccx = Math.floor((px + CHUNK_SIZE / 2) / CHUNK_SIZE), ccz = Math.floor((pz + CHUNK_SIZE / 2) / CHUNK_SIZE);
+    for (let x = -VIEW_DISTANCE; x <= VIEW_DISTANCE; x++) for (let z = -VIEW_DISTANCE; z <= VIEW_DISTANCE; z++) queueChunkGeneration(ccx + x, ccz + z);
+    terrainChunks.forEach((c, key) => {
+        if (Math.abs(c.cx - ccx) > VIEW_DISTANCE + 1 || Math.abs(c.cz - ccz) > VIEW_DISTANCE + 1) {
+            scene.remove(c.group); c.group.traverse(o => { if (o.geometry) o.geometry.dispose(); });
+            const arrs = ownArrays(); c.owned.forEach((list, i) => list.forEach(e => { const k = arrs[i].indexOf(e); if (k >= 0) arrs[i].splice(k, 1); }));
+            c.items.forEach(it => { if (it.parent === scene && it !== draggedObject) removeItem(it); });
+            terrainChunks.delete(key);
+            for (let i = interactiveItems.length - 1; i >= 0; i--) if (interactiveItems[i].userData.collected) interactiveItems.splice(i, 1);
+        }
+    });
+}
+
+function createDetailedHouse(code, idx) {
+    const g = new THREE.Group(), w = 10, h = 4.6, d = 9;
+    const wm = mat([0x4a3a2a, 0x5a4632, 0x3f4a3a, 0x4b3040, 0x5b5b4a][idx % 5]), rm = mat([0x2d1f14, 0x401c14, 0x23272b][idx % 3]), wood = mat(0x6e4727);
+    bx(g, w, 0.2, d, 0x2a2018, 0, 0.1, 0);
+    bx(g, w, h, 0.4, wm, 0, h / 2, -d / 2, 1); bx(g, 0.4, h, d, wm, -w / 2, h / 2, 0, 1); bx(g, 0.4, h, d, wm, w / 2, h / 2, 0, 1);
+    bx(g, 3.5, h, 0.4, wm, -3.25, h / 2, d / 2, 1); bx(g, 3.5, h, 0.4, wm, 3.25, h / 2, d / 2, 1); bx(g, 3, h - 3.6, 0.4, wm, 0, 3.6 + (h - 3.6) / 2, d / 2, 1);
+    addRoof(g, w + 1, h, d + 1, rm, wm);
+    bx(g, 0.8, 3.2, 0.8, 0x4a2a22, 3, h + 1.4, -2.5);
+    [-1, 1].forEach(s => { [-2, 2.5].forEach(z => bx(g, 0.1, 1.1, 0.9, winMat, s * (w / 2 + 0.22), 2.4, z)); bx(g, 1.0, 1.1, 0.1, winMat, s * 3.25, 2.4, d / 2 + 0.22); bx(g, 0.1, 1.2, 1.0, 0x1a120c, s * (w / 2 + 0.2), 2.4, -2); });
+    bx(g, 4, 0.15, 1.6, wood, 0, 0.12, d / 2 + 0.8); [-1.8, 1.8].forEach(x => bx(g, 0.15, 2.6, 0.15, wood, x, 1.4, d / 2 + 1.5));
+    bx(g, 5, 0.12, 0.2, rm, 0, 2.75, d / 2 + 1.5);
+    [-1, 1].forEach(s => { bx(g, 3.2, 0.8, 0.08, wood, s * 3.4, 0.4, d / 2 + 2.6); bx(g, 0.12, 1.0, 0.12, wood, s * 1.8, 0.5, d / 2 + 2.6); });
+    bx(g, 2, 0.5, 1, 0x6b2d2d, -3, 0.45, -3); bx(g, 1.4, 0.1, 1.4, 0x5a3b1e, 2.5, 0.85, -2.5); bx(g, 0.15, 0.8, 0.15, 0x5a3b1e, 2, 0.4, -2); bx(g, 0.15, 0.8, 0.15, 0x5a3b1e, 3, 0.4, -3);
+    bx(g, 1.2, 2.2, 0.6, 0x3a2a1a, -1, 1.1, -4);
+    makeDoor(g, 3.0, 3.6, d / 2, 0x6e4727, 'Wooden Door');
+    if (code) addItem('note', g, 2.4, 0.3, 0.5, { code });
+    const r = Math.random();
+    addItem(r < 0.4 ? 'sword' : r < 0.7 ? 'medkit' : r < 0.85 ? 'coal' : 'fuel', g, 0, 0.3, -1);
+    return g;
+}
+function prop(T, type, x, z) {
+    const r = Math.random() * 6;
+    if (type === 0) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.9, 10), mat(0x5a3b22)); b.position.set(x, 0.45, z); T.add(b); }
+    else if (type === 1) bx(T, 0.9, 0.9, 0.9, 0x7a5a34, x, 0.45, z).rotation.y = r;
+    else if (type === 2) { const w = new THREE.Group(); bx(w, 1.9, 0.6, 3.8, 0x3d2a22, 0, 0.55, 0); bx(w, 1.6, 0.6, 1.8, 0x2a2220, 0, 1.1, -0.2); [[-1, 1.2], [1, 1.2], [-1, -1.2], [1, -1.2]].forEach(p => bx(w, 0.3, 0.7, 0.7, 0x111111, p[0], 0.35, p[1])); w.position.set(x, 0, z); w.rotation.y = r * 0.15; T.add(w); }
+    else { bx(T, 1.8, 0.12, 0.5, 0x5a3b1e, x, 0.5, z); bx(T, 0.1, 0.5, 0.4, 0x222222, x - 0.7, 0.25, z); bx(T, 0.1, 0.5, 0.4, 0x222222, x + 0.7, 0.25, z); bx(T, 1.8, 0.5, 0.08, 0x5a3b1e, x, 0.85, z - 0.2); }
+}
+function createTownWithRedBankAndZombies(chunk, sx, sz) {
+    const T = new THREE.Group();
+    for (let z = -50; z <= 50; z += 20) { const a = createStreetLight(); a.position.set(-10, 0, z); T.add(a); const b = createStreetLight(); b.position.set(10, 0, z); b.rotation.y = Math.PI; T.add(b); }
+    const code = String(1000 + Math.floor(Math.random() * 9000));
+    const hs = [[-24, -50, 1], [-24, -34, 1], [-24, -18, 1], [-24, -2, 1], [-24, 14, 1], [-24, 30, 1], [-24, 46, 1], [24, -48, -1], [24, -33, -1], [24, 12, -1]];
+    const ni = Math.floor(Math.random() * hs.length);
+    hs.forEach((p, i) => { const h = createDetailedHouse(i === ni ? code : null, i); h.position.set(p[0], 0, p[1]); h.rotation.y = p[2] * Math.PI / 2; T.add(h); });
+    const bank = createRedBankWithVault(code); bank.position.set(30, 0, -8); bank.rotation.y = -Math.PI / 2; T.add(bank);
+    const ch = createChurch(); ch.position.set(36, 0, 36); ch.rotation.y = -Math.PI / 2; T.add(ch);
+    churches.push({ wx: sx + 36, wz: sz + 36, trig: false });
+    const well = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.2, 1.1, 12), mat(0x77736a)); well.position.set(15, 0.55, -24); T.add(well); colliders.push(well);
+    [-1, 1].forEach(s => bx(T, 0.15, 2.6, 0.15, 0x4a2e1a, 15 + s * 1, 1.3, -24)); bx(T, 2.8, 0.15, 1.6, 0x401c14, 15, 2.7, -24);
+    for (let i = 0; i < 18; i++) { const s = Math.random() < 0.5 ? -1 : 1; prop(T, i % 4, s * (11 + Math.random() * 4), -55 + Math.random() * 110); }
+    prop(T, 2, 9.5, -20 + Math.random() * 40);
+    for (let i = 0; i < 28; i++) spawnZombieAt(sx + (Math.random() - 0.5) * 60, sz + (Math.random() - 0.5) * 100);
+    chunk.add(T);
+}
+function createRedBankWithVault(code) {
+    const g = new THREE.Group(), w = 14, h = 6.5, d = 12, rm = mat(0x991b1b, { roughness: 0.5 }), gold = mat(0xf5b50b, { metalness: 0.9, roughness: 0.25 });
+    bx(g, w, 0.2, d, 0xb8b0a0, 0, 0.1, 0);
+    bx(g, w, h, 0.5, rm, 0, h / 2, -d / 2, 1); bx(g, 0.5, h, d, rm, -w / 2, h / 2, 0, 1); bx(g, 0.5, h, d, rm, w / 2, h / 2, 0, 1);
+    bx(g, 5, h, 0.5, rm, -4.5, h / 2, d / 2, 1); bx(g, 5, h, 0.5, rm, 4.5, h / 2, d / 2, 1); bx(g, 4, h - 4.6, 0.5, rm, 0, 4.6 + (h - 4.6) / 2, d / 2, 1);
+    bx(g, w + 1, 0.4, d + 1, 0x18181b, 0, h + 0.2, 0); bx(g, w + 1.2, 0.4, 0.4, 0xd4af37, 0, h - 0.1, d / 2 + 0.4);
+    const sg = textSign('BANK', 3.6, 0.9, '#d4af37', '#3b0a0a'); sg.position.set(0, 5.5, d / 2 + 0.28); g.add(sg);
+    [-1, 1].forEach(s => { [-3, 3].forEach(z => bx(g, 0.1, 1.4, 1.4, winMat, s * (w / 2 + 0.28), 3, z)); bx(g, 1.6, 1.6, 0.1, winMat, s * 4.5, 3.2, d / 2 + 0.28); const c = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 5, 10), mat(0xd8d2c4)); c.position.set(s * 2.8, 2.5, d / 2 + 0.8); g.add(c); });
+    bx(g, 6, 0.2, 1.2, 0x9a9486, 0, 0.1, d / 2 + 0.7);
+    bx(g, 8, 1.1, 0.7, 0x4a2e1a, 0, 0.55, 1.5, 1);
+    const vd = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.3, 20), mat(0x4b5563, { metalness: 0.9 })); vd.rotation.x = Math.PI / 2; vd.position.set(0, 2, -d / 2 + 0.4); g.add(vd);
+    for (let r = 0; r < 3; r++) for (let i = 0; i < 6; i++) bx(g, 0.5, 0.2, 0.3, gold, -3.5 + i * 0.7 + (r % 2) * 0.2, 1.5 + r * 0.6, -d / 2 + 0.9);
+    for (let i = 0; i < 6; i++) addItem('gold', g, (i % 3) * 0.9 - 0.9, 0.3, -3 + Math.floor(i / 3) * 0.9);
+    makeDoor(g, 4, 4.5, d / 2, mat(0x374151, { metalness: 0.8, roughness: 0.2 }), 'Bank Security Door', { locked: true, code });
+    return g;
+}
+function createChurch() {
+    const g = new THREE.Group(), w = 12, d = 20, h = 6.5, sm = mat(0xcfc3a8), wd = mat(0x4a2e1a);
+    bx(g, w, 0.2, d, 0x8a8478, 0, 0.1, 0);
+    bx(g, w, h, 0.5, sm, 0, h / 2, -d / 2, 1); bx(g, 0.5, h, d, sm, -w / 2, h / 2, 0, 1); bx(g, 0.5, h, d, sm, w / 2, h / 2, 0, 1);
+    bx(g, 4, h, 0.5, sm, -4, h / 2, d / 2, 1); bx(g, 4, h, 0.5, sm, 4, h / 2, d / 2, 1); bx(g, 4, h - 4.6, 0.5, sm, 0, 4.6 + (h - 4.6) / 2, d / 2, 1);
+    addRoof(g, w + 1, h, d + 1, mat(0x3a2a24), sm);
+    bx(g, 3.6, h + 5, 3.6, sm, -4.6, (h + 5) / 2, d / 2 - 1.5, 1);
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(2.8, 4.5, 4), mat(0x3a2a24)); sp.position.set(-4.6, h + 7.25, d / 2 - 1.5); sp.rotation.y = Math.PI / 4; g.add(sp);
+    bx(g, 0.2, 1.8, 0.2, 0xd4af37, -4.6, h + 10.4, d / 2 - 1.5); bx(g, 1, 0.2, 0.2, 0xd4af37, -4.6, h + 10.7, d / 2 - 1.5);
+    const gm = [0xdc2626, 0x2563eb, 0xeab308].map(c => new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.5 }));
+    [-1, 1].forEach(s => [-6, 0, 6].forEach((z, i) => bx(g, 0.1, 2.6, 1.2, gm[i], s * (w / 2 + 0.28), 3.4, z)));
+    for (let r = 0; r < 5; r++) [-2.4, 2.4].forEach(x => bx(g, 3.2, 0.9, 0.6, wd, x, 0.5, -1 + r * 2.2));
+    bx(g, 3, 1.1, 1.2, 0xe5e0d0, 0, 0.65, -d / 2 + 2); bx(g, 3.2, 0.1, 1.4, 0x7c1d1d, 0, 1.25, -d / 2 + 2);
+    bx(g, 0.3, 3, 0.3, wd, 0, 4.2, -d / 2 + 0.4); bx(g, 1.6, 0.3, 0.3, wd, 0, 4.8, -d / 2 + 0.4);
+    [-1, 1].forEach(s => bx(g, 0.12, 0.5, 0.12, mat(0xfff3c0, { emissive: 0xffcc66, emissiveIntensity: 1 }), s * 1.1, 1.55, -d / 2 + 2));
+    const f = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.35, 1, 12), sm); f.position.set(-3.5, 0.5, -5); g.add(f);
+    const wt = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.04, 12), mat(0x66ccff, { emissive: 0x3388ff, emissiveIntensity: 0.9 })); wt.position.set(-3.5, 1.02, -5); g.add(wt);
+    addItem('holy', g, -3.5, 0.3, -3.6); addItem('holy', g, 0.8, 0.3, -d / 2 + 3.6); addItem('holy', g, -0.8, 0.3, -d / 2 + 3.6);
+    const L = new THREE.PointLight(0xffd699, 1.2, 16, 2); L.position.set(0, 5, 0); g.add(L);
+    makeDoor(g, 4, 4.6, d / 2, wd, 'Church Door');
+    return g;
+}
+
+function createExpanded10kOutpostGasStation(chunk, sx, sz) {
+    const O = new THREE.Group(); O.position.set(34, 0, 0);
+    const wm = mat(0x52525b, { roughness: 0.7 }), OX = sx + 34;
+    bx(O, 48, 5, 1, wm, 0, 2.5, -24, 1); bx(O, 48, 5, 1, wm, 0, 2.5, 24, 1);
+    [-1, 1].forEach(s => { bx(O, 1, 5, 17, wm, s * 24, 2.5, -15.5, 1); bx(O, 1, 5, 17, wm, s * 24, 2.5, 15.5, 1); bx(O, 5, 9, 5, 0x45454d, s * 24, 4.5, -24, 1); bx(O, 5, 9, 5, 0x45454d, s * 24, 4.5, 24, 1); bx(O, 6, 0.8, 6, 0x2d1f14, s * 24, 9.4, -24); bx(O, 6, 0.8, 6, 0x2d1f14, s * 24, 9.4, 24); const l = createStreetLight(); l.position.set(s * 22, 0, 0); l.rotation.y = s > 0 ? Math.PI : 0; O.add(l); });
+    [[-22, -9], [-22, 9], [22, -9], [22, 9]].forEach(p => {
+        const hm = humanoid(0xe0b08a, 0x1e3a8a, 0x202020, false); hm.g.position.set(p[0], 0, p[1]); hm.armL.rotation.x = hm.armR.rotation.x = -0.9;
+        bx(hm.g, 0.1, 0.1, 0.9, 0x111111, 0.3, 1.2, 0.3); O.add(hm.g);
+        friendlyGuardNPCs.push({ mesh: hm.g, wx: OX + p[0], wz: sz + p[1], lastShot: 0 });
+    });
+    // shop building
+    const B = new THREE.Group(); B.position.set(8, 0, -12); const bw = 14, bd = 10, bh = 4.5, sm = mat(0x6b5a45);
+    bx(B, bw, 0.2, bd, 0x3a3228, 0, 0.1, 0);
+    bx(B, bw, bh, 0.5, sm, 0, bh / 2, -bd / 2, 1); bx(B, 0.5, bh, bd, sm, -bw / 2, bh / 2, 0, 1); bx(B, 0.5, bh, bd, sm, bw / 2, bh / 2, 0, 1);
+    bx(B, 5, bh, 0.5, sm, -4.5, bh / 2, bd / 2, 1); bx(B, 5, bh, 0.5, sm, 4.5, bh / 2, bd / 2, 1); bx(B, 4, 1.2, 0.5, sm, 0, bh - 0.6, bd / 2, 1);
+    bx(B, bw + 1, 0.4, bd + 1, 0x2d1f14, 0, bh + 0.2, 0);
+    const ss = textSign('SHOP', 4, 1, '#f59e0b', '#2d1f14'); ss.position.set(0, bh + 1, bd / 2 + 0.1); B.add(ss);
+    bx(B, 0.1, 1.4, 1.6, winMat, -bw / 2 - 0.28, 2.5, 0);
+    const ctr = bx(B, 8, 1.2, 1, 0x5a3b1e, 0, 0.6, -1.5, 1);
+    ctr.userData = { type: 'shop', name: 'Shop Counter', spawn: new THREE.Vector3(OX + 8, 0.8, sz - 12 + 1.3) }; interactiveDoors.push(ctr);
+    for (let i = 0; i < 7; i++) { bx(B, 1.4, 0.15, 0.5, 0x3a2a1a, -4.5 + i * 1.5, 1.8, -bd / 2 + 0.5); bx(B, 0.5, 0.4, 0.4, [0x334455, 0x553322, 0x888888, 0x222222][i % 4], -4.5 + i * 1.5, 2.1, -bd / 2 + 0.5); }
+    O.add(B);
+    // pumps + canopy
+    [-12, -8].forEach(x => { bx(O, 0.9, 1.8, 0.7, 0xb91c1c, x, 0.9, -12, 1); bx(O, 0.7, 0.4, 0.5, 0x222222, x, 1.5, -11.6); });
+    [[-14, -15], [-6, -15], [-14, -9], [-6, -9]].forEach(p => bx(O, 0.3, 4.5, 0.3, 0x71717a, p[0], 2.25, p[1]));
+    bx(O, 10, 0.4, 8, 0xb91c1c, -10, 4.7, -12);
+    // sell table with green marker
+    const SX = -8, SZ = 10;
+    bx(O, 4, 0.15, 2.4, 0x6b4a2b, SX, 1.0, SZ); [[-1.8, -1], [1.8, -1], [-1.8, 1], [1.8, 1]].forEach(p => bx(O, 0.2, 1, 0.2, 0x3a2a1a, SX + p[0], 0.5, SZ + p[1], 1));
+    const mk = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.03, 24), mat(0x10b981, { emissive: 0x10b981, emissiveIntensity: 0.9 })); mk.position.set(SX, 1.09, SZ); O.add(mk);
+    bx(O, 0.15, 3.5, 0.15, 0x10b981, SX, 1.75, SZ - 1.6);
+    const sl = textSign('SELL HERE', 3, 0.7, '#065f46', '#d1fae5'); sl.position.set(SX, 3.5, SZ - 1.6); sl.rotation.y = Math.PI; O.add(sl);
+    sellingStationPads.push({ wx: OX + SX, wz: sz + SZ, hx: 2, hz: 1.2, y: 1.08 });
+    for (let i = 0; i < 6; i++) prop(O, i % 3, 14 + Math.random() * 7, 8 + Math.random() * 12);
+    prop(O, 2, 16, 4);
+    for (let i = 0; i < 4; i++) bx(O, 0.8, 0.5, 0.8, 0x1a1a1a, 4 + i * 0.7, 0.25, 20.5);
+    chunk.add(O);
+}
+
+// ================= ZOMBIES / COMBAT =================
+const ZSK = [0x6b8f5e, 0x7a9a6a, 0x8aa07c], ZSH = [0x2d3a28, 0x3a2d28, 0x28303a, 0x4a4030], ZPA = [0x2a2a35, 0x30281f, 0x1f2a2a];
+function spawnZombieAt(x, z) {
+    if (zombies.length > 230) return;
+    const hm = humanoid(pick(ZSK), pick(ZSH), pick(ZPA), true), g = hm.g;
+    g.position.set(x, getTerrainHeight(x, z), z); g.rotation.y = Math.random() * 6;
+    g.userData = { type: 'zombie', health: 45, speed: 2.6 + Math.random() * 1.4, ph: Math.random() * 6, parts: hm };
+    scene.add(g); zombies.push(g);
+}
+function killZombie(z) { scene.remove(z); const i = zombies.indexOf(z); if (i >= 0) zombies.splice(i, 1); zombieKills++; }
+function hurtZombie(z, dmg) { z.userData.health -= dmg; audio.playSound('zombie_hit'); if (z.userData.health <= 0) killZombie(z); }
+function updateZombies(delta) {
+    const tp = gameState === 'DRIVING' ? car.position : playerPos, nm = 1 + 0.35 * (1 - daylight);
+    for (let i = zombies.length - 1; i >= 0; i--) {
+        const z = zombies[i], u = z.userData, dx = tp.x - z.position.x, dz = tp.z - z.position.z, dist = Math.hypot(dx, dz);
+        z.rotation.y = Math.atan2(dx, dz); let moving = false;
+        if (dist > 1.3) { const s = u.speed * nm * delta; z.position.x += Math.sin(z.rotation.y) * s; z.position.z += Math.cos(z.rotation.y) * s; z.position.y = getTerrainHeight(z.position.x, z.position.z); moving = true; }
+        else if (gameState === 'ON_FOOT') damagePlayer(18 * delta);
+        u.ph += delta * u.speed * 2.4 * (moving ? 1 : 0.25);
+        const p = u.parts, s = Math.sin(u.ph);
+        p.legL.rotation.x = s * 0.8; p.legR.rotation.x = -s * 0.8;
+        p.armL.rotation.x = -1.35 + s * 0.22; p.armR.rotation.x = -1.35 - s * 0.22;
+        if (dist > 160) { scene.remove(z); zombies.splice(i, 1); }
+    }
+}
+function runOverZombies() {
+    if (Math.abs(carSpeed) < 0.25) return;
+    for (let i = zombies.length - 1; i >= 0; i--) if (Math.hypot(zombies[i].position.x - car.position.x, zombies[i].position.z - car.position.z) < 2.2) { killZombie(zombies[i]); audio.playSound('zombie_hit'); }
+}
+function updateChurches() {
+    const f = foc();
+    churches.forEach(c => {
+        if (!c.trig && Math.hypot(f.x - c.wx, f.z - c.wz) < 50) {
+            c.trig = true; note('The church bells toll... the dead rise!');
+            for (let i = 0; i < 45; i++) { const a = Math.random() * 6.28, r = 8 + Math.random() * 25; spawnZombieAt(c.wx + Math.cos(a) * r, c.wz + Math.sin(a) * r); }
+        }
+    });
+}
+function updateNPCGuardAttacks(now) {
+    friendlyGuardNPCs.forEach(gd => {
+        if (now - gd.lastShot < 1000) return;
+        for (let i = zombies.length - 1; i >= 0; i--) {
+            const z = zombies[i], dx = z.position.x - gd.wx, dz = z.position.z - gd.wz;
+            if (Math.hypot(dx, dz) < 24) { gd.lastShot = now; gd.mesh.rotation.y = Math.atan2(dx, dz); hurtZombie(z, 30); break; }
+        }
+    });
+    castleHostileNPCs.forEach(e => {
+        if (gameState === 'ON_FOOT' && now - e.lastShot > 1500 && new THREE.Vector3(e.wx, 16, e.wz).distanceTo(playerPos) < 30) { e.lastShot = now; damagePlayer(12); }
+    });
+}
+function swingSword() {
+    audio.playSound('swing'); playerSwordMesh.rotation.z = -1.2; setTimeout(() => playerSwordMesh.rotation.z = 0, 200);
+    for (let i = zombies.length - 1; i >= 0; i--) if (playerPos.distanceTo(zombies[i].position) < 3.4) hurtZombie(zombies[i], 35);
+}
+function shootGun() {
+    const k = ownedGuns[gunIdx]; if (!k) { note('Buy a gun at a 10,000m shop'); return; }
+    const g = GUNS[k], now = performance.now(); if (now - lastShot < g.cd) return;
+    if (ammo[k] <= 0) { note('Out of ammo - buy more at a shop'); return; }
+    lastShot = now; ammo[k]--; audio.playSound('shot'); playerGunMesh.position.z = -0.38; setTimeout(() => playerGunMesh.position.z = -0.5, 90);
+    const o = camera.position, d = lookDir(), hits = [];
+    zombies.forEach(z => {
+        const t = new THREE.Vector3(z.position.x, z.position.y + 1.1, z.position.z).sub(o), dist = t.dot(d);
+        if (dist < 1 || dist > (g.pel > 1 ? 28 : 80)) return;
+        if (t.sub(d.clone().multiplyScalar(dist)).length() < (g.pel > 1 ? dist * 0.13 + 0.4 : 0.6)) hits.push([dist, z]);
+    });
+    hits.sort((a, b) => a[0] - b[0]);
+    (g.pel > 1 ? hits : hits.slice(0, 1)).forEach(h => hurtZombie(h[1], g.dmg));
+}
+
+// ================= UI / INPUT =================
+function shopList() {
+    const L = [];
+    L.push(['Coal Bucket (+30% fuel)', 30, () => spawnAtShop('coal')]);
+    L.push(['Fuel Can (+25% fuel)', 50, () => spawnAtShop('fuel')]);
+    L.push(['First Aid Kit', 120, () => spawnAtShop('medkit')]);
+    for (const k in GUNS) {
+        const g = GUNS[k];
+        if (!ownedGuns.includes(k)) L.push([g.n + ' (gun)', g.price, () => { ownedGuns.push(k); gunIdx = ownedGuns.length - 1; selectSlot(activeSlot); note('Gun bought - press 5 to equip'); }]);
+        else L.push([`${g.n} ammo x${g.pack} (have ${ammo[k]})`, g.pAmmo, () => { ammo[k] += g.pack; }]);
+    }
+    L.push([`Armor Plate +50 (have ${armor})`, 250, () => { armor = Math.min(100, armor + 50); }]);
+    if (!hasTrailer) L.push(['Car Trailer (glue stuff on it)', 1500, () => addTrailer()]);
+    return L;
+}
+function spawnAtShop(type) { const s = panelObj.userData.spawn; spawnItem(type, s.x + (Math.random() - 0.5), s.y, s.z + (Math.random() - 0.5)); }
+function buy(i) {
+    const it = shopList()[i]; if (!it) return;
+    if (playerGold < it[1]) { renderPanel('Not enough cash - sell loot on the green table'); return; }
+    playerGold -= it[1]; it[2](); audio.playSound('sell'); updateHUD(); renderPanel('Purchased!');
+}
+function openPanel(k, o) { uiOpen = true; panelKind = k; panelObj = o; for (const x in keys) keys[x] = false; if (document.pointerLockElement) document.exitPointerLock(); renderPanel(); }
+function closePanel() { uiOpen = false; document.getElementById('ui-panel').style.display = 'none'; }
+function renderPanel(msg) {
+    const p = document.getElementById('ui-panel'); p.style.display = 'block';
+    if (panelKind === 'code') {
+        p.innerHTML = `<div style="font-weight:bold;color:#fbbf24;margin-bottom:6px">BANK DOOR KEYPAD</div><div style="font-size:11px;margin-bottom:6px">Enter the 4-digit passcode. Somebody in town wrote it down...</div><input id="code-in" maxlength="4" style="width:100%;background:#000;color:#4ade80;border:2px solid #4b5563;padding:6px;font-size:22px;letter-spacing:8px;text-align:center" placeholder="----"><button class="pb" onclick="submitCode()">ENTER</button><button class="pb" onclick="closePanel()">Cancel</button><div style="color:#f87171;margin-top:4px">${msg || ''}</div>`;
+        setTimeout(() => { const i = document.getElementById('code-in'); if (i) i.focus(); }, 30);
+    } else {
+        p.innerHTML = `<div style="font-weight:bold;color:#fbbf24;margin-bottom:6px">OUTPOST SHOP - Cash $${playerGold}</div>` + shopList().map((r, i) => `<button class="pb" onclick="buy(${i})">${r[0]} <span style="float:right;color:#fbbf24">$${r[1]}</span></button>`).join('') + `<button class="pb" onclick="closePanel()">Close [Esc]</button><div style="color:#86efac;margin-top:4px">${msg || ''}</div>`;
+    }
+}
+function submitCode() {
+    const d = panelObj, v = document.getElementById('code-in').value;
+    if (v === d.userData.code) { d.userData.locked = false; closePanel(); toggleDoor(d); note('Vault door unlocked'); }
+    else renderPanel('WRONG CODE');
+}
+function toggleDoor(d) {
+    const u = d.userData; if (u.locked) { openPanel('code', d); return; }
+    u.open = !u.open; u.pivot.rotation.y = u.open ? Math.PI / 2 : 0; audio.playSound('door');
+}
+function checkSellingStationDrop() { }
+
+function setupPointerLock() {
+    const container = document.getElementById('canvas-container');
+    container.addEventListener('click', () => { if (!uiOpen && (gameState === 'ON_FOOT' || gameState === 'DRIVING')) container.requestPointerLock(); });
+    document.addEventListener('mousemove', e => {
+        if (document.pointerLockElement === container) { playerYaw -= e.movementX * 0.0022; playerPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch - e.movementY * 0.0022)); }
+    });
+    document.addEventListener('mousedown', e => {
+        if (uiOpen || gameState !== 'ON_FOOT' || e.button !== 0) return;
+        const ho = hoveredObject;
+        if (ho) {
+            if (ho.userData.type === 'door') toggleDoor(ho);
+            else if (ho.userData.type === 'shop') openPanel('shop', ho);
+            else { if (ho.userData.glued) { scene.attach(ho); ho.userData.glued = false; } draggedObject = ho; dragDistance = Math.min(3.5, camera.position.distanceTo(ho.position)); }
+        } else { const id = inventory[activeSlot].id; if (id === 'sword') swingSword(); else if (id === 'gun') shootGun(); }
+    });
+    document.addEventListener('mouseup', e => { if (e.button === 0 && draggedObject) { const it = draggedObject; draggedObject = null; fuelDrop(it); } });
+}
+function setupInputListeners() {
+    window.addEventListener('keydown', e => {
+        if (uiOpen) { if (e.key === 'Escape') closePanel(); else if (e.key === 'Enter' && panelKind === 'code') submitCode(); return; }
+        const k = e.key.toLowerCase();
+        if (k === 'w' || e.key === 'ArrowUp') keys.w = true; if (k === 'a' || e.key === 'ArrowLeft') keys.a = true;
+        if (k === 's' || e.key === 'ArrowDown') keys.s = true; if (k === 'd' || e.key === 'ArrowRight') keys.d = true;
+        if (e.code === 'Space') keys.space = true; if (e.key === 'Shift') { keys.shift = true; handleVehicleExit(); }
+        if (k === 'e') handleVehicleEntryAndDoors(); if (k === 'f') handleKeyPressF();
+        if (k === 'g' && gameState === 'ON_FOOT') tryGlue(); if (k === 'h' && gameState === 'ON_FOOT') useConsumable();
+        if (k === '1') selectSlot(0); if (k === '2') selectSlot(1); if (k === '3') selectSlot(2); if (k === '4') selectSlot(3);
+        if (k === '5') { if (activeSlot === 4 && ownedGuns.length > 1) gunIdx = (gunIdx + 1) % ownedGuns.length; selectSlot(4); }
+    });
+    window.addEventListener('keyup', e => {
+        const k = e.key.toLowerCase();
+        if (k === 'w' || e.key === 'ArrowUp') keys.w = false; if (k === 'a' || e.key === 'ArrowLeft') keys.a = false;
+        if (k === 's' || e.key === 'ArrowDown') keys.s = false; if (k === 'd' || e.key === 'ArrowRight') keys.d = false;
+        if (e.code === 'Space') keys.space = false; if (e.key === 'Shift') keys.shift = false;
+    });
+    document.getElementById('btn-start').addEventListener('click', startGame);
+}
+function selectSlot(idx) {
+    activeSlot = idx; document.querySelectorAll('.hotbar-slot').forEach((el, i) => el.classList.toggle('active', i === idx));
+    const id = inventory[idx].id;
+    flashlightSpot.intensity = id === 'flashlight' ? 4.5 : 0; playerSwordMesh.visible = id === 'sword';
+    playerFlashlightMesh.visible = id === 'flashlight'; playerSackMesh.visible = id === 'sack';
+    const gk = ownedGuns[gunIdx]; playerGunMesh.visible = id === 'gun' && !!gk;
+    if (gk) { const g = GUNS[gk]; gunBarrel.material = mat(g.col); gunBarrel.scale.z = g.len / 0.4; gunBarrel.position.z = -0.1 - g.len / 2; }
+    document.getElementById('sack-list-ui').style.display = id === 'sack' ? 'block' : 'none';
+}
+function handleKeyPressF() {
+    if (gameState !== 'ON_FOOT') return;
+    const ho = draggedObject || hoveredObject;
+    if (ho && ho.userData.type !== 'door' && ho.userData.type !== 'shop') {
+        if (sackItems.length >= SACK_MAX) { note('Sack is full (10/10)'); return; }
+        if (ho.userData.glued) { scene.attach(ho); ho.userData.glued = false; }
+        sackItems.push({ type: ho.userData.type, name: ho.userData.name, code: ho.userData.code });
+        removeItem(ho); if (draggedObject === ho) draggedObject = null; hoveredObject = null;
+        document.getElementById('hover-tooltip').style.display = 'none';
+        audio.playSound('pickup'); updateSack3DDisplay(); updateHUD(); return;
+    }
+    if (inventory[activeSlot].id === 'sack' && sackItems.length > 0) {
+        const s = sackItems.pop(), dp = playerPos.clone().add(new THREE.Vector3(Math.sin(playerYaw), 0, Math.cos(playerYaw)).multiplyScalar(1.8));
+        spawnItem(s.type, dp.x, playerPos.y - 0.6, dp.z, s.code ? { code: s.code } : null);
+        audio.playSound('pickup'); updateSack3DDisplay(); updateHUD();
+    }
+}
+function checkHoveredObject() {
+    const tt = document.getElementById('hover-tooltip');
+    if (gameState !== 'ON_FOOT' || draggedObject || uiOpen) { tt.style.display = 'none'; return; }
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+    const cand = [];
+    interactiveItems.forEach(it => { if (!it.userData.collected) it.traverse(c => { if (c.isMesh) cand.push(c); }); });
+    interactiveDoors.forEach(d => cand.push(d));
+    const hit = raycaster.intersectObjects(cand, false);
+    if (hit.length && hit[0].distance < 4.5) {
+        let t = hit[0].object; while (t && !t.userData.type) t = t.parent;
+        hoveredObject = t || null;
+    } else hoveredObject = null;
+    if (hoveredObject) {
+        const u = hoveredObject.userData;
+        tt.innerText = u.name + (u.locked ? ' [LOCKED]' : '') + (u.type === 'note' ? ` - Bank passcode: ${u.code}` : '') + (u.glued ? ' [glued]' : '');
+        tt.style.display = 'block';
+    } else tt.style.display = 'none';
+}
+function handleVehicleEntryAndDoors() {
+    if (uiOpen) return;
+    const ho = hoveredObject;
+    if (ho && ho.userData.type === 'door') { toggleDoor(ho); return; }
+    if (ho && ho.userData.type === 'shop') { openPanel('shop', ho); return; }
+    if (gameState === 'ON_FOOT' && carDist(playerPos).d < 2.5) {
+        gameState = 'DRIVING'; document.getElementById('crosshair').classList.add('hidden'); document.getElementById('roof-cover').classList.remove('hidden');
+        document.getElementById('hud-mode-badge').innerText = 'DRIVING'; document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-amber-200'; outdoorTimer = 0;
+    }
+}
+function handleVehicleExit() {
+    if (gameState === 'DRIVING' && Math.abs(carSpeed) < 0.2) {
+        gameState = 'ON_FOOT';
+        const o = new THREE.Vector3(-2.6, 0, 0).applyQuaternion(car.quaternion).add(car.position);
+        playerPos.set(o.x, getTerrainHeight(o.x, o.z) + 1.6, o.z);
+        document.getElementById('crosshair').classList.remove('hidden'); document.getElementById('roof-cover').classList.add('hidden');
+        document.getElementById('hud-mode-badge').innerText = 'ON FOOT'; document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-emerald-400';
+    }
+}
+function kb(k, t) { return `<div class="kb"><b>${k}</b> ${t}</div>`; }
+function updateKeybinds() {
+    let h = '';
+    if (!uiOpen && gameState === 'DRIVING') { h = kb('W / S', 'Gas / Reverse') + kb('A / D', 'Steer') + kb('SPACE', 'Brake'); if (Math.abs(carSpeed) < 0.2) h += kb('SHIFT', 'Exit car'); }
+    else if (!uiOpen && gameState === 'ON_FOOT') {
+        const id = inventory[activeSlot].id, ho = draggedObject || hoveredObject;
+        h = kb('WASD', 'Move') + kb('1-5', 'Switch item');
+        if (id === 'sword' || id === 'gun') h += kb('L-CLICK', id === 'gun' ? 'Shoot' : 'Swing');
+        if (ho) {
+            const t = ho.userData.type;
+            if (t === 'door') h += kb('E', ho.userData.locked ? 'Enter passcode' : 'Open / close');
+            else if (t === 'shop') h += kb('E', 'Open shop');
+            else { h += kb('HOLD L-CLICK', 'Drag') + kb('F', 'Put in sack'); if (ho.userData.glued) h += kb('G', 'Unglue'); else if (carDist(ho.position).d < 0.7) h += kb('G', 'Glue to car'); }
+        } else if (carDist(playerPos).d < 2.5) h += kb('E', 'Enter car');
+        if (id === 'sack' && sackItems.length) h += kb('F', 'Drop item');
+        if (sackItems.some(s => s.type === 'holy' || s.type === 'medkit')) h += kb('H', 'Use holy water / medkit');
+    }
+    if (h !== lastKb) { lastKb = h; const e = document.getElementById('keybinds'); e.innerHTML = h; e.style.display = h ? 'block' : 'none'; }
+}
+function damagePlayer(a) {
+    if (armor > 0) { const ab = Math.min(armor, a * 0.7); armor -= ab; a -= ab; }
+    playerHealth = Math.max(0, playerHealth - a);
+    document.getElementById('damage-flash').style.opacity = '0.8'; flashT = 0.15; updateHUD();
+    if (playerHealth <= 0) gameOver('OVERTAKEN BY AUTUMN ZOMBIES');
+}
+function startGame() {
+    audio.init(); document.getElementById('modal-screen').classList.add('hidden'); document.getElementById('roof-cover').classList.remove('hidden');
+    gameState = 'DRIVING'; carSpeed = 0; fuel = 100; playerHealth = 100; playerGold = 0; zombieKills = 0; distanceTraveled = 0;
+    armor = 0; ownedGuns = []; gunIdx = 0; ammo = { revolver: 0, shotgun: 0, rifle: 0 }; hasTrailer = false;
+    if (trailer) { car.remove(trailer); trailer = null; }
+    interactiveItems.forEach(i => { if (i.userData.glued) { car.remove(i); i.userData.collected = true; } });
+    sackItems = []; closePanel(); dayT = 0.1;
+    car.position.set(0, getTerrainHeight(0, 0), 0); car.rotation.set(0, 0, 0);
+    selectSlot(0); updateSack3DDisplay();
+}
+function updateOnFootPlayer(delta) {
+    if (gameState !== 'ON_FOOT') return;
+    outdoorTimer += delta; const night = 1 - daylight;
+    if (outdoorTimer > 8 - 5 * night && zombies.length < 12 + Math.round(25 * night)) { const a = Math.random() * 6.28; spawnZombieAt(playerPos.x + Math.sin(a) * 35, playerPos.z + Math.cos(a) * 35); outdoorTimer = 0; }
+    if (!uiOpen) {
+        const ms = 7.5 * delta, fw = new THREE.Vector3(Math.sin(playerYaw), 0, Math.cos(playerYaw)), sd = new THREE.Vector3().crossVectors(fw, new THREE.Vector3(0, 1, 0));
+        const np = playerPos.clone();
+        if (keys.w) np.addScaledVector(fw, ms); if (keys.s) np.addScaledVector(fw, -ms); if (keys.a) np.addScaledVector(sd, -ms); if (keys.d) np.addScaledVector(sd, ms);
+        const pb = new THREE.Box3().setFromCenterAndSize(np, new THREE.Vector3(0.8, 1.8, 0.8));
+        let hit = false; for (const c of colliders) { if (c.userData.open) continue; if (pb.intersectsBox(colBox(c))) { hit = true; break; } }
+        if (!hit) playerPos.copy(np);
+    }
+    playerPos.y = getTerrainHeight(playerPos.x, playerPos.z) + 1.6;
+    checkHoveredObject(); updateItemDragging();
+}
+function animate() {
+    requestAnimationFrame(animate);
+    const delta = Math.min(clock.getDelta(), 0.1), now = Date.now();
+    processChunkQueue(); updateDayNight(delta);
+    if (gameState === 'DRIVING') { updateVehiclePhysics(delta); updateChunks(car.position.x, car.position.z); runOverZombies(); }
+    else if (gameState === 'ON_FOOT') { updateOnFootPlayer(delta); updateChunks(playerPos.x, playerPos.z); }
+    if (gameState === 'DRIVING' || gameState === 'ON_FOOT') { physicsItems(delta); updateChurches(); }
+    updateZombies(delta); updateNPCGuardAttacks(now); updateCamera(); updateHUD(); updateKeybinds(); drawRainOverlay();
+    if (flashT > 0) { flashT -= delta; if (flashT <= 0) document.getElementById('damage-flash').style.opacity = '0'; }
+    if (rainParticles) rainParticles.position.copy(foc());
+    renderer.render(scene, camera);
+}
+
 
         function setVehicleSpeedOverride(val) {
             const num = parseFloat(val);
@@ -517,100 +1253,9 @@
             carSpeed = (num / 94) * baseMaxSpeed;
         }
 
-        function initScene() {
-            const container = document.getElementById('canvas-container');
+        
 
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x28201a);
-            scene.fog = new THREE.FogExp2(0x28201a, 0.013);
-
-            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 500);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 0.85;
-            container.appendChild(renderer.domElement);
-
-            clock = new THREE.Clock();
-
-            const ambient = new THREE.AmbientLight(0x7a6350, 0.55);
-            scene.add(ambient);
-
-            const sunLight = new THREE.DirectionalLight(0xd99059, 1.1);
-            sunLight.position.set(-80, 50, -60);
-            sunLight.castShadow = true;
-            sunLight.shadow.mapSize.width = 1024;
-            sunLight.shadow.mapSize.height = 1024;
-            scene.add(sunLight);
-
-            flashlightSpot = new THREE.SpotLight(0xfff3cc, 0, 35, Math.PI / 5, 0.3);
-            scene.add(flashlightSpot);
-            scene.add(flashlightSpot.target);
-
-            createDetailedVehicleWithCoalHatch();
-            createPlayerFPSItems();
-            createWeatherParticles();
-
-            setupPointerLock();
-            setupInputListeners();
-            initRain2DCanvas();
-
-            updateChunks(0, 0);
-        }
-
-        function createDetailedVehicleWithCoalHatch() {
-            car = new THREE.Group();
-
-            const bodyGeo = new THREE.BoxGeometry(2.1, 0.75, 4.0);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x4a2315, roughness: 0.4 });
-            const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-            bodyMesh.position.y = 0.6;
-            bodyMesh.castShadow = true;
-            car.add(bodyMesh);
-
-            const roofGeo = new THREE.BoxGeometry(1.9, 0.65, 2.0);
-            const roofMat = new THREE.MeshStandardMaterial({ color: 0x221814, roughness: 0.6 });
-            const roofMesh = new THREE.Mesh(roofGeo, roofMat);
-            roofMesh.position.set(0, 1.25, -0.2);
-            car.add(roofMesh);
-
-            const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.3, 16);
-            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x0f0f0f, roughness: 0.9 });
-
-            [[-1.1, 0.38, 1.3], [1.1, 0.38, 1.3], [-1.1, 0.38, -1.3], [1.1, 0.38, -1.3]].forEach(pos => {
-                const wheel = new THREE.Mesh(wheelGeo, wheelMat);
-                wheel.rotation.z = Math.PI / 2;
-                wheel.position.set(...pos);
-                wheel.castShadow = true;
-                car.add(wheel);
-            });
-
-            const lightGlassMat = new THREE.MeshStandardMaterial({ color: 0xfffcdb, emissive: 0xffe885, emissiveIntensity: 2.0 });
-            const lightMeshLeft = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.18, 0.1), lightGlassMat);
-            lightMeshLeft.position.set(-0.75, 0.6, 2.01);
-            car.add(lightMeshLeft);
-
-            const lightMeshRight = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.18, 0.1), lightGlassMat);
-            lightMeshRight.position.set(0.75, 0.6, 2.01);
-            car.add(lightMeshRight);
-
-            const spotL = new THREE.SpotLight(0xfff5cc, 6.0, 85, Math.PI / 4, 0.3);
-            spotL.position.set(-0.75, 0.6, 2.05);
-            spotL.target.position.set(-0.75, 0.2, 35);
-            car.add(spotL); car.add(spotL.target);
-
-            const spotR = spotL.clone();
-            spotR.position.x = 0.75;
-            spotR.target.position.x = 0.75;
-            car.add(spotR); car.add(spotR.target);
-
-            car.position.set(0, getTerrainHeight(0, 0), 0);
-            scene.add(car);
-        }
+        
 
         /* 3D Handheld Models for Sword, Flashlight Torch (Rectangle), and Sack */
         function createPlayerFPSItems() {
@@ -687,6 +1332,11 @@
             playerSackMesh.visible = false;
             camera.add(playerSackMesh);
 
+            playerGunMesh = new THREE.Group();
+            bx(playerGunMesh, 0.07, 0.12, 0.3, 0x333333, 0, 0, 0);
+            gunBarrel = bx(playerGunMesh, 0.05, 0.05, 0.4, 0x555555, 0, 0.04, -0.3);
+            bx(playerGunMesh, 0.06, 0.16, 0.07, 0x3b2a1a, 0, -0.12, 0.1);
+            playerGunMesh.position.set(0.3, -0.28, -0.5); playerGunMesh.visible = false; camera.add(playerGunMesh);
             scene.add(camera);
             updateSack3DDisplay();
         }
@@ -739,345 +1389,28 @@
             buildChunk(task.cx, task.cz);
         }
 
-        function buildChunk(cx, cz) {
-            const key = `${cx},${cz}`;
-            if (terrainChunks.has(key)) return;
+        
 
-            const chunk = new THREE.Group();
-            const startX = cx * CHUNK_SIZE;
-            const startZ = cz * CHUNK_SIZE;
-            chunk.position.set(startX, 0, startZ);
+        
 
-            const segments = 24;
-            const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, segments, segments);
-            geo.rotateX(-Math.PI / 2);
-
-            const pos = geo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                const vx = pos.getX(i) + startX;
-                const vz = pos.getZ(i) + startZ;
-                pos.setY(i, getTerrainHeight(vx, vz));
-            }
-            geo.computeVertexNormals();
-
-            const mat = new THREE.MeshStandardMaterial({ color: 0x3d2e1e, roughness: 0.95 });
-            const terrain = new THREE.Mesh(geo, mat);
-            terrain.receiveShadow = true;
-            chunk.add(terrain);
-
-            if (Math.abs(cx) === 0) {
-                const roadGeo = new THREE.PlaneGeometry(12, CHUNK_SIZE, 2, 8);
-                roadGeo.rotateX(-Math.PI / 2);
-                const roadMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.8 });
-                const road = new THREE.Mesh(roadGeo, roadMat);
-                road.position.y = 0.02;
-                road.receiveShadow = true;
-                chunk.add(road);
-
-                for (let l = -CHUNK_SIZE / 2; l < CHUNK_SIZE / 2; l += 8) {
-                    const lineMesh = new THREE.Mesh(
-                        new THREE.PlaneGeometry(0.3, 4),
-                        new THREE.MeshBasicMaterial({ color: 0xf59e0b })
-                    );
-                    lineMesh.rotateX(-Math.PI / 2);
-                    lineMesh.position.set(0, 0.03, l);
-                    chunk.add(lineMesh);
-                }
-
-                if (cz % 8 === 0) {
-                    const lampLeft = createStreetLight(); lampLeft.position.set(-7.5, 0, 0); chunk.add(lampLeft);
-                    const lampRight = createStreetLight(); lampRight.position.set(7.5, 0, 0); lampRight.rotation.y = Math.PI; chunk.add(lampRight);
-                }
-            }
-
-            for (let i = 0; i < 6; i++) {
-                const rx = (Math.random() - 0.5) * CHUNK_SIZE;
-                const rz = (Math.random() - 0.5) * CHUNK_SIZE;
-                const worldX = startX + rx;
-                const worldZ = startZ + rz;
-
-                if (Math.abs(worldX) > 14) {
-                    const tree = createAutumnTreeHighPoly();
-                    tree.position.set(rx, getTerrainHeight(worldX, worldZ), rz);
-                    chunk.add(tree);
-                }
-            }
-
-            // ONLY GAS CANS are permitted to spawn randomly on the road
-            if (Math.random() < 0.6) {
-                const rz = (Math.random() - 0.5) * (CHUNK_SIZE - 20);
-                const rx = (Math.random() - 0.5) * 8;
-                const gasCan = createDetailedCollectibleMesh('fuel', startX + rx, startZ + rz);
-                gasCan.position.set(rx, 0.2, rz);
-                chunk.add(gasCan);
-                interactiveItems.push(gasCan);
-            }
-
-            // Spawn EXPANDED 10,000m Outposts
-            if (cx === 0 && cz > 0 && (cz * CHUNK_SIZE) % 10000 < CHUNK_SIZE) {
-                createExpanded10kOutpostGasStation(chunk, startX, startZ);
-            } 
-            else if (cx === 0 && cz > 0 && cz % 6 === 0) {
-                createTownWithRedBankAndZombies(chunk, startX, startZ);
-            }
-
-            // Spawn RARE Enemy Castle Structure
-            if (Math.abs(cx) === 1 && cz > 0 && cz % 9 === 0) {
-                createCastleStructure(chunk, startX, startZ);
-            }
-
-            // Increase general wilderness zombie spawns
-            for (let zCount = 0; zCount < 4; zCount++) {
-                const rx = (Math.random() - 0.5) * CHUNK_SIZE;
-                const rz = (Math.random() - 0.5) * CHUNK_SIZE;
-                spawnZombieAt(startX + rx, startZ + rz);
-            }
-
-            scene.add(chunk);
-            terrainChunks.set(key, { group: chunk, cx, cz });
-        }
-
-        function createStreetLight() {
-            const group = new THREE.Group();
-            const poleGeo = new THREE.CylinderGeometry(0.12, 0.16, 6, 12);
-            const poleMat = new THREE.MeshStandardMaterial({ color: 0x292524, metalness: 0.8 });
-            const pole = new THREE.Mesh(poleGeo, poleMat);
-            pole.position.y = 3;
-            group.add(pole);
-
-            const armGeo = new THREE.BoxGeometry(1.6, 0.1, 0.1);
-            const arm = new THREE.Mesh(armGeo, poleMat);
-            arm.position.set(0.8, 5.8, 0);
-            group.add(arm);
-
-            const lightSpot = new THREE.SpotLight(0xffedd5, 3.5, 25, Math.PI / 3, 0.5);
-            lightSpot.position.set(1.5, 5.7, 0);
-            lightSpot.target.position.set(1.5, 0, 0);
-            group.add(lightSpot);
-            group.add(lightSpot.target);
-
-            return group;
-        }
-
-        function createAutumnTreeHighPoly() {
-            const tree = new THREE.Group();
-            const trunkGeo = new THREE.CylinderGeometry(0.25, 0.45, 4.5, 12);
-            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x24180e, roughness: 0.9 });
-            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.y = 2.25;
-            tree.add(trunk);
-
-            const colors = [0xb85228, 0x8c381d, 0xc47e33];
-            const foliageGeo = new THREE.IcosahedronGeometry(2.2, 2);
-            const foliageMat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * colors.length)], roughness: 0.85 });
-            const foliage = new THREE.Mesh(foliageGeo, foliageMat);
-            foliage.position.y = 4.8;
-            tree.add(foliage);
-
-            return tree;
-        }
+        
 
         /* Expanded 10,000m Outpost with Walls, Entrances, Friendly Defenders & Drop Selling Station */
-        function createExpanded10kOutpostGasStation(chunk, startX, startZ) {
-            const outpostGroup = new THREE.Group();
-            outpostGroup.position.set(28, 0, 0);
-
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x52525b, roughness: 0.7 });
-
-            // Perimeter Wall Boundaries with Double Gates
-            const NorthWall = new THREE.Mesh(new THREE.BoxGeometry(40, 5, 1.0), wallMat);
-            NorthWall.position.set(0, 2.5, -20); outpostGroup.add(NorthWall); colliders.push(NorthWall);
-
-            const SouthWall = new THREE.Mesh(new THREE.BoxGeometry(40, 5, 1.0), wallMat);
-            SouthWall.position.set(0, 2.5, 20); outpostGroup.add(SouthWall); colliders.push(SouthWall);
-
-            // West Entrance Walls
-            const WestWall1 = new THREE.Mesh(new THREE.BoxGeometry(1.0, 5, 14), wallMat);
-            WestWall1.position.set(-20, 2.5, -13); outpostGroup.add(WestWall1); colliders.push(WestWall1);
-
-            const WestWall2 = new THREE.Mesh(new THREE.BoxGeometry(1.0, 5, 14), wallMat);
-            WestWall2.position.set(-20, 2.5, 13); outpostGroup.add(WestWall2); colliders.push(WestWall2);
-
-            // East Entrance Walls
-            const EastWall1 = new THREE.Mesh(new THREE.BoxGeometry(1.0, 5, 14), wallMat);
-            EastWall1.position.set(20, 2.5, -13); outpostGroup.add(EastWall1); colliders.push(EastWall1);
-
-            const EastWall2 = new THREE.Mesh(new THREE.BoxGeometry(1.0, 5, 14), wallMat);
-            EastWall2.position.set(20, 2.5, 13); outpostGroup.add(EastWall2); colliders.push(EastWall2);
-
-            // Entrance Floodlights
-            [-20, 20].forEach(x => {
-                const lamp = createStreetLight();
-                lamp.position.set(x, 0, 0);
-                outpostGroup.add(lamp);
-            });
-
-            // Friendly Gate Defender Guards
-            [[-19, -5], [-19, 5], [19, -5], [19, 5]].forEach(pos => {
-                const guard = new THREE.Group();
-                const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 0.4), new THREE.MeshStandardMaterial({ color: 0x1e3a8a }));
-                body.position.y = 0.8; guard.add(body);
-
-                const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), new THREE.MeshStandardMaterial({ color: 0xfde047 }));
-                head.position.y = 1.8; guard.add(head);
-
-                const rifle = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.8), new THREE.MeshStandardMaterial({ color: 0x111111 }));
-                rifle.position.set(0.3, 1.2, 0.2); guard.add(rifle);
-
-                guard.position.set(pos[0], 0, pos[1]);
-                outpostGroup.add(guard);
-
-                friendlyGuardNPCs.push({
-                    mesh: guard,
-                    wx: startX + 28 + pos[0],
-                    wz: startZ + pos[1],
-                    lastShot: 0
-                });
-            });
-
-            // Selling Station Floor Square
-            const sellPadGeo = new THREE.PlaneGeometry(6, 6);
-            sellPadGeo.rotateX(-Math.PI / 2);
-            const sellPadMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
-            const sellPad = new THREE.Mesh(sellPadGeo, sellPadMat);
-            sellPad.position.set(0, 0.05, 0);
-            outpostGroup.add(sellPad);
-
-            const sellTextSign = new THREE.Mesh(
-                new THREE.BoxGeometry(4, 1.2, 0.2),
-                new THREE.MeshStandardMaterial({ color: 0x059669 })
-            );
-            sellTextSign.position.set(0, 2.5, 0);
-            outpostGroup.add(sellTextSign);
-
-            sellingStationPads.push({
-                wx: startX + 28,
-                wz: startZ,
-                radius: 3.5
-            });
-
-            chunk.add(outpostGroup);
-        }
+        
 
         /* Towns with Improved Model Architecture, Red Bank & Vault Gold */
-        function createTownWithRedBankAndZombies(chunk, startX, startZ) {
-            const townGroup = new THREE.Group();
+        
 
-            for (let z = -40; z <= 40; z += 20) {
-                const slL = createStreetLight(); slL.position.set(-10, 0, z); townGroup.add(slL);
-                const slR = createStreetLight(); slR.position.set(10, 0, z); slR.rotation.y = Math.PI; townGroup.add(slR);
-            }
-
-            [-30, -10, 10, 30].forEach(z => {
-                const house = createDetailedHouse(startX - 20, startZ + z);
-                house.position.set(-20, 0, z);
-                townGroup.add(house);
-            });
-
-            // Red Bank with Front Entrance Doors and Internal Vault Gold
-            const redBank = createRedBankWithVault(startX + 22, startZ + 20);
-            redBank.position.set(22, 0, 20);
-            townGroup.add(redBank);
-
-            // Spawn 20+ Town Horde Zombies
-            for (let i = 0; i < 22; i++) {
-                const rx = (Math.random() - 0.5) * 60;
-                const rz = (Math.random() - 0.5) * 90;
-                spawnZombieAt(startX + rx, startZ + rz);
-            }
-
-            chunk.add(townGroup);
-        }
-
-        function createDetailedHouse(wx, wz) {
-            const houseGroup = new THREE.Group();
-            const w = 10, h = 5, d = 10;
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a, roughness: 0.8 });
-
-            const backWall = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.4), wallMat);
-            backWall.position.set(0, h / 2, -d / 2); houseGroup.add(backWall); colliders.push(backWall);
-
-            const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, h, d), wallMat);
-            leftWall.position.set(-w / 2, h / 2, 0); houseGroup.add(leftWall); colliders.push(leftWall);
-
-            const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, h, d), wallMat);
-            rightWall.position.set(w / 2, h / 2, 0); houseGroup.add(rightWall); colliders.push(rightWall);
-
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 0.4, d + 1), new THREE.MeshStandardMaterial({ color: 0x2d1f14 }));
-            roof.position.set(0, h + 0.2, 0); houseGroup.add(roof);
-
-            const doorPivot = new THREE.Group();
-            doorPivot.position.set(-1.5, 0, d / 2);
-
-            const doorMesh = new THREE.Mesh(
-                new THREE.BoxGeometry(3.0, 4.0, 0.2),
-                new THREE.MeshStandardMaterial({ color: 0x6e4727, roughness: 0.7 })
-            );
-            doorMesh.position.set(1.5, 2.0, 0);
-            doorMesh.userData = { type: 'door', name: 'Wooden Door', open: false, pivot: doorPivot };
-            doorPivot.add(doorMesh); houseGroup.add(doorPivot);
-
-            interactiveDoors.push(doorMesh); colliders.push(doorMesh);
-
-            // ALL SWORDS ARE FOUND STRICTLY INSIDE TOWN BUILDINGS
-            const sword = createDetailedCollectibleMesh('sword', wx, wz);
-            sword.position.set(0, 0.2, 0);
-            houseGroup.add(sword);
-            interactiveItems.push(sword);
-
-            return houseGroup;
-        }
+        
 
         /* Improved Red Bank Model with Front Door Entrance & Vault Gold */
-        function createRedBankWithVault(worldX, worldZ) {
-            const group = new THREE.Group();
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.5 });
-
-            const backWall = new THREE.Mesh(new THREE.BoxGeometry(14, 6.5, 0.4), wallMat);
-            backWall.position.set(0, 3.25, -6); group.add(backWall); colliders.push(backWall);
-
-            const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, 6.5, 12), wallMat);
-            leftWall.position.set(-7, 3.25, 0); group.add(leftWall); colliders.push(leftWall);
-
-            const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, 6.5, 12), wallMat);
-            rightWall.position.set(7, 3.25, 0); group.add(rightWall); colliders.push(rightWall);
-
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(15, 0.4, 13), new THREE.MeshStandardMaterial({ color: 0x18181b }));
-            roof.position.set(0, 6.7, 0); group.add(roof);
-
-            const sign = new THREE.Mesh(new THREE.BoxGeometry(8, 1.5, 0.4), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
-            sign.position.set(0, 5.5, 6.2);
-            group.add(sign);
-
-            // Front Double Entrance Security Doors
-            const doorPivot = new THREE.Group();
-            doorPivot.position.set(-2.0, 0, 6);
-
-            const bankDoorMesh = new THREE.Mesh(
-                new THREE.BoxGeometry(4.0, 4.5, 0.3),
-                new THREE.MeshStandardMaterial({ color: 0x374151, metalness: 0.8, roughness: 0.2 })
-            );
-            bankDoorMesh.position.set(2.0, 2.25, 0);
-            bankDoorMesh.userData = { type: 'door', name: 'Bank Security Front Door', open: false, pivot: doorPivot };
-            doorPivot.add(bankDoorMesh); group.add(doorPivot);
-
-            interactiveDoors.push(bankDoorMesh); colliders.push(bankDoorMesh);
-
-            // Robbery Vault Gold Ingots inside Bank
-            for (let i = 0; i < 6; i++) {
-                const gold = createDetailedCollectibleMesh('gold', worldX + (i % 3) * 0.8 - 0.8, worldZ + Math.floor(i / 3) * 0.8 - 2.0);
-                gold.position.set((i % 3) * 0.8 - 0.8, 0.3, Math.floor(i / 3) * 0.8 - 2.0);
-                group.add(gold);
-                interactiveItems.push(gold);
-            }
-
-            return group;
-        }
+        
 
         /* Rare Castle Structure with Armed Enemies */
         function createCastleStructure(chunk, startX, startZ) {
             const castle = new THREE.Group();
-            castle.position.set(35, 0, 0);
+            castle.position.set(35, getTerrainHeight(startX + 35, startZ), 0);
+            bx(castle, 34, 8, 34, 0x3f3f46, 0, -3.5, 0);
 
             const stoneMat = new THREE.MeshStandardMaterial({ color: 0x3f3f46, roughness: 0.9 });
 
@@ -1123,117 +1456,15 @@
             chunk.add(castle);
         }
 
-        function createDetailedCollectibleMesh(type, wx, wz) {
-            const group = new THREE.Group();
+        
 
-            let meshName = 'Unknown Item';
-            if (type === 'fuel') {
-                meshName = 'Red Fuel Canister';
-                const base = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3), new THREE.MeshStandardMaterial({ color: 0xb52b1d, roughness: 0.4 }));
-                group.add(base);
-            } else if (type === 'medkit') {
-                meshName = 'First Aid Kit';
-                const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.4), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.3 }));
-                group.add(box);
-            } else if (type === 'sword') {
-                meshName = 'Iron Broadsword';
-                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.9, 0.02), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 }));
-                group.add(blade);
-            } else {
-                meshName = 'Gold Ingot Cache';
-                const gold = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.25), new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 }));
-                group.add(gold);
-            }
+        
 
-            group.userData = { type: type, name: meshName, wx: wx, wz: wz, collected: false };
-            return group;
-        }
+        
 
-        function spawnZombieAt(x, z) {
-            const zombie = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 0.4), new THREE.MeshStandardMaterial({ color: 0x2d3a28, roughness: 0.8 }));
-            body.position.y = 0.8; zombie.add(body);
+        
 
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), new THREE.MeshStandardMaterial({ color: 0x4a5d43 }));
-            head.position.y = 1.8; zombie.add(head);
-
-            zombie.position.set(x, getTerrainHeight(x, z), z);
-            zombie.userData = { type: 'zombie', health: 45, speed: 2.8 + Math.random() * 1.2 };
-
-            scene.add(zombie);
-            zombies.push(zombie);
-        }
-
-        function updateZombies(delta) {
-            const targetPos = (gameState === 'DRIVING') ? car.position : playerPos;
-
-            for (let i = zombies.length - 1; i >= 0; i--) {
-                const z = zombies[i];
-                const dx = targetPos.x - z.position.x;
-                const dz = targetPos.z - z.position.z;
-                const dist = Math.hypot(dx, dz);
-
-                z.rotation.y = Math.atan2(dx, dz);
-
-                if (dist > 1.2) {
-                    z.position.x += Math.sin(z.rotation.y) * z.userData.speed * delta;
-                    z.position.z += Math.cos(z.rotation.y) * z.userData.speed * delta;
-                    z.position.y = getTerrainHeight(z.position.x, z.position.z);
-                } else if (gameState === 'ON_FOOT') {
-                    damagePlayer(18 * delta);
-                }
-
-                if (dist > 160) {
-                    scene.remove(z);
-                    zombies.splice(i, 1);
-                }
-            }
-        }
-
-        function updateNPCGuardAttacks(now) {
-            friendlyGuardNPCs.forEach(guard => {
-                const gPos = new THREE.Vector3(guard.wx, 1.0, guard.wz);
-                zombies.forEach((z, idx) => {
-                    if (gPos.distanceTo(z.position) < 22 && now - guard.lastShot > 1000) {
-                        guard.lastShot = now;
-                        z.userData.health -= 30;
-                        audio.playSound('zombie_hit');
-                        if (z.userData.health <= 0) {
-                            scene.remove(z);
-                            zombies.splice(idx, 1);
-                            zombieKills++;
-                        }
-                    }
-                });
-            });
-
-            castleHostileNPCs.forEach(enemy => {
-                const ePos = new THREE.Vector3(enemy.wx, 16.0, enemy.wz);
-                if (ePos.distanceTo(playerPos) < 30 && now - enemy.lastShot > 1500 && gameState === 'ON_FOOT') {
-                    enemy.lastShot = now;
-                    damagePlayer(12);
-                }
-            });
-        }
-
-        function swingSword() {
-            audio.playSound('swing');
-            playerSwordMesh.rotation.z = -1.2;
-            setTimeout(() => { playerSwordMesh.rotation.z = 0; }, 200);
-
-            zombies.forEach((z, idx) => {
-                const dist = playerPos.distanceTo(z.position);
-                if (dist < 3.2) {
-                    z.userData.health -= 35;
-                    audio.playSound('zombie_hit');
-                    if (z.userData.health <= 0) {
-                        scene.remove(z);
-                        zombies.splice(idx, 1);
-                        zombieKills++;
-                    }
-                }
-            });
-        }
+        
 
         function createWeatherParticles() {
             const count = 1000;
@@ -1252,281 +1483,32 @@
             scene.add(rainParticles);
         }
 
-        function setupPointerLock() {
-            const container = document.getElementById('canvas-container');
-            container.addEventListener('click', () => {
-                if (gameState === 'ON_FOOT' || gameState === 'DRIVING') {
-                    container.requestPointerLock();
-                }
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (document.pointerLockElement === container) {
-                    playerYaw -= e.movementX * 0.0022;
-                    playerPitch -= e.movementY * 0.0022;
-                    playerPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, playerPitch));
-                }
-            });
-
-            document.addEventListener('mousedown', (e) => {
-                if (gameState === 'ON_FOOT' && e.button === 0) {
-                    if (hoveredObject) {
-                        if (hoveredObject.userData.type === 'door') {
-                            toggleDoor(hoveredObject);
-                        } else {
-                            draggedObject = hoveredObject;
-                            dragDistance = Math.min(3.5, camera.position.distanceTo(draggedObject.position));
-                        }
-                    } else if (inventory[activeSlot].id === 'sword') {
-                        swingSword();
-                    }
-                }
-            });
-
-            document.addEventListener('mouseup', (e) => {
-                if (e.button === 0 && draggedObject) {
-                    checkSellingStationDrop(draggedObject);
-                    draggedObject = null;
-                }
-            });
-        }
+        
 
         /* Fixed Physics Dragging Logic */
-        function updateItemDragging() {
-            if (!draggedObject) return;
-
-            const lookDir = new THREE.Vector3(
-                Math.sin(playerYaw) * Math.cos(playerPitch),
-                Math.sin(playerPitch),
-                Math.cos(playerYaw) * Math.cos(playerPitch)
-            );
-
-            const targetPos = camera.position.clone().add(lookDir.multiplyScalar(dragDistance));
-            draggedObject.position.lerp(targetPos, 0.25);
-        }
+        
 
         /* Drop Items or Gold on 10,000m Outpost Selling Square Pad */
-        function checkSellingStationDrop(item) {
-            sellingStationPads.forEach(pad => {
-                const dist = Math.hypot(item.position.x - pad.wx, item.position.z - pad.wz);
-                if (dist < pad.radius) {
-                    let value = 40;
-                    if (item.userData.type === 'gold') value = 100;
-                    else if (item.userData.type === 'sword') value = 75;
+        
 
-                    playerGold += value;
-                    audio.playSound('sell');
-                    item.userData.collected = true;
-                    item.visible = false;
-                    updateHUD();
-                }
-            });
-        }
+        
 
-        function toggleDoor(doorMesh) {
-            const open = !doorMesh.userData.open;
-            doorMesh.userData.open = open;
-            doorMesh.userData.pivot.rotation.y = open ? Math.PI / 2 : 0;
-            audio.playSound('door');
-        }
+        
 
-        function setupInputListeners() {
-            window.addEventListener('keydown', (e) => {
-                const k = e.key.toLowerCase();
-                if (k === 'w' || e.key === 'ArrowUp') keys.w = true;
-                if (k === 'a' || e.key === 'ArrowLeft') keys.a = true;
-                if (k === 's' || e.key === 'ArrowDown') keys.s = true;
-                if (k === 'd' || e.key === 'ArrowRight') keys.d = true;
-                if (e.code === 'Space') keys.space = true;
-                if (e.key === 'Shift') keys.shift = true;
-
-                if (k === 'e') handleVehicleEntryAndDoors();
-                if (e.key === 'Shift') handleVehicleExit();
-                if (k === 'f') handleKeyPressF();
-
-                if (k === '1') selectSlot(0);
-                if (k === '2') selectSlot(1);
-                if (k === '3') selectSlot(2);
-                if (k === '4') selectSlot(3);
-            });
-
-            window.addEventListener('keyup', (e) => {
-                const k = e.key.toLowerCase();
-                if (k === 'w' || e.key === 'ArrowUp') keys.w = false;
-                if (k === 'a' || e.key === 'ArrowLeft') keys.a = false;
-                if (k === 's' || e.key === 'ArrowDown') keys.s = false;
-                if (k === 'd' || e.key === 'ArrowRight') keys.d = false;
-                if (e.code === 'Space') keys.space = false;
-                if (e.key === 'Shift') keys.shift = false;
-            });
-
-            document.getElementById('btn-start').addEventListener('click', startGame);
-        }
-
-        function selectSlot(idx) {
-            activeSlot = idx;
-            document.querySelectorAll('.hotbar-slot').forEach((el, i) => {
-                if (i === idx) el.classList.add('active');
-                else el.classList.remove('active');
-            });
-
-            flashlightSpot.intensity = (inventory[activeSlot].id === 'flashlight') ? 4.5 : 0;
-            playerSwordMesh.visible = (inventory[activeSlot].id === 'sword');
-            playerFlashlightMesh.visible = (inventory[activeSlot].id === 'flashlight');
-            playerSackMesh.visible = (inventory[activeSlot].id === 'sack');
-            
-            document.getElementById('sack-list-ui').style.display = (inventory[activeSlot].id === 'sack') ? 'block' : 'none';
-        }
+        
 
         /* Press F to Store Hovered Item or Drop Stored Item from Loot Sack */
-        function handleKeyPressF() {
-            if (gameState !== 'ON_FOOT') return;
+        
 
-            if (hoveredObject && hoveredObject.userData.type !== 'door') {
-                if (sackItems.length >= SACK_MAX) {
-                    alert('Sack is full! (10/10 items)');
-                    return;
-                }
+        
 
-                const item = hoveredObject;
-                item.userData.collected = true;
-                item.visible = false;
-                audio.playSound('pickup');
+        
 
-                if (item.userData.type === 'gold') {
-                    playerGold += 100;
-                } else {
-                    sackItems.push({ type: item.userData.type, name: item.userData.name });
-                }
+        
 
-                hoveredObject = null;
-                document.getElementById('hover-tooltip').style.display = 'none';
-                updateSack3DDisplay();
-                updateHUD();
-                return;
-            }
+        
 
-            // If not hovering an item, drop top item from held Sack directly onto ground
-            if (!hoveredObject && inventory[activeSlot].id === 'sack' && sackItems.length > 0) {
-                const droppedItemData = sackItems.pop();
-                
-                const dropPos = playerPos.clone().add(
-                    new THREE.Vector3(Math.sin(playerYaw), 0, Math.cos(playerYaw)).multiplyScalar(1.8)
-                );
-
-                const droppedMesh = createDetailedCollectibleMesh(droppedItemData.type, dropPos.x, dropPos.z);
-                droppedMesh.position.set(dropPos.x, getTerrainHeight(dropPos.x, dropPos.z) + 0.2, dropPos.z);
-                scene.add(droppedMesh);
-                interactiveItems.push(droppedMesh);
-
-                // Check if dropped directly onto Selling Station
-                checkSellingStationDrop(droppedMesh);
-
-                audio.playSound('pickup');
-                updateSack3DDisplay();
-                updateHUD();
-            }
-        }
-
-        function checkHoveredObject() {
-            if (gameState !== 'ON_FOOT' || draggedObject) {
-                document.getElementById('hover-tooltip').style.display = 'none';
-                return;
-            }
-
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            
-            const candidates = [];
-            interactiveItems.forEach(item => {
-                if (!item.userData.collected) {
-                    item.traverse(child => { if (child.isMesh) candidates.push(child); });
-                }
-            });
-            interactiveDoors.forEach(d => candidates.push(d));
-
-            const intersects = raycaster.intersectObjects(candidates, false);
-
-            if (intersects.length > 0 && intersects[0].distance < 4.0) {
-                const hitMesh = intersects[0].object;
-                let targetGroup = hitMesh.parent;
-                while (targetGroup && !targetGroup.userData.type && targetGroup.parent) {
-                    targetGroup = targetGroup.parent;
-                }
-
-                const target = (targetGroup && targetGroup.userData.type) ? targetGroup : hitMesh;
-
-                if (hoveredObject !== target) {
-                    hoveredObject = target;
-                }
-
-                const tooltip = document.getElementById('hover-tooltip');
-                const labelName = target.userData.name || 'Interactive Object';
-                if (target.userData.type === 'door') {
-                    tooltip.innerText = `${labelName} [PRESS E TO TOGGLE DOOR]`;
-                } else {
-                    tooltip.innerText = `${labelName} [HOLD L-CLICK TO DRAG / F TO STORE]`;
-                }
-                tooltip.style.display = 'block';
-
-            } else {
-                hoveredObject = null;
-                document.getElementById('hover-tooltip').style.display = 'none';
-            }
-        }
-
-        function handleVehicleEntryAndDoors() {
-            if (hoveredObject && hoveredObject.userData.type === 'door') {
-                toggleDoor(hoveredObject);
-                return;
-            }
-
-            if (gameState === 'ON_FOOT') {
-                const distToCar = playerPos.distanceTo(car.position);
-                if (distToCar < 3.8) {
-                    gameState = 'DRIVING';
-                    document.getElementById('crosshair').classList.add('hidden');
-                    document.getElementById('roof-cover').classList.remove('hidden');
-                    document.getElementById('hud-mode-badge').innerText = 'DRIVING';
-                    document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-amber-200';
-                    outdoorTimer = 0;
-                }
-            }
-        }
-
-        function handleVehicleExit() {
-            if (gameState === 'DRIVING') {
-                if (Math.abs(carSpeed) < 0.2) {
-                    gameState = 'ON_FOOT';
-                    playerPos.set(car.position.x - 2.5, getTerrainHeight(car.position.x - 2.5, car.position.z) + 1.6, car.position.z);
-                    document.getElementById('crosshair').classList.remove('hidden');
-                    document.getElementById('roof-cover').classList.add('hidden');
-                    document.getElementById('hud-mode-badge').innerText = 'ON FOOT';
-                    document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-emerald-400';
-                }
-            }
-        }
-
-        function damagePlayer(amount) {
-            playerHealth = Math.max(0, playerHealth - amount);
-            document.getElementById('damage-flash').style.opacity = '0.8';
-            setTimeout(() => { document.getElementById('damage-flash').style.opacity = '0'; }, 150);
-            updateHUD();
-
-            if (playerHealth <= 0) gameOver('OVERTAKEN BY AUTUMN ZOMBIES');
-        }
-
-        function startGame() {
-            audio.init();
-            document.getElementById('modal-screen').classList.add('hidden');
-            document.getElementById('roof-cover').classList.remove('hidden');
-            gameState = 'DRIVING';
-            carSpeed = 0; fuel = 100; playerHealth = 100; playerGold = 0; zombieKills = 0; distanceTraveled = 0;
-            sackItems = [];
-            car.position.set(0, getTerrainHeight(0, 0), 0);
-            car.rotation.set(0, 0, 0);
-            selectSlot(0);
-            updateSack3DDisplay();
-        }
+        
 
         function gameOver(reason) {
             gameState = 'GAMEOVER';
@@ -1578,63 +1560,13 @@
             if (fuel <= 0 && Math.abs(carSpeed) < 0.01) gameOver('OUT OF FUEL ON DESOLATE ROAD');
         }
 
-        function updateOnFootPlayer(delta) {
-            if (gameState !== 'ON_FOOT') return;
+        
 
-            outdoorTimer += delta;
-            if (outdoorTimer > 8.0 && zombies.length < 12) {
-                spawnZombieAt(playerPos.x + 25, playerPos.z + 25);
-                outdoorTimer = 0;
-            }
-
-            const moveSpeed = 7.5 * delta;
-            const forward = new THREE.Vector3(Math.sin(playerYaw), 0, Math.cos(playerYaw)).normalize();
-            const side = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
-
-            const nextPos = playerPos.clone();
-            if (keys.w) nextPos.addScaledVector(forward, moveSpeed);
-            if (keys.s) nextPos.addScaledVector(forward, -moveSpeed);
-            if (keys.a) nextPos.addScaledVector(side, -moveSpeed);
-            if (keys.d) nextPos.addScaledVector(side, moveSpeed);
-
-            let collide = false;
-            const playerBox = new THREE.Box3().setFromCenterAndSize(nextPos, new THREE.Vector3(0.8, 1.8, 0.8));
-
-            for (let c of colliders) {
-                if (c.userData && c.userData.open) continue;
-                const cBox = new THREE.Box3().setFromObject(c);
-                if (playerBox.intersectsBox(cBox)) { collide = true; break; }
-            }
-
-            if (!collide) playerPos.copy(nextPos);
-
-            playerPos.y = getTerrainHeight(playerPos.x, playerPos.z) + 1.6;
-
-            checkHoveredObject();
-            updateItemDragging();
-        }
-
-        function updateChunks(playerX, playerZ) {
-            const currentCX = Math.floor((playerX + CHUNK_SIZE / 2) / CHUNK_SIZE);
-            const currentCZ = Math.floor((playerZ + CHUNK_SIZE / 2) / CHUNK_SIZE);
-
-            for (let x = -VIEW_DISTANCE; x <= VIEW_DISTANCE; x++) {
-                for (let z = -VIEW_DISTANCE; z <= VIEW_DISTANCE; z++) {
-                    queueChunkGeneration(currentCX + x, currentCZ + z);
-                }
-            }
-
-            terrainChunks.forEach((chunkData, key) => {
-                if (Math.abs(chunkData.cx - currentCX) > VIEW_DISTANCE + 1 || Math.abs(chunkData.cz - currentCZ) > VIEW_DISTANCE + 1) {
-                    scene.remove(chunkData.group);
-                    terrainChunks.delete(key);
-                }
-            });
-        }
+        
 
         function updateCamera() {
             if (gameState === 'DRIVING') {
-                const cabinOffset = new THREE.Vector3(0, 1.15, 0.4);
+                const cabinOffset = new THREE.Vector3(0, 1.5, 0.15);
                 cabinOffset.applyQuaternion(car.quaternion);
                 camera.position.copy(car.position).add(cabinOffset);
 
@@ -1699,6 +1631,9 @@
             document.getElementById('fuel-needle').style.transform = `rotate(${fuelAngle}deg)`;
 
             document.getElementById('hud-health-bar').style.width = `${playerHealth}%`;
+            document.getElementById('hud-armor-bar').style.width = `${armor}%`;
+            const gk = ownedGuns[gunIdx];
+            document.getElementById('label-4').innerText = gk ? `${GUNS[gk].n} ${ammo[gk]}` : 'No Gun';
 
             const threatText = zombies.length > 0 ? `${zombies.length} NEARBY` : 'SAFE';
             document.getElementById('hud-threat-level').innerText = threatText;
@@ -1729,35 +1664,7 @@
             rainCtx.stroke();
         }
 
-        function animate() {
-            requestAnimationFrame(animate);
-
-            const delta = clock.getDelta();
-            const now = Date.now();
-
-            processChunkQueue();
-
-            if (gameState === 'DRIVING') {
-                updateVehiclePhysics(delta);
-                updateChunks(car.position.x, car.position.z);
-            } else if (gameState === 'ON_FOOT') {
-                updateOnFootPlayer(delta);
-                updateChunks(playerPos.x, playerPos.z);
-            }
-
-            updateZombies(delta);
-            updateNPCGuardAttacks(now);
-            updateCamera();
-            updateHUD();
-            drawRainOverlay();
-
-            if (rainParticles) {
-                const focus = (gameState === 'DRIVING') ? car.position : playerPos;
-                rainParticles.position.copy(focus);
-            }
-
-            renderer.render(scene, camera);
-        }
+        
 
         window.onload = () => {
             initScene();
