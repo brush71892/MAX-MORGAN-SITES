@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Dull Autumn Trip - Survival & Driving</title>
+    <title>A Dull Autumn Drive - Driving with Max Morgan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=VT323&family=Courier+Prime&display=swap" rel="stylesheet">
@@ -63,6 +63,20 @@
             opacity: 0.45;
         }
 
+        /* In-Car Roof Overlay */
+        #roof-cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 12%;
+            background: linear-gradient(to bottom, #090807 0%, rgba(23, 19, 16, 0.8) 70%, rgba(23, 19, 16, 0) 100%);
+            border-bottom: 3px solid #2d2218;
+            pointer-events: none;
+            z-index: 8;
+            transition: opacity 0.3s ease;
+        }
+
         .retro-text {
             font-family: 'VT323', monospace;
             text-shadow: 2px 2px 0px rgba(0,0,0,0.9);
@@ -95,12 +109,13 @@
             left: 0; top: 5px; width: 12px; height: 2px;
         }
 
+        /* Inventory Hotbar */
         .hotbar-slot {
             width: 52px;
             height: 52px;
-            background: rgba(24, 18, 12, 0.85);
-            border: 2px solid rgba(140, 100, 60, 0.5);
-            border-radius: 8px;
+            background: rgba(24, 18, 12, 0.9);
+            border: 2px solid rgba(140, 100, 60, 0.7);
+            border-radius: 0px !important;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -128,9 +143,75 @@
         /* Minimap Radar */
         #minimap-canvas {
             border: 2px solid rgba(180, 120, 60, 0.6);
-            border-radius: 50%;
+            border-radius: 0px;
             background: rgba(15, 12, 8, 0.85);
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Hover Tooltip for Ground Items */
+        #hover-tooltip {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -100%);
+            pointer-events: none;
+            z-index: 15;
+            background: rgba(15, 12, 8, 0.95);
+            border: 2px solid #f59e0b;
+            color: #fef3c7;
+            padding: 4px 10px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+            display: none;
+            white-space: nowrap;
+        }
+
+        /* Analog Gauge Styling */
+        .gauge-container {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            background: #181310;
+            border: 2px solid #8c643c;
+            border-radius: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .gauge-needle {
+            position: absolute;
+            bottom: 50%;
+            left: calc(50% - 1px);
+            width: 2px;
+            height: 26px;
+            background: #ef4444;
+            transform-origin: bottom center;
+            transform: rotate(-120deg);
+            transition: transform 0.1s ease-out;
+        }
+        .gauge-center {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #f59e0b;
+            border-radius: 0px;
+        }
+
+        /* Outpost Shop Prompt */
+        #shop-prompt {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            background: rgba(15, 12, 8, 0.95);
+            border: 2px solid #f59e0b;
+            padding: 12px 20px;
+            color: #fef3c7;
+            display: none;
+            text-align: center;
         }
     </style>
 </head>
@@ -142,13 +223,23 @@
     <div id="damage-flash"></div>
     <canvas id="rain-overlay"></canvas>
 
+    <div id="roof-cover" class="hidden"></div>
     <div id="crosshair" class="hidden"></div>
+    <div id="hover-tooltip">ITEM NAME [F: SACK]</div>
+
+    <div id="shop-prompt" class="pointer-events-auto">
+        <div class="font-bold text-amber-200 text-sm mb-1">OUTPOST GAS STATION</div>
+        <div class="text-xs text-amber-300 mb-2">Buy Fuel Can (+35% Fuel) for $50 Gold</div>
+        <button id="btn-buy-fuel" onclick="buyFuelAtOutpost()" class="bg-amber-800 hover:bg-amber-700 px-3 py-1 text-xs border border-amber-500 font-bold">
+            BUY FUEL ($50) [PRESS E]
+        </button>
+    </div>
 
     <!-- HUD Header -->
     <div class="relative z-10 flex justify-between items-start p-4 md:p-6 pointer-events-none">
-        <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 rounded-xl shadow-2xl backdrop-blur-md pointer-events-auto max-w-xs">
+        <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 shadow-2xl backdrop-blur-md pointer-events-auto max-w-xs">
             <h1 class="typewriter-text text-lg md:text-xl font-bold text-amber-200 tracking-wider">A Dull Autumn Trip</h1>
-            <p class="text-[11px] text-amber-400/80 italic">Route 84 • Endless Fog & Rust</p>
+            <p class="text-[11px] text-amber-400/80 italic">Route 84 • Outposts & Vaults</p>
             <div class="mt-2 text-xs flex flex-col gap-1 text-amber-300 font-mono">
                 <div>TARGET: <strong class="text-amber-100">100,000 m</strong></div>
                 <div>DIST: <strong id="hud-distance" class="text-amber-100">0.0</strong> m</div>
@@ -157,18 +248,17 @@
             </div>
         </div>
 
-        <!-- Radar & Threat Panel -->
         <div class="flex gap-3 pointer-events-auto items-start">
             <canvas id="minimap-canvas" width="100" height="100"></canvas>
 
-            <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 rounded-xl shadow-2xl backdrop-blur-md text-right min-w-[150px]">
+            <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 shadow-2xl backdrop-blur-md text-right min-w-[150px]">
                 <div class="text-[10px] text-amber-400/70 uppercase tracking-widest font-bold">MODE STATUS</div>
                 <div id="hud-mode-badge" class="text-sm font-bold text-amber-200">DRIVING</div>
                 
                 <div class="mt-2 text-xs space-y-1.5">
                     <div class="flex items-center justify-between gap-2">
                         <span class="text-[10px] text-amber-400/80">HEALTH:</span>
-                        <div class="w-20 bg-stone-900 rounded-full h-2 border border-amber-700/50 overflow-hidden">
+                        <div class="w-20 bg-stone-900 h-2 border border-amber-700/50 overflow-hidden">
                             <div id="hud-health-bar" class="bg-red-600 h-full w-full transition-all duration-300"></div>
                         </div>
                     </div>
@@ -181,44 +271,19 @@
         </div>
     </div>
 
-    <!-- Interactive Prompt -->
-    <div id="interaction-prompt" class="relative z-10 self-center bg-stone-950/90 text-amber-200 px-6 py-2.5 rounded-full border border-amber-600/70 hidden text-sm font-mono shadow-2xl pointer-events-none animate-bounce">
-        Press <span class="bg-amber-700 px-2 py-0.5 rounded text-white font-bold border border-amber-400">E</span> to Action
-    </div>
-
-    <!-- Sack & Storage Modal Container -->
-    <div id="storage-modal" class="fixed inset-0 z-20 bg-black/70 flex items-center justify-center p-4 hidden pointer-events-auto">
-        <div class="bg-amber-950/95 border-2 border-amber-700 rounded-2xl p-5 max-w-md w-full space-y-4 text-amber-100 font-mono shadow-2xl">
-            <div class="flex justify-between items-center border-b border-amber-800/60 pb-2">
-                <h3 id="storage-title" class="typewriter-text text-xl font-bold text-amber-200">SACK CONTAINERS</h3>
-                <button onclick="toggleStorageModal(false)" class="text-xs bg-red-900/80 hover:bg-red-700 px-2 py-1 rounded text-amber-100 font-bold">CLOSE [ESC]</button>
-            </div>
-            <div id="storage-grid" class="grid grid-cols-4 gap-2 min-h-[160px] p-2 bg-stone-900/80 rounded-xl border border-amber-900">
-                <!-- Items populated dynamically -->
-            </div>
-            <div id="storage-actions" class="flex justify-between text-xs pt-2">
-                <button id="btn-convert-biofuel" onclick="convertZombieBiofuel()" class="bg-emerald-900/90 hover:bg-emerald-800 border border-emerald-600 px-3 py-1.5 rounded text-emerald-200 font-bold hidden">
-                    ♻️ Convert Zombie Corpse to Biofuel (+25% Fuel)
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bottom Dashboard UI -->
-    <div class="relative z-10 p-4 md:p-6 flex flex-col md:flex-row justify-between items-end gap-4 pointer-events-none">
+    <!-- HUD Bottom -->
+    <div class="relative z-10 p-4 md:p-6 flex flex-row justify-between items-end gap-4 pointer-events-none w-full">
         
-        <!-- Controls Legend -->
-        <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 rounded-xl shadow-2xl backdrop-blur-md pointer-events-auto text-[11px] text-amber-300/90 space-y-1 hidden lg:block max-w-xs">
+        <div class="bg-amber-950/85 border-2 border-amber-800/70 p-3 shadow-2xl backdrop-blur-md pointer-events-auto text-[11px] text-amber-300/90 space-y-1 hidden lg:block max-w-xs">
             <div class="font-bold text-amber-200 mb-1 border-b border-amber-800/50 pb-1">CONTROLS GUIDE</div>
-            <div><span class="text-amber-100 font-bold">W / S</span> - Drive Forward / Reverse</div>
+            <div><span class="text-amber-100 font-bold">W / S</span> - Forward / Back</div>
             <div><span class="text-amber-100 font-bold">A / D</span> - Steer Left / Right</div>
-            <div><span class="text-amber-100 font-bold">E</span> - Enter / Exit Car / Open Chest & Trunk</div>
-            <div><span class="text-amber-100 font-bold">F / I</span> - Open Sack Inventory</div>
-            <div><span class="text-amber-100 font-bold">L-Click</span> - Swing Sword / Fire Gun / Refuel</div>
+            <div><span class="text-amber-100 font-bold">E</span> - Enter/Exit Vehicle / Open Doors</div>
+            <div><span class="text-amber-100 font-bold">F</span> - Store Hovered Item OR Drop Item</div>
+            <div><span class="text-amber-100 font-bold">L-Click</span> - Attack / Refuel</div>
         </div>
 
-        <!-- Hotbar Inventory -->
-        <div class="bg-stone-950/90 border-2 border-amber-800/80 p-2.5 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-2 self-center">
+        <div class="bg-stone-950/90 border-2 border-amber-800/80 p-2 shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-2">
             <div class="hotbar-slot active" id="slot-0" onclick="selectSlot(0)">
                 <span class="text-[9px] text-amber-500 absolute top-1 left-1.5 font-bold">1</span>
                 <span id="icon-0" class="text-lg">🗡️</span>
@@ -241,31 +306,37 @@
             </div>
         </div>
 
-        <!-- Vehicle Instrument Cluster -->
-        <div id="car-dashboard-ui" class="bg-stone-950/90 border-4 border-amber-900/80 p-3 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-3 self-center md:self-auto">
+        <div id="car-dashboard-ui" class="bg-stone-950/90 border-2 border-amber-900/80 p-3 shadow-2xl backdrop-blur-md pointer-events-auto flex items-center gap-3">
             <div class="flex flex-col items-center">
-                <div class="relative w-16 h-16 bg-stone-900 rounded-full border-2 border-amber-800 flex items-center justify-center">
-                    <div id="gauge-speed-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-6 bg-red-600 origin-bottom transform -rotate-120 transition-transform duration-75"></div>
-                    <span id="speed-display" class="retro-text text-lg text-amber-400 mt-4">0</span>
-                    <span class="text-[8px] text-amber-600 absolute bottom-1">KM/H</span>
+                <div class="gauge-container">
+                    <div id="speed-needle" class="gauge-needle"></div>
+                    <div class="gauge-center"></div>
+                    <span id="speed-display" class="retro-text text-sm text-amber-400 absolute bottom-1">0</span>
                 </div>
+                <span class="text-[9px] text-amber-600 mt-1 font-bold">SPEED KM/H</span>
             </div>
+
             <div class="flex flex-col items-center">
-                <div class="relative w-14 h-14 bg-stone-900 rounded-full border-2 border-amber-800 flex items-center justify-center">
-                    <div id="gauge-fuel-needle" class="absolute bottom-1/2 left-1/2 w-0.5 h-5 bg-amber-500 origin-bottom transform rotate-45 transition-transform duration-300"></div>
-                    <span class="text-[8px] text-amber-600 absolute bottom-1 font-bold">FUEL</span>
+                <div class="gauge-container">
+                    <div id="fuel-needle" class="gauge-needle"></div>
+                    <div class="gauge-center"></div>
+                    <span id="hud-fuel-pct" class="retro-text text-xs text-amber-300 absolute bottom-1">100%</span>
                 </div>
-                <span id="hud-fuel-pct" class="text-[9px] text-amber-300 font-mono mt-1">100%</span>
+                <span class="text-[9px] text-amber-600 mt-1 font-bold">FUEL LEVEL</span>
+            </div>
+
+            <div id="offroad-warning" class="hidden text-[10px] text-amber-500 font-bold bg-amber-950/80 px-2 py-1 border border-amber-700/60 animate-pulse">
+                ⚠️ OFF-ROAD (-35% SPEED)
             </div>
         </div>
 
     </div>
 
-    <!-- Start / Game Over Modal -->
+    <!-- Modal Screen -->
     <div id="modal-screen" class="fixed inset-0 z-30 bg-stone-950/95 flex items-center justify-center p-4">
-        <div class="bg-amber-950/90 border-4 border-amber-800/80 rounded-2xl max-w-md w-full p-6 text-center space-y-5 relative shadow-2xl">
-            <div class="inline-block p-2 bg-stone-200 rounded shadow-md transform -rotate-1">
-                <div class="w-full h-28 bg-amber-900/40 rounded flex items-center justify-center overflow-hidden">
+        <div class="bg-amber-950/90 border-4 border-amber-800/80 max-w-md w-full p-6 text-center space-y-5 relative shadow-2xl">
+            <div class="inline-block p-2 bg-stone-200 shadow-md transform -rotate-1">
+                <div class="w-full h-28 bg-amber-900/40 flex items-center justify-center overflow-hidden">
                     <span class="typewriter-text text-amber-950 text-xl font-bold tracking-widest uppercase">DESOLATE ROUTE 84</span>
                 </div>
             </div>
@@ -273,17 +344,17 @@
             <div>
                 <h2 id="modal-title" class="typewriter-text text-3xl font-bold text-amber-100">A Dull Autumn Trip</h2>
                 <p id="modal-desc" class="text-xs text-amber-300/90 mt-2 leading-relaxed">
-                    Drive forward along Highway 84 towards the 100,000 meter outpost challenge. Explore roadside towns, loot bank vaults, store items in your Portable Sack, convert zombie corpses to biofuel, and survive raider buggies!
+                    Traverse Route 84 towards 100,000m. Rob roadside banks for gold, visit outposts every 10,000m to purchase fuel, and hold out your sack to track item storage. Press F to store highlighted loot or drop items!
                 </p>
             </div>
 
-            <div id="modal-stats" class="hidden bg-stone-900/90 p-3 rounded-lg border border-amber-800/50 text-left space-y-1 text-xs text-amber-200 font-mono">
+            <div id="modal-stats" class="hidden bg-stone-900/90 p-3 border border-amber-800/50 text-left space-y-1 text-xs text-amber-200 font-mono">
                 <div>DISTANCE REACHED: <span id="stat-dist" class="text-amber-400 font-bold">0</span> M</div>
                 <div>ENEMIES DEFEATED: <span id="stat-kills" class="text-amber-400 font-bold">0</span></div>
                 <div>OUTCOME: <span id="stat-reason" class="text-red-400 font-bold">OVERTAKEN BY MIST</span></div>
             </div>
 
-            <button id="btn-start" class="w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-base rounded-xl border-2 border-amber-600 transition shadow-lg active:scale-98">
+            <button id="btn-start" class="w-full py-3 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-base border-2 border-amber-600 transition shadow-lg active:scale-98">
                 START EXPEDITION
             </button>
         </div>
@@ -291,12 +362,11 @@
 
     <script>
         let scene, camera, renderer, clock;
-        let car, carSpeed = 0, maxSpeed = 1.2, acceleration = 0.01, friction = 0.003, brakePower = 0.025;
+        let car, carSpeed = 0, baseMaxSpeed = 1.2, maxSpeed = 1.2, acceleration = 0.01, friction = 0.003, brakePower = 0.025;
         let steerAngle = 0, maxSteer = 0.035, steerSpeed = 0.0025, steerDecay = 0.004;
         
-        let gameState = 'START'; // 'START', 'DRIVING', 'ON_FOOT', 'GAMEOVER'
+        let gameState = 'START';
 
-        // Player Stats & Navigation
         let playerHealth = 100;
         let playerGold = 0;
         let playerPos = new THREE.Vector3(0, 1.6, 0);
@@ -304,7 +374,11 @@
         let outdoorTimer = 0;
         let zombieKills = 0;
 
-        // Hotbar & Sack Storage Inventory
+        let raycaster = new THREE.Raycaster();
+        let hoveredObject = null;
+        const colliders = [];
+        const interactiveDoors = [];
+
         let activeSlot = 0;
         const inventory = [
             { id: 'sword', name: 'Rust Sword', icon: '🗡️' },
@@ -313,46 +387,43 @@
             { id: 'sack', name: 'Loot Sack', icon: '🎒' }
         ];
 
-        let sackContents = [
-            { id: 'medkit', name: 'Medkit', icon: '🩹' }
-        ];
-        let carTrunkContents = [];
+        let sackItems = [];
+        const SACK_MAX = 10;
 
-        // Core Game Metrics
         let fuel = 100;
         let distanceTraveled = 0;
         const BOSS_TARGET = 100000;
 
         const keys = { w: false, a: false, s: false, d: false, space: false };
 
-        // Terrain & Structure Chunks
         const terrainChunks = new Map();
         const CHUNK_SIZE = 120;
         const VIEW_DISTANCE = 2;
         
         const interactiveItems = [];
         const zombies = [];
-        const raiderBuggies = [];
-        const towns = [];
         const outposts = [];
         let flashlightSpot;
         let playerSwordMesh;
+        let playerSackMesh, sackTextCanvas, sackTextTexture;
         let rainParticles;
-
-        function noise2D(x, z) {
-            const nx = x * 0.015;
-            const nz = z * 0.015;
-            return Math.sin(nx) * Math.cos(nz) * 6.5 + Math.sin(nx * 2.5 + nz * 1.5) * 2.5;
-        }
 
         function getTerrainHeight(x, z) {
             const distFromRoad = Math.abs(x);
-            const roadBlend = Math.min(1.0, Math.max(0.0, (distFromRoad - 7.0) / 12.0));
-            const rawH = noise2D(x, z);
+            if (distFromRoad < 14) return 0;
+
+            const cz = Math.floor((z + CHUNK_SIZE / 2) / CHUNK_SIZE);
+            if (cz > 0 && cz % 6 === 0 && distFromRoad < 50) {
+                return 0;
+            }
+
+            const nx = x * 0.015;
+            const nz = z * 0.015;
+            const rawH = Math.sin(nx) * Math.cos(nz) * 6.5 + Math.sin(nx * 2.5 + nz * 1.5) * 2.5;
+            const roadBlend = Math.min(1.0, Math.max(0.0, (distFromRoad - 14.0) / 12.0));
             return rawH * roadBlend;
         }
 
-        /* Sound Audio Engine */
         class SoundEngine {
             constructor() {
                 this.ctx = null;
@@ -419,6 +490,23 @@
                     gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
                     osc.start();
                     osc.stop(this.ctx.currentTime + 0.2);
+                } else if (type === 'door') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(240, this.ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.15);
+                } else if (type === 'werewolf_howl') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(380, this.ctx.currentTime + 0.4);
+                    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 1.0);
+                    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 1.0);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 1.0);
                 }
             }
         }
@@ -459,7 +547,7 @@
             scene.add(flashlightSpot);
             scene.add(flashlightSpot.target);
 
-            createCar();
+            createCarLowProfile();
             createPlayerFPSItems();
             createWeatherParticles();
 
@@ -470,34 +558,23 @@
             updateChunks(0, 0);
         }
 
-        function createCar() {
+        /* Clean Low-Profile Car Design with Active Headlights */
+        function createCarLowProfile() {
             car = new THREE.Group();
 
-            const bodyGeo = new THREE.BoxGeometry(2.1, 0.9, 4.3);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x543723, roughness: 0.65 });
+            // Main Box Body
+            const bodyGeo = new THREE.BoxGeometry(2.0, 0.7, 3.8);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x5c2b18, roughness: 0.5 });
             const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-            bodyMesh.position.y = 0.75;
+            bodyMesh.position.y = 0.55;
             bodyMesh.castShadow = true;
             car.add(bodyMesh);
 
-            const cabinGeo = new THREE.BoxGeometry(1.85, 0.75, 2.2);
-            const cabinMat = new THREE.MeshStandardMaterial({ color: 0x1f1b18, roughness: 0.5 });
-            const cabinMesh = new THREE.Mesh(cabinGeo, cabinMat);
-            cabinMesh.position.set(0, 1.5, -0.2);
-            cabinMesh.castShadow = true;
-            car.add(cabinMesh);
-
-            const trunkGeo = new THREE.BoxGeometry(1.7, 0.4, 0.9);
-            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x3d2719, roughness: 0.7 });
-            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.set(0, 1.05, -1.6);
-            trunk.castShadow = true;
-            car.add(trunk);
-
-            const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.32, 12);
+            // Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 16);
             const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
 
-            [[-1.05, 0.42, 1.3], [1.05, 0.42, 1.3], [-1.05, 0.42, -1.3], [1.05, 0.42, -1.3]].forEach(pos => {
+            [[-1.05, 0.35, 1.2], [1.05, 0.35, 1.2], [-1.05, 0.35, -1.2], [1.05, 0.35, -1.2]].forEach(pos => {
                 const wheel = new THREE.Mesh(wheelGeo, wheelMat);
                 wheel.rotation.z = Math.PI / 2;
                 wheel.position.set(...pos);
@@ -505,21 +582,20 @@
                 car.add(wheel);
             });
 
-            // Bright Front Headlights (+Z direction)
-            const hlGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.1, 12);
-            const hlMat = new THREE.MeshBasicMaterial({ color: 0xfff3d1 });
-            const hlL = new THREE.Mesh(hlGeo, hlMat);
-            hlL.rotation.x = Math.PI / 2;
-            hlL.position.set(-0.7, 0.8, 2.16);
-            car.add(hlL);
+            // Front Headlight Lenses
+            const lightGlassMat = new THREE.MeshStandardMaterial({ color: 0xfffcdb, emissive: 0xffe885, emissiveIntensity: 2.0 });
+            const lightMeshLeft = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 0.1), lightGlassMat);
+            lightMeshLeft.position.set(-0.7, 0.55, 1.91);
+            car.add(lightMeshLeft);
 
-            const hlR = hlL.clone();
-            hlR.position.x = 0.7;
-            car.add(hlR);
+            const lightMeshRight = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 0.1), lightGlassMat);
+            lightMeshRight.position.set(0.7, 0.55, 1.91);
+            car.add(lightMeshRight);
 
-            const spotL = new THREE.SpotLight(0xfff5cc, 4.5, 60, Math.PI / 4, 0.3);
-            spotL.position.set(-0.7, 0.8, 2.15);
-            spotL.target.position.set(-0.7, 0.5, 25);
+            // Functional Headlight Spotlights
+            const spotL = new THREE.SpotLight(0xfff5cc, 6.0, 75, Math.PI / 4, 0.3);
+            spotL.position.set(-0.7, 0.55, 1.95);
+            spotL.target.position.set(-0.7, 0.2, 30);
             car.add(spotL);
             car.add(spotL.target);
 
@@ -533,10 +609,11 @@
             scene.add(car);
         }
 
+        /* Smaller Sack Model with Compact Placement */
         function createPlayerFPSItems() {
+            // Sword
             playerSwordMesh = new THREE.Group();
-            
-            const bladeGeo = new THREE.BoxGeometry(0.08, 1.1, 0.02);
+            const bladeGeo = new THREE.BoxGeometry(0.08, 1.1, 0.02, 2, 8, 1);
             const bladeMat = new THREE.MeshStandardMaterial({ color: 0xa8a29e, metalness: 0.8, roughness: 0.3 });
             const blade = new THREE.Mesh(bladeGeo, bladeMat);
             blade.position.y = 0.55;
@@ -546,12 +623,67 @@
             const hiltMat = new THREE.MeshStandardMaterial({ color: 0x442211 });
             const hilt = new THREE.Mesh(hiltGeo, hiltMat);
             playerSwordMesh.add(hilt);
-
             playerSwordMesh.position.set(0.4, -0.3, -0.6);
             playerSwordMesh.rotation.set(0.2, -0.2, 0);
             camera.add(playerSwordMesh);
+
+            // Scaled Down Sack Mesh
+            playerSackMesh = new THREE.Group();
+
+            const armGeo = new THREE.BoxGeometry(0.08, 0.08, 0.35);
+            const armMat = new THREE.MeshStandardMaterial({ color: 0x3f2e21, roughness: 0.8 });
+            const arm = new THREE.Mesh(armGeo, armMat);
+            arm.position.set(0, -0.05, -0.15);
+            playerSackMesh.add(arm);
+
+            const sackGeo = new THREE.DodecahedronGeometry(0.14, 2);
+            const sackMat = new THREE.MeshStandardMaterial({ color: 0x855b32, roughness: 0.95 });
+            const sackBody = new THREE.Mesh(sackGeo, sackMat);
+            sackBody.position.set(0, 0.04, -0.32);
+            sackBody.scale.set(1.0, 1.1, 0.9);
+            playerSackMesh.add(sackBody);
+
+            sackTextCanvas = document.createElement('canvas');
+            sackTextCanvas.width = 128;
+            sackTextCanvas.height = 64;
+            sackTextTexture = new THREE.CanvasTexture(sackTextCanvas);
+
+            const textPlaneGeo = new THREE.PlaneGeometry(0.16, 0.08);
+            const textPlaneMat = new THREE.MeshBasicMaterial({ map: sackTextTexture, transparent: true });
+            const textPlane = new THREE.Mesh(textPlaneGeo, textPlaneMat);
+            textPlane.position.set(0, 0.04, -0.17);
+            textPlane.rotation.y = Math.PI;
+            playerSackMesh.add(textPlane);
+
+            // Tucked into lower corner of the screen
+            playerSackMesh.position.set(0.28, -0.28, -0.42);
+            playerSackMesh.visible = false;
+            camera.add(playerSackMesh);
+
             scene.add(camera);
+            updateSack3DDisplay();
         }
+
+        function updateSack3DDisplay() {
+            if (!sackTextCanvas || !sackCtx) {
+                sackCtx = sackTextCanvas.getContext('2d');
+            }
+            sackCtx.clearRect(0, 0, 128, 64);
+            sackCtx.fillStyle = 'rgba(15, 12, 8, 0.85)';
+            sackCtx.fillRect(0, 0, 128, 64);
+            sackCtx.strokeStyle = '#f59e0b';
+            sackCtx.lineWidth = 4;
+            sackCtx.strokeRect(0, 0, 128, 64);
+
+            sackCtx.fillStyle = '#fef3c7';
+            sackCtx.font = 'bold 28px monospace';
+            sackCtx.textAlign = 'center';
+            sackCtx.textBaseline = 'middle';
+            sackCtx.fillText(`${sackItems.length}/10`, 64, 32);
+
+            sackTextTexture.needsUpdate = true;
+        }
+        let sackCtx;
 
         function generateChunk(cx, cz) {
             const key = `${cx},${cz}`;
@@ -562,7 +694,7 @@
             const startZ = cz * CHUNK_SIZE;
             chunk.position.set(startX, 0, startZ);
 
-            const segments = 24;
+            const segments = 28;
             const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, segments, segments);
             geo.rotateX(-Math.PI / 2);
 
@@ -579,67 +711,68 @@
             terrain.receiveShadow = true;
             chunk.add(terrain);
 
-            // Highway Segment
             if (Math.abs(cx) === 0) {
-                const roadGeo = new THREE.PlaneGeometry(12, CHUNK_SIZE);
+                const roadGeo = new THREE.PlaneGeometry(12, CHUNK_SIZE, 2, 8);
                 roadGeo.rotateX(-Math.PI / 2);
-                const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
+                const roadMat = new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.8 });
                 const road = new THREE.Mesh(roadGeo, roadMat);
                 road.position.y = 0.02;
                 road.receiveShadow = true;
                 chunk.add(road);
 
-                for (let i = -CHUNK_SIZE / 2; i < CHUNK_SIZE / 2; i += 8) {
-                    const stripeGeo = new THREE.PlaneGeometry(0.3, 4);
-                    stripeGeo.rotateX(-Math.PI / 2);
-                    const stripeMat = new THREE.MeshBasicMaterial({ color: 0xd4a359 });
-                    const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-                    stripe.position.set(0, 0.04, i);
-                    chunk.add(stripe);
+                for (let l = -CHUNK_SIZE / 2; l < CHUNK_SIZE / 2; l += 8) {
+                    const lineMesh = new THREE.Mesh(
+                        new THREE.PlaneGeometry(0.3, 4),
+                        new THREE.MeshBasicMaterial({ color: 0xf59e0b })
+                    );
+                    lineMesh.rotateX(-Math.PI / 2);
+                    lineMesh.position.set(0, 0.03, l);
+                    chunk.add(lineMesh);
+                }
+
+                if (cz % 8 === 0) {
+                    const lampLeft = createStreetLight();
+                    lampLeft.position.set(-7.5, 0, 0);
+                    chunk.add(lampLeft);
+
+                    const lampRight = createStreetLight();
+                    lampRight.position.set(7.5, 0, 0);
+                    lampRight.rotation.y = Math.PI;
+                    chunk.add(lampRight);
                 }
             }
 
-            // Trees
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 8; i++) {
                 const rx = (Math.random() - 0.5) * CHUNK_SIZE;
                 const rz = (Math.random() - 0.5) * CHUNK_SIZE;
                 const worldX = startX + rx;
                 const worldZ = startZ + rz;
 
-                if (Math.abs(worldX) > 8) {
-                    const tree = createAutumnTree();
+                if (Math.abs(worldX) > 14) {
+                    const tree = createAutumnTreeHighPoly();
                     tree.position.set(rx, getTerrainHeight(worldX, worldZ), rz);
                     chunk.add(tree);
                 }
             }
 
-            // Roadside Towns (every ~10 chunks / 1,200m)
-            if (cx === 0 && cz > 0 && cz % 10 === 0) {
-                createRoadsideTown(chunk, startX, startZ);
+            if (cx === 0 && cz > 0 && (cz * CHUNK_SIZE) % 10000 < CHUNK_SIZE) {
+                createOutpostGasStation(chunk, startX, startZ);
+            } 
+            else if (cx === 0 && cz > 0 && cz % 6 === 0) {
+                createExpandedTown(chunk, startX, startZ);
             }
 
-            // Outposts with Guard Towers every 10,000m (~83 chunks)
-            if (cx === 0 && cz > 0 && Math.floor((cz * CHUNK_SIZE) / 10000) > Math.floor(((cz - 1) * CHUNK_SIZE) / 10000)) {
-                createOutpostBuilding(chunk, startX, startZ);
-            }
-
-            // Raider Buggy Chase Encounter Chance
-            if (cz > 5 && Math.random() < 0.25 && raiderBuggies.length < 2) {
-                spawnRaiderBuggy(startX + 15, startZ + 20);
-            }
-
-            // Items & Collectibles
-            if (Math.random() < 0.6) {
+            if (Math.random() < 0.7) {
                 const rx = (Math.random() - 0.5) * (CHUNK_SIZE - 20);
                 const rz = (Math.random() - 0.5) * (CHUNK_SIZE - 20);
                 const worldX = startX + rx;
                 const worldZ = startZ + rz;
                 
-                const types = ['fuel', 'medkit', 'sword', 'corpse', 'gold'];
+                const types = ['fuel', 'medkit', 'coal', 'sword', 'gold'];
                 const selectedType = types[Math.floor(Math.random() * types.length)];
                 
-                const item = createCollectibleMesh(selectedType, worldX, worldZ);
-                item.position.set(rx, getTerrainHeight(worldX, worldZ) + 0.3, rz);
+                const item = createDetailedCollectibleMesh(selectedType, worldX, worldZ);
+                item.position.set(rx, getTerrainHeight(worldX, worldZ) + 0.2, rz);
                 chunk.add(item);
                 interactiveItems.push(item);
             }
@@ -648,182 +781,281 @@
             terrainChunks.set(key, { group: chunk, cx, cz });
         }
 
-        function createAutumnTree() {
+        function createStreetLight() {
+            const group = new THREE.Group();
+            const poleGeo = new THREE.CylinderGeometry(0.12, 0.16, 6, 12);
+            const poleMat = new THREE.MeshStandardMaterial({ color: 0x292524, metalness: 0.8 });
+            const pole = new THREE.Mesh(poleGeo, poleMat);
+            pole.position.y = 3;
+            group.add(pole);
+
+            const armGeo = new THREE.BoxGeometry(1.6, 0.1, 0.1);
+            const arm = new THREE.Mesh(armGeo, poleMat);
+            arm.position.set(0.8, 5.8, 0);
+            group.add(arm);
+
+            const lightSpot = new THREE.SpotLight(0xffedd5, 3.5, 25, Math.PI / 3, 0.5);
+            lightSpot.position.set(1.5, 5.7, 0);
+            lightSpot.target.position.set(1.5, 0, 0);
+            group.add(lightSpot);
+            group.add(lightSpot.target);
+
+            return group;
+        }
+
+        function createAutumnTreeHighPoly() {
             const tree = new THREE.Group();
-            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.4, 4, 6);
+            const trunkGeo = new THREE.CylinderGeometry(0.25, 0.45, 4.5, 12);
             const trunkMat = new THREE.MeshStandardMaterial({ color: 0x24180e, roughness: 0.9 });
             const trunk = new THREE.Mesh(trunkGeo, trunkMat);
-            trunk.position.y = 2;
+            trunk.position.y = 2.25;
             tree.add(trunk);
 
-            const colors = [0xb85228, 0x8c381d, 0xc47e33, 0x5e381b];
-            const foliageGeo = new THREE.DodecahedronGeometry(2.0 + Math.random() * 0.6, 1);
+            const colors = [0xb85228, 0x8c381d, 0xc47e33];
+            const foliageGeo = new THREE.IcosahedronGeometry(2.2, 2);
             const foliageMat = new THREE.MeshStandardMaterial({ color: colors[Math.floor(Math.random() * colors.length)], roughness: 0.85 });
             const foliage = new THREE.Mesh(foliageGeo, foliageMat);
-            foliage.position.y = 4.5;
+            foliage.position.y = 4.8;
             tree.add(foliage);
 
             return tree;
         }
 
-        /* Towns with Multi-building structures, banks with loot gold chests */
-        function createRoadsideTown(chunk, startX, startZ) {
-            const town = new THREE.Group();
-            
-            // Houses & Shops on roadside
-            const buildingTypes = [
-                { name: 'Bank & Vault', color: 0x3d352e, width: 14, depth: 14, height: 7 },
-                { name: 'General Store', color: 0x524132, width: 10, depth: 10, height: 5 },
-                { name: 'Abandoned Diner', color: 0x4a3222, width: 12, depth: 8, height: 4.5 }
-            ];
+        function createOutpostGasStation(chunk, startX, startZ) {
+            const outpostGroup = new THREE.Group();
+            outpostGroup.position.set(16, 0, 0);
 
-            buildingTypes.forEach((b, idx) => {
-                const offsetX = (idx % 2 === 0 ? 18 : -18);
-                const offsetZ = (idx - 1) * 22;
+            const bld = new THREE.Mesh(
+                new THREE.BoxGeometry(12, 5, 8, 4, 2, 4),
+                new THREE.MeshStandardMaterial({ color: 0x3f3f46, roughness: 0.7 })
+            );
+            bld.position.set(0, 2.5, 0);
+            outpostGroup.add(bld);
+            colliders.push(bld);
 
-                const wallMat = new THREE.MeshStandardMaterial({ color: b.color, roughness: 0.8 });
-                const houseGeo = new THREE.BoxGeometry(b.width, b.height, b.depth);
-                const house = new THREE.Mesh(houseGeo, wallMat);
-                house.position.set(offsetX, b.height / 2, offsetZ);
-                house.castShadow = true;
-                town.add(house);
+            const canopy = new THREE.Mesh(
+                new THREE.BoxGeometry(10, 0.4, 10),
+                new THREE.MeshStandardMaterial({ color: 0x991b1b })
+            );
+            canopy.position.set(-10, 4.5, 0);
+            outpostGroup.add(canopy);
 
-                // Roof
-                const roofGeo = new THREE.ConeGeometry(b.width * 0.75, 4, 4);
-                roofGeo.rotateY(Math.PI / 4);
-                const roofMat = new THREE.MeshStandardMaterial({ color: 0x1f1710 });
-                const roof = new THREE.Mesh(roofGeo, roofMat);
-                roof.position.set(offsetX, b.height + 2, offsetZ);
-                town.add(roof);
+            const pump = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 2.2, 1.2),
+                new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.3 })
+            );
+            pump.position.set(-10, 1.1, 0);
+            pump.userData = { type: 'outpost_shop', name: 'Fuel Pump Outpost' };
+            outpostGroup.add(pump);
+            colliders.push(pump);
 
-                // Bank Vault Loot Chest
-                if (b.name.includes('Bank')) {
-                    const chestGeo = new THREE.BoxGeometry(1.2, 0.8, 0.8);
-                    const chestMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8 });
-                    const chest = new THREE.Mesh(chestGeo, chestMat);
-                    chest.position.set(offsetX, 0.4, offsetZ);
-                    chest.userData = { type: 'chest', gold: 250, collected: false, wx: startX + offsetX, wz: startZ + offsetZ };
-                    town.add(chest);
-                    interactiveItems.push(chest);
-                }
-            });
-
-            chunk.add(town);
-            towns.push({ x: startX, z: startZ });
+            outposts.push(pump);
+            chunk.add(outpostGroup);
         }
 
-        function createOutpostBuilding(chunk, startX, startZ) {
-            const outpost = new THREE.Group();
-            
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x4a3b2c, roughness: 0.7 });
-            const houseGeo = new THREE.BoxGeometry(16, 7, 14);
-            const house = new THREE.Mesh(houseGeo, wallMat);
-            house.position.set(20, 3.5, 0);
-            outpost.add(house);
+        function createExpandedTown(chunk, startX, startZ) {
+            const townGroup = new THREE.Group();
 
-            // Guard Tower
-            const towerGeo = new THREE.BoxGeometry(4, 12, 4);
-            const towerMat = new THREE.MeshStandardMaterial({ color: 0x2e2318 });
-            const tower = new THREE.Mesh(towerGeo, towerMat);
-            tower.position.set(20, 6, -12);
-            outpost.add(tower);
+            for (let z = -40; z <= 40; z += 20) {
+                const slL = createStreetLight();
+                slL.position.set(-10, 0, z);
+                townGroup.add(slL);
 
-            chunk.add(outpost);
-            outposts.push({ x: startX + 20, z: startZ });
-        }
-
-        function createCollectibleMesh(type, wx, wz) {
-            const group = new THREE.Group();
-            group.userData = { type: type, wx: wx, wz: wz, collected: false };
-
-            let mesh;
-            if (type === 'fuel') {
-                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.3), new THREE.MeshStandardMaterial({ color: 0xb52b1d }));
-            } else if (type === 'medkit') {
-                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.4), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-            } else if (type === 'sword') {
-                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.0, 0.1), new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 }));
-            } else if (type === 'corpse') {
-                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 1.4), new THREE.MeshStandardMaterial({ color: 0x384a2d }));
-            } else {
-                mesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9 }));
+                const slR = createStreetLight();
+                slR.position.set(10, 0, z);
+                slR.rotation.y = Math.PI;
+                townGroup.add(slR);
             }
 
-            group.add(mesh);
+            [-30, -10, 10, 30].forEach(z => {
+                const house = createDetailedHouse();
+                house.position.set(-20, 0, z);
+                townGroup.add(house);
+            });
+
+            const church = createChurch();
+            church.position.set(22, 0, -20);
+            townGroup.add(church);
+
+            const bank = createBankWithVault(startX + 22, startZ + 20);
+            bank.position.set(22, 0, 20);
+            townGroup.add(bank);
+
+            for (let i = 0; i < 3; i++) {
+                if (Math.random() < 0.25) spawnWerewolfAt(startX + 18, startZ + (i * 20 - 20));
+                else spawnZombieAt(startX + 18, startZ + (i * 20 - 20));
+            }
+
+            chunk.add(townGroup);
+        }
+
+        function createDetailedHouse() {
+            const houseGroup = new THREE.Group();
+            const w = 10, h = 5, d = 10;
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x4a3a2a, roughness: 0.8 });
+
+            const backWall = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.4, 4, 2, 1), wallMat);
+            backWall.position.set(0, h / 2, -d / 2);
+            houseGroup.add(backWall); colliders.push(backWall);
+
+            const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, h, d, 1, 2, 4), wallMat);
+            leftWall.position.set(-w / 2, h / 2, 0);
+            houseGroup.add(leftWall); colliders.push(leftWall);
+
+            const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, h, d, 1, 2, 4), wallMat);
+            rightWall.position.set(w / 2, h / 2, 0);
+            houseGroup.add(rightWall); colliders.push(rightWall);
+
+            const frontL = new THREE.Mesh(new THREE.BoxGeometry(3.5, h, 0.4), wallMat);
+            frontL.position.set(-3.25, h / 2, d / 2);
+            houseGroup.add(frontL); colliders.push(frontL);
+
+            const frontR = new THREE.Mesh(new THREE.BoxGeometry(3.5, h, 0.4), wallMat);
+            frontR.position.set(3.25, h / 2, d / 2);
+            houseGroup.add(frontR); colliders.push(frontR);
+
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 0.4, d + 1), new THREE.MeshStandardMaterial({ color: 0x2d1f14 }));
+            roof.position.set(0, h + 0.2, 0);
+            houseGroup.add(roof);
+
+            const doorPivot = new THREE.Group();
+            doorPivot.position.set(-1.5, 0, d / 2);
+
+            const doorMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(3.0, 4.0, 0.2, 2, 4, 1),
+                new THREE.MeshStandardMaterial({ color: 0x6e4727, roughness: 0.7 })
+            );
+            doorMesh.position.set(1.5, 2.0, 0);
+            doorMesh.userData = { type: 'door', name: 'Wooden Door', open: false, pivot: doorPivot };
+            doorPivot.add(doorMesh);
+            houseGroup.add(doorPivot);
+
+            interactiveDoors.push(doorMesh);
+            colliders.push(doorMesh);
+
+            return houseGroup;
+        }
+
+        function createChurch() {
+            const group = new THREE.Group();
+            const main = new THREE.Mesh(
+                new THREE.BoxGeometry(12, 8, 18, 4, 4, 6),
+                new THREE.MeshStandardMaterial({ color: 0x52525b, roughness: 0.9 })
+            );
+            main.position.y = 4;
+            group.add(main); colliders.push(main);
+
+            const steeple = new THREE.Mesh(
+                new THREE.BoxGeometry(4, 14, 4),
+                new THREE.MeshStandardMaterial({ color: 0x3f3f46 })
+            );
+            steeple.position.set(0, 11, -7);
+            group.add(steeple); colliders.push(steeple);
+
+            const cross = new THREE.Mesh(new THREE.BoxGeometry(0.4, 2.5, 0.4), new THREE.MeshStandardMaterial({ color: 0xf59e0b }));
+            cross.position.set(0, 19, -7);
+            group.add(cross);
+
             return group;
         }
 
-        /* Raider Buggy Chase Vehicle Mechanic */
-        function spawnRaiderBuggy(x, z) {
-            const buggy = new THREE.Group();
-            const bodyGeo = new THREE.BoxGeometry(1.8, 0.8, 3.2);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8b0000, roughness: 0.5 });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
-            body.position.y = 0.6;
-            buggy.add(body);
+        function createBankWithVault(worldX, worldZ) {
+            const group = new THREE.Group();
+            const bld = new THREE.Mesh(
+                new THREE.BoxGeometry(14, 6, 12, 6, 3, 6),
+                new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.6 })
+            );
+            bld.position.y = 3;
+            group.add(bld); colliders.push(bld);
 
-            buggy.position.set(x, getTerrainHeight(x, z), z);
-            buggy.userData = { speed: 0.8, health: 60 };
+            const sign = new THREE.Mesh(new THREE.BoxGeometry(6, 1.2, 0.3), new THREE.MeshStandardMaterial({ color: 0x065f46 }));
+            sign.position.set(0, 5, 6.2);
+            group.add(sign);
 
-            scene.add(buggy);
-            raiderBuggies.push(buggy);
-        }
-
-        function updateRaiderBuggies(delta) {
-            for (let i = raiderBuggies.length - 1; i >= 0; i--) {
-                const b = raiderBuggies[i];
-                const targetPos = (gameState === 'DRIVING') ? car.position : playerPos;
-                
-                const dx = targetPos.x - b.position.x;
-                const dz = targetPos.z - b.position.z;
-                const dist = Math.hypot(dx, dz);
-
-                b.rotation.y = Math.atan2(dx, dz);
-
-                if (dist > 3.0) {
-                    b.position.x += Math.sin(b.rotation.y) * 12.0 * delta;
-                    b.position.z += Math.cos(b.rotation.y) * 12.0 * delta;
-                    b.position.y = getTerrainHeight(b.position.x, b.position.z);
-                } else {
-                    damagePlayer(25 * delta);
-                }
+            for (let i = 0; i < 4; i++) {
+                const gold = createDetailedCollectibleMesh('gold', worldX + (i * 0.4 - 0.6), worldZ);
+                gold.position.set(i * 0.4 - 0.6, 0.3, 0);
+                group.add(gold);
+                interactiveItems.push(gold);
             }
+
+            return group;
         }
 
-        function spawnZombieNearPlayer() {
+        function createDetailedCollectibleMesh(type, wx, wz) {
+            const group = new THREE.Group();
+
+            let meshName = 'Unknown Item';
+            if (type === 'fuel') {
+                meshName = 'Red Fuel Canister';
+                const base = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.6, 0.3, 2, 3, 2), new THREE.MeshStandardMaterial({ color: 0xb52b1d, roughness: 0.4 }));
+                const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.15, 12), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+                cap.position.set(0.15, 0.35, 0);
+                group.add(base, cap);
+            } else if (type === 'medkit') {
+                meshName = 'First Aid Kit';
+                const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.4, 2, 2, 2), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.3 }));
+                group.add(box);
+            } else if (type === 'coal') {
+                meshName = 'Lump of Coal';
+                for (let i = 0; i < 3; i++) {
+                    const lump = new THREE.Mesh(new THREE.DodecahedronGeometry(0.18 - i * 0.03, 1), new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.95 }));
+                    lump.position.set((Math.random() - 0.5) * 0.2, i * 0.08, (Math.random() - 0.5) * 0.2);
+                    group.add(lump);
+                }
+            } else if (type === 'sword') {
+                meshName = 'Iron Broadsword';
+                const blade = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.9, 0.02, 2, 6, 1), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9 }));
+                blade.rotation.z = Math.PI / 2;
+                group.add(blade);
+            } else if (type === 'corpse') {
+                meshName = 'Zombie Corpse';
+                const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.25, 1.4, 2, 2, 4), new THREE.MeshStandardMaterial({ color: 0x334155 }));
+                group.add(body);
+            } else {
+                meshName = 'Gold Nugget Cache';
+                const gold = new THREE.Mesh(new THREE.DodecahedronGeometry(0.25, 2), new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.9, roughness: 0.2 }));
+                group.add(gold);
+            }
+
+            group.userData = { type: type, name: meshName, wx: wx, wz: wz, collected: false };
+            return group;
+        }
+
+        function spawnZombieAt(x, z) {
             const zombie = new THREE.Group();
-            
-            const bodyGeo = new THREE.BoxGeometry(0.7, 1.6, 0.4);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2d3a28, roughness: 0.8 });
-            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.6, 0.4, 2, 4, 2), new THREE.MeshStandardMaterial({ color: 0x2d3a28, roughness: 0.8 }));
             body.position.y = 0.8;
             zombie.add(body);
 
-            const headGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-            const headMat = new THREE.MeshStandardMaterial({ color: 0x4a5d43 });
-            const head = new THREE.Mesh(headGeo, headMat);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4, 2, 2, 2), new THREE.MeshStandardMaterial({ color: 0x4a5d43 }));
             head.position.y = 1.8;
             zombie.add(head);
 
-            const eyeGeo = new THREE.SphereGeometry(0.05, 6, 6);
-            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-            eyeL.position.set(-0.1, 1.85, 0.21);
-            const eyeR = eyeL.clone();
-            eyeR.position.x = 0.1;
-            zombie.add(eyeL);
-            zombie.add(eyeR);
-
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 35 + Math.random() * 15;
-            const spawnX = playerPos.x + Math.sin(angle) * dist;
-            const spawnZ = playerPos.z + Math.cos(angle) * dist;
-
-            zombie.position.set(spawnX, getTerrainHeight(spawnX, spawnZ), spawnZ);
-            zombie.userData = { health: 40, speed: 2.8 + Math.random() * 1.2 };
+            zombie.position.set(x, getTerrainHeight(x, z), z);
+            zombie.userData = { type: 'zombie', health: 40, speed: 2.5 + Math.random() * 1.0 };
 
             scene.add(zombie);
             zombies.push(zombie);
+        }
+
+        function spawnWerewolfAt(x, z) {
+            const wolf = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2.2, 0.8, 3, 5, 2), new THREE.MeshStandardMaterial({ color: 0x1c1917, roughness: 0.9 }));
+            body.position.y = 1.1;
+            wolf.add(body);
+
+            const head = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.8, 8), new THREE.MeshStandardMaterial({ color: 0x0c0a09 }));
+            head.rotateX(Math.PI / 2);
+            head.position.set(0, 2.2, 0.3);
+            wolf.add(head);
+
+            wolf.position.set(x, getTerrainHeight(x, z), z);
+            wolf.userData = { type: 'werewolf', health: 120, speed: 5.2 };
+
+            scene.add(wolf);
+            zombies.push(wolf);
+            audio.playSound('werewolf_howl');
         }
 
         function updateZombies(delta) {
@@ -842,10 +1074,11 @@
                     z.position.z += Math.cos(z.rotation.y) * z.userData.speed * delta;
                     z.position.y = getTerrainHeight(z.position.x, z.position.z);
                 } else if (gameState === 'ON_FOOT') {
-                    damagePlayer(18 * delta);
+                    const dmg = (z.userData.type === 'werewolf') ? 35 : 18;
+                    damagePlayer(dmg * delta);
                 }
 
-                if (dist > 120) {
+                if (dist > 140) {
                     scene.remove(z);
                     zombies.splice(i, 1);
                 }
@@ -854,7 +1087,6 @@
 
         function swingSword() {
             audio.playSound('swing');
-            
             playerSwordMesh.rotation.z = -1.2;
             setTimeout(() => { playerSwordMesh.rotation.z = 0; }, 200);
 
@@ -868,8 +1100,7 @@
                         zombies.splice(idx, 1);
                         zombieKills++;
                         
-                        // Add dead zombie corpse loot to floor
-                        const corpse = createCollectibleMesh('corpse', z.position.x, z.position.z);
+                        const corpse = createDetailedCollectibleMesh('corpse', z.position.x, z.position.z);
                         corpse.position.set(z.position.x, getTerrainHeight(z.position.x, z.position.z) + 0.2, z.position.z);
                         scene.add(corpse);
                         interactiveItems.push(corpse);
@@ -898,7 +1129,7 @@
         function setupPointerLock() {
             const container = document.getElementById('canvas-container');
             container.addEventListener('click', () => {
-                if ((gameState === 'ON_FOOT' || gameState === 'DRIVING') && document.getElementById('storage-modal').classList.contains('hidden')) {
+                if (gameState === 'ON_FOOT' || gameState === 'DRIVING') {
                     container.requestPointerLock();
                 }
             });
@@ -913,6 +1144,11 @@
 
             document.addEventListener('mousedown', (e) => {
                 if (gameState === 'ON_FOOT' && e.button === 0) {
+                    if (hoveredObject && hoveredObject.userData.type === 'door') {
+                        toggleDoor(hoveredObject);
+                        return;
+                    }
+
                     if (inventory[activeSlot].id === 'sword') {
                         swingSword();
                     } else if (inventory[activeSlot].id === 'fuel') {
@@ -922,11 +1158,16 @@
                             audio.playSound('pickup');
                             updateHUD();
                         }
-                    } else if (inventory[activeSlot].id === 'sack') {
-                        toggleStorageModal(true, 'Loot Sack Container', sackContents);
                     }
                 }
             });
+        }
+
+        function toggleDoor(doorMesh) {
+            const open = !doorMesh.userData.open;
+            doorMesh.userData.open = open;
+            doorMesh.userData.pivot.rotation.y = open ? Math.PI / 2 : 0;
+            audio.playSound('door');
         }
 
         function setupInputListeners() {
@@ -939,8 +1180,7 @@
                 if (e.code === 'Space') keys.space = true;
 
                 if (k === 'e') handleInteraction();
-                if (k === 'f' || k === 'i') toggleStorageModal(true, 'Loot Sack Container', sackContents);
-                if (k === 'escape') toggleStorageModal(false);
+                if (k === 'f') handleKeyPressF();
 
                 if (k === '1') selectSlot(0);
                 if (k === '2') selectSlot(1);
@@ -969,70 +1209,167 @@
 
             flashlightSpot.intensity = (inventory[activeSlot].id === 'flashlight') ? 4.5 : 0;
             playerSwordMesh.visible = (inventory[activeSlot].id === 'sword');
+            playerSackMesh.visible = (inventory[activeSlot].id === 'sack');
         }
 
-        function toggleStorageModal(show, title = '', itemsList = []) {
-            const modal = document.getElementById('storage-modal');
-            if (show) {
-                document.exitPointerLock();
-                modal.classList.remove('hidden');
-                document.getElementById('storage-title').innerText = title;
-                renderStorageGrid(itemsList);
-            } else {
-                modal.classList.add('hidden');
+        function handleKeyPressF() {
+            if (gameState !== 'ON_FOOT') return;
+
+            if (hoveredObject && hoveredObject.userData.type !== 'door') {
+                if (sackItems.length >= SACK_MAX) {
+                    alert('Sack is full! (10/10 items)');
+                    return;
+                }
+
+                const item = hoveredObject;
+                item.userData.collected = true;
+                item.visible = false;
+                audio.playSound('pickup');
+
+                if (item.userData.type === 'gold') {
+                    playerGold += 100;
+                } else {
+                    sackItems.push({ type: item.userData.type, name: item.userData.name });
+                }
+
+                hoveredObject = null;
+                document.getElementById('hover-tooltip').style.display = 'none';
+                updateSack3DDisplay();
+                updateHUD();
+                return;
+            }
+
+            if (!hoveredObject && sackItems.length > 0) {
+                const dropped = sackItems.pop();
+                audio.playSound('pickup');
+
+                const droppedMesh = createDetailedCollectibleMesh(dropped.type, playerPos.x, playerPos.z);
+                const forward = new THREE.Vector3(Math.sin(playerYaw), 0, Math.cos(playerYaw)).multiplyScalar(1.5);
+                const dropPos = playerPos.clone().add(forward);
+                
+                droppedMesh.position.set(dropPos.x, getTerrainHeight(dropPos.x, dropPos.z) + 0.2, dropPos.z);
+                scene.add(droppedMesh);
+                interactiveItems.push(droppedMesh);
+
+                updateSack3DDisplay();
+                updateHUD();
             }
         }
 
-        function renderStorageGrid(itemsList) {
-            const grid = document.getElementById('storage-grid');
-            grid.innerHTML = '';
+        function checkHoveredObject() {
+            if (gameState !== 'ON_FOOT') {
+                document.getElementById('hover-tooltip').style.display = 'none';
+                return;
+            }
 
-            let hasCorpse = false;
-            itemsList.forEach((item, idx) => {
-                if (item.id === 'corpse') hasCorpse = true;
-                const slot = document.createElement('div');
-                slot.className = 'bg-stone-800 border border-amber-700/60 rounded-lg p-2 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-stone-700';
-                slot.innerHTML = `<span class="text-2xl">${item.icon}</span><span class="text-[10px] mt-1 text-amber-300 font-bold">${item.name}</span>`;
-                slot.onclick = () => useOrExtractItem(itemsList, idx);
-                grid.appendChild(slot);
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            
+            const candidates = [];
+            interactiveItems.forEach(item => {
+                if (!item.userData.collected) {
+                    item.traverse(child => { if (child.isMesh) candidates.push(child); });
+                }
+            });
+            interactiveDoors.forEach(d => candidates.push(d));
+
+            const intersects = raycaster.intersectObjects(candidates, false);
+
+            if (intersects.length > 0 && intersects[0].distance < 4.0) {
+                const hitMesh = intersects[0].object;
+                let targetGroup = hitMesh.parent;
+                while (targetGroup && !targetGroup.userData.type && targetGroup.parent) {
+                    targetGroup = targetGroup.parent;
+                }
+
+                const target = (targetGroup && targetGroup.userData.type) ? targetGroup : hitMesh;
+
+                if (hoveredObject !== target) {
+                    unhighlightObject(hoveredObject);
+                    hoveredObject = target;
+                    highlightObject(hoveredObject);
+                }
+
+                const tooltip = document.getElementById('hover-tooltip');
+                const labelName = target.userData.name || 'Interactive Object';
+                if (target.userData.type === 'door') {
+                    tooltip.innerText = `${labelName} [CLICK TO TOGGLE]`;
+                } else {
+                    tooltip.innerText = `${labelName} [PRESS F TO STORE]`;
+                }
+                tooltip.style.display = 'block';
+
+            } else {
+                if (hoveredObject) {
+                    unhighlightObject(hoveredObject);
+                    hoveredObject = null;
+                }
+                document.getElementById('hover-tooltip').style.display = 'none';
+            }
+        }
+
+        function highlightObject(obj) {
+            if (!obj) return;
+            if (obj.userData.type !== 'door') {
+                obj.position.y += 0.25;
+            }
+            obj.traverse(c => {
+                if (c.isMesh && c.material) {
+                    c.userData.origEmissive = c.material.emissive ? c.material.emissive.getHex() : 0x000000;
+                    if (c.material.emissive) c.material.emissive.setHex(0x554400);
+                }
+            });
+        }
+
+        function unhighlightObject(obj) {
+            if (!obj) return;
+            if (obj.userData.type !== 'door') {
+                obj.position.y -= 0.25;
+            }
+            obj.traverse(c => {
+                if (c.isMesh && c.material && c.userData.origEmissive !== undefined) {
+                    c.material.emissive.setHex(c.userData.origEmissive);
+                }
+            });
+        }
+
+        function checkOutpostShopProximity() {
+            let nearOutpost = false;
+            outposts.forEach(op => {
+                const dist = playerPos.distanceTo(op.getWorldPosition(new THREE.Vector3()));
+                if (dist < 5.0) nearOutpost = true;
             });
 
-            const btnBiofuel = document.getElementById('btn-convert-biofuel');
-            btnBiofuel.className = hasCorpse ? 'bg-emerald-900/90 hover:bg-emerald-800 border border-emerald-600 px-3 py-1.5 rounded text-emerald-200 font-bold block' : 'hidden';
-        }
-
-        function useOrExtractItem(list, idx) {
-            const item = list[idx];
-            if (item.id === 'medkit') {
-                playerHealth = Math.min(100, playerHealth + 40);
-                list.splice(idx, 1);
-                audio.playSound('pickup');
-            } else if (item.id === 'fuel') {
-                fuel = Math.min(100, fuel + 35);
-                list.splice(idx, 1);
-                audio.playSound('pickup');
+            const shopUI = document.getElementById('shop-prompt');
+            if (nearOutpost && gameState === 'ON_FOOT') {
+                shopUI.style.display = 'block';
+            } else {
+                shopUI.style.display = 'none';
             }
-            updateHUD();
-            renderStorageGrid(list);
         }
 
-        function convertZombieBiofuel() {
-            const idx = sackContents.findIndex(i => i.id === 'corpse');
-            if (idx !== -1) {
-                sackContents.splice(idx, 1);
-                fuel = Math.min(100, fuel + 25);
+        function buyFuelAtOutpost() {
+            if (playerGold >= 50) {
+                playerGold -= 50;
+                fuel = Math.min(100, fuel + 35);
                 audio.playSound('pickup');
                 updateHUD();
-                renderStorageGrid(sackContents);
+            } else {
+                alert('Not enough gold! ($50 required)');
             }
         }
 
         function handleInteraction() {
+            if (document.getElementById('shop-prompt').style.display === 'block') {
+                buyFuelAtOutpost();
+                return;
+            }
+
             if (gameState === 'DRIVING') {
                 if (Math.abs(carSpeed) < 0.15) {
                     gameState = 'ON_FOOT';
                     playerPos.set(car.position.x - 2.5, getTerrainHeight(car.position.x - 2.5, car.position.z) + 1.6, car.position.z);
                     document.getElementById('crosshair').classList.remove('hidden');
+                    document.getElementById('roof-cover').classList.add('hidden');
                     document.getElementById('hud-mode-badge').innerText = 'ON FOOT';
                     document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-emerald-400';
                 }
@@ -1041,37 +1378,11 @@
                 if (distToCar < 3.8) {
                     gameState = 'DRIVING';
                     document.getElementById('crosshair').classList.add('hidden');
+                    document.getElementById('roof-cover').classList.remove('hidden');
                     document.getElementById('hud-mode-badge').innerText = 'DRIVING';
                     document.getElementById('hud-mode-badge').className = 'text-sm font-bold text-amber-200';
                     outdoorTimer = 0;
                     return;
-                }
-
-                // Check Item Interactions & Gold Chests
-                for (let i = 0; i < interactiveItems.length; i++) {
-                    const item = interactiveItems[i];
-                    if (item.userData.collected) continue;
-
-                    const itemPos = new THREE.Vector3(item.userData.wx, item.position.y, item.userData.wz);
-                    if (playerPos.distanceTo(itemPos) < 3.0) {
-                        item.userData.collected = true;
-                        item.visible = false;
-                        audio.playSound('pickup');
-
-                        if (item.userData.type === 'chest') {
-                            playerGold += item.userData.gold;
-                        } else if (item.userData.type === 'fuel') {
-                            sackContents.push({ id: 'fuel', name: 'Fuel Can', icon: '⛽' });
-                        } else if (item.userData.type === 'medkit') {
-                            sackContents.push({ id: 'medkit', name: 'Medkit', icon: '🩹' });
-                        } else if (item.userData.type === 'corpse') {
-                            sackContents.push({ id: 'corpse', name: 'Zombie Corpse', icon: '🧟' });
-                        } else if (item.userData.type === 'gold') {
-                            playerGold += 100;
-                        }
-                        updateHUD();
-                        break;
-                    }
                 }
             }
         }
@@ -1083,13 +1394,14 @@
             updateHUD();
 
             if (playerHealth <= 0) {
-                gameOver('OVERTAKEN BY MIST ZOMBIES');
+                gameOver('OVERTAKEN BY AUTUMN MIST');
             }
         }
 
         function startGame() {
             audio.init();
             document.getElementById('modal-screen').classList.add('hidden');
+            document.getElementById('roof-cover').classList.remove('hidden');
             gameState = 'DRIVING';
             carSpeed = 0;
             fuel = 100;
@@ -1097,15 +1409,18 @@
             playerGold = 0;
             zombieKills = 0;
             distanceTraveled = 0;
+            sackItems = [];
             car.position.set(0, getTerrainHeight(0, 0), 0);
             car.rotation.set(0, 0, 0);
             selectSlot(0);
+            updateSack3DDisplay();
         }
 
         function gameOver(reason) {
             gameState = 'GAMEOVER';
             document.exitPointerLock();
             document.getElementById('modal-screen').classList.remove('hidden');
+            document.getElementById('roof-cover').classList.add('hidden');
             document.getElementById('modal-title').innerText = 'TRIP CONCLUDED';
             document.getElementById('modal-desc').innerText = 'The dull autumn mist claimed another traveler.';
             document.getElementById('modal-stats').classList.remove('hidden');
@@ -1115,9 +1430,15 @@
             document.getElementById('btn-start').innerText = 'RESTART JOURNEY';
         }
 
-        /* Fixed Vehicle Steering Physics Mechanics (A turns Left, D turns Right) */
         function updateVehiclePhysics(delta) {
             if (gameState !== 'DRIVING') return;
+
+            const isOffroad = Math.abs(car.position.x) > 6.0;
+            maxSpeed = isOffroad ? baseMaxSpeed * 0.65 : baseMaxSpeed;
+
+            const warningEl = document.getElementById('offroad-warning');
+            if (isOffroad) warningEl.classList.remove('hidden');
+            else warningEl.classList.add('hidden');
 
             if (keys.w && fuel > 0) {
                 carSpeed = Math.min(maxSpeed, carSpeed + acceleration);
@@ -1131,7 +1452,6 @@
 
             if (keys.space) carSpeed *= 0.92;
 
-            // CORRECTED: A turns Left (+Y yaw rotation), D turns Right (-Y yaw rotation)
             if (keys.a) steerAngle = Math.min(maxSteer, steerAngle + steerSpeed);
             else if (keys.d) steerAngle = Math.max(-maxSteer, steerAngle - steerSpeed);
             else {
@@ -1145,9 +1465,7 @@
             car.position.x += Math.sin(car.rotation.y) * moveDist;
             car.position.z += Math.cos(car.rotation.y) * moveDist;
 
-            const currentH = getTerrainHeight(car.position.x, car.position.z);
-            car.position.y = currentH;
-
+            car.position.y = getTerrainHeight(car.position.x, car.position.z);
             distanceTraveled = car.position.z;
             audio.updateEngine(Math.abs(carSpeed) / maxSpeed);
 
@@ -1164,9 +1482,9 @@
             if (gameState !== 'ON_FOOT') return;
 
             outdoorTimer += delta;
-
-            if (outdoorTimer > 8.0 && zombies.length < 5) {
-                spawnZombieNearPlayer();
+            if (outdoorTimer > 12.0 && zombies.length < 3) {
+                if (Math.random() < 0.2) spawnWerewolfAt(playerPos.x + 30, playerPos.z + 30);
+                else spawnZombieAt(playerPos.x + 30, playerPos.z + 30);
                 outdoorTimer = 0;
             }
 
@@ -1174,23 +1492,34 @@
             const forward = new THREE.Vector3(Math.sin(playerYaw), 0, Math.cos(playerYaw)).normalize();
             const side = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
-            if (keys.w) playerPos.addScaledVector(forward, moveSpeed);
-            if (keys.s) playerPos.addScaledVector(forward, -moveSpeed);
-            if (keys.a) playerPos.addScaledVector(side, moveSpeed);
-            if (keys.d) playerPos.addScaledVector(side, -moveSpeed);
+            const nextPos = playerPos.clone();
+
+            if (keys.w) nextPos.addScaledVector(forward, moveSpeed);
+            if (keys.s) nextPos.addScaledVector(forward, -moveSpeed);
+            if (keys.a) nextPos.addScaledVector(side, -moveSpeed);
+            if (keys.d) nextPos.addScaledVector(side, moveSpeed);
+
+            let collide = false;
+            const playerBox = new THREE.Box3().setFromCenterAndSize(nextPos, new THREE.Vector3(0.8, 1.8, 0.8));
+
+            for (let c of colliders) {
+                if (c.userData && c.userData.open) continue;
+                const cBox = new THREE.Box3().setFromObject(c);
+                if (playerBox.intersectsBox(cBox)) {
+                    collide = true;
+                    break;
+                }
+            }
+
+            if (!collide) {
+                playerPos.copy(nextPos);
+            }
 
             const groundY = getTerrainHeight(playerPos.x, playerPos.z);
             playerPos.y = groundY + 1.6;
 
-            const distToCar = playerPos.distanceTo(car.position);
-            const promptEl = document.getElementById('interaction-prompt');
-
-            if (distToCar < 3.8) {
-                promptEl.innerText = "Press E to Enter Car / Trunk";
-                promptEl.classList.remove('hidden');
-            } else {
-                promptEl.classList.add('hidden');
-            }
+            checkHoveredObject();
+            checkOutpostShopProximity();
         }
 
         function updateChunks(playerX, playerZ) {
@@ -1206,7 +1535,7 @@
 
         function updateCamera() {
             if (gameState === 'DRIVING') {
-                const cabinOffset = new THREE.Vector3(-0.45, 1.45, -0.2);
+                const cabinOffset = new THREE.Vector3(0, 1.15, 0.4);
                 cabinOffset.applyQuaternion(car.quaternion);
                 camera.position.copy(car.position).add(cabinOffset);
 
@@ -1233,7 +1562,6 @@
             }
         }
 
-        /* Minimap Radar Rendering */
         function drawMinimap() {
             const canvas = document.getElementById('minimap-canvas');
             const ctx = canvas.getContext('2d');
@@ -1245,7 +1573,6 @@
 
             const focalPos = (gameState === 'DRIVING') ? car.position : playerPos;
 
-            // Highway line
             ctx.strokeStyle = '#555';
             ctx.lineWidth = 4;
             ctx.beginPath();
@@ -1253,17 +1580,15 @@
             ctx.lineTo(centerX - focalPos.x * scale, canvas.height);
             ctx.stroke();
 
-            // Zombies
-            ctx.fillStyle = '#ef4444';
             zombies.forEach(z => {
+                ctx.fillStyle = (z.userData.type === 'werewolf') ? '#a855f7' : '#ef4444';
                 const rx = centerX + (z.position.x - focalPos.x) * scale;
                 const ry = centerY - (z.position.z - focalPos.z) * scale;
                 ctx.beginPath();
-                ctx.arc(rx, ry, 3, 0, Math.PI * 2);
+                ctx.arc(rx, ry, (z.userData.type === 'werewolf') ? 5 : 3, 0, Math.PI * 2);
                 ctx.fill();
             });
 
-            // Player / Car indicator
             ctx.fillStyle = '#f59e0b';
             ctx.beginPath();
             ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
@@ -1275,17 +1600,20 @@
             const focalPos = (gameState === 'DRIVING') ? car.position : playerPos;
             document.getElementById('hud-coords').innerText = `${Math.round(focalPos.x)}, ${Math.round(focalPos.z)}`;
             document.getElementById('hud-gold').innerText = `$${playerGold}`;
-            document.getElementById('speed-display').innerText = Math.round(Math.abs(carSpeed) * 110);
+
+            const currentSpeedKm = Math.round(Math.abs(carSpeed) * 110);
+            document.getElementById('speed-display').innerText = currentSpeedKm;
+            const speedAngle = -120 + Math.min(240, (currentSpeedKm / 140) * 240);
+            document.getElementById('speed-needle').style.transform = `rotate(${speedAngle}deg)`;
+
             document.getElementById('hud-fuel-pct').innerText = `${Math.round(fuel)}%`;
+            const fuelAngle = -120 + (fuel / 100) * 240;
+            document.getElementById('fuel-needle').style.transform = `rotate(${fuelAngle}deg)`;
+
             document.getElementById('hud-health-bar').style.width = `${playerHealth}%`;
 
             const threatText = zombies.length > 0 ? `${zombies.length} NEARBY` : 'SAFE';
             document.getElementById('hud-threat-level').innerText = threatText;
-
-            const speedDeg = -120 + (Math.abs(carSpeed) / maxSpeed) * 240;
-            document.getElementById('gauge-speed-needle').style.transform = `rotate(${speedDeg}deg)`;
-            const fuelDeg = -45 + (fuel / 100) * 90;
-            document.getElementById('gauge-fuel-needle').style.transform = `rotate(${fuelDeg}deg)`;
 
             drawMinimap();
         }
@@ -1328,7 +1656,6 @@
             }
 
             updateZombies(delta);
-            updateRaiderBuggies(delta);
             updateCamera();
             updateHUD();
             drawRainOverlay();
